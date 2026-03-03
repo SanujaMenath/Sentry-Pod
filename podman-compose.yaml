@@ -1,0 +1,70 @@
+version: '3.8'
+
+services:
+
+  vault:
+    build:
+      context: ./vault
+    container_name: sentry-vault
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+    environment:
+      - DATABASE_URL=postgresql://sentry_admin:sentry_password@db:5432/sentry_db
+      - [cite_start]SECRET_KEY=${SECRET_KEY}
+    networks:
+      - sentry-internal
+
+
+  command-center:
+    build:
+      context: ./command-center
+    container_name: sentry-command-center
+    ports:
+      - "5173:5173"
+    depends_on:
+      - vault
+    networks:
+      - sentry-internal
+
+
+  brain:
+    build:
+      context: ./brain
+    container_name: sentry-brain
+    environment:
+      - [cite_start]LLM_API_KEY=${LLM_API_KEY}
+    networks:
+      - sentry-internal
+
+
+  watchman:
+    build:
+      context: ./watchman
+    container_name: sentry-watchman
+    depends_on:
+      - vault
+    networks:
+      - sentry-internal
+    cap_add:
+      - NET_ADMIN 
+
+  db:
+    image: postgres:15-alpine
+    container_name: sentry-db
+    environment:
+      - POSTGRES_USER=sentry_admin
+      - POSTGRES_PASSWORD=sentry_password
+      - POSTGRES_DB=sentry_db
+    volumes:
+      - [cite_start]postgres_data:/var/lib/postgresql/data
+    networks:
+      - sentry-internal
+
+networks:
+  sentry-internal:
+    driver: bridge
+
+volumes:
+  postgres_data: 
