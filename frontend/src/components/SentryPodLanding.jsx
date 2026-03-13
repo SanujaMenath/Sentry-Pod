@@ -9,7 +9,6 @@ import {
   ChevronRight 
 } from 'lucide-react';
 
-// --- Reusable Feature Card Component ---
 const FeatureCard = ({ icon: Icon, title, description }) => (
   <div className="bg-slate-800/40 p-6 rounded-xl border border-slate-700 hover:border-blue-500 transition-all duration-300">
     <div className="bg-blue-600/20 p-3 rounded-lg w-fit mb-4">
@@ -24,7 +23,7 @@ const SentryPodLanding = () => {
   return (
     <div className="min-h-screen bg-[#0b0f1a] text-slate-200 font-sans selection:bg-blue-500/30">
       
-      {/* --- HERO SECTION --- */}
+      {/*  HERO SECTION  */}
       <header className="relative pt-20 pb-32 px-6 overflow-hidden">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
           <div className="z-10">
@@ -37,7 +36,7 @@ const SentryPodLanding = () => {
             
             <h2 className="text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
               AI-Driven Network <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-emerald-400">
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-emerald-400">
                 Monitoring and Automation
               </span>
             </h2>
@@ -57,7 +56,7 @@ const SentryPodLanding = () => {
           </div>
 
           <div className="relative group">
-            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500 to-emerald-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+            <div className="absolute -inset-1 bg-linear-to-r from-blue-500 to-emerald-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
             <img 
               src="https://images.unsplash.com/photo-1558494949-ef010cbdcc4b?auto=format&fit=crop&q=80&w=800" 
               alt="Network Visualization" 
@@ -67,7 +66,7 @@ const SentryPodLanding = () => {
         </div>
       </header>
 
-      {/* --- CORE FEATURES --- */}
+      {/* CORE FEATURES */}
       <section className="py-24 px-6 bg-slate-900/30">
         <div className="max-w-7xl mx-auto text-center mb-16">
           <h2 className="text-4xl font-bold text-white mb-4">Powerful Features for Modern Networks</h2>
@@ -107,7 +106,7 @@ const SentryPodLanding = () => {
           />
         </div>
       </section>
-      {/* --- WHY CHOOSE SECTION --- */}
+      {/*  WHY CHOOSE SECTION  */}
       <section className="py-24 px-6">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
           <div>
@@ -147,9 +146,9 @@ const SentryPodLanding = () => {
         </div>
       </section>
 
-      {/* --- CTA SECTION --- */}
+      {/*  CTA SECTION  */}
       <section className="py-20 px-6">
-        <div className="max-w-5xl mx-auto bg-gradient-to-br from-blue-600 to-indigo-700 rounded-3xl p-12 text-center shadow-2xl relative overflow-hidden">
+        <div className="max-w-5xl mx-auto bg-linear-to-br from-blue-600 to-indigo-700 rounded-3xl p-12 text-center shadow-2xl relative overflow-hidden">
           <div className="relative z-10">
             <h2 className="text-4xl font-bold text-white mb-6">Ready to Transform Your Network?</h2>
             <p className="text-blue-100 mb-10 text-lg max-w-2xl mx-auto">
@@ -165,7 +164,7 @@ const SentryPodLanding = () => {
         </div>
       </section>
 
-      {/* --- FOOTER --- */}
+      {/*  FOOTER  */}
       <footer className="py-12 border-t border-slate-800 text-center text-slate-500 text-sm">
         <p>© 2026 Sentry-Pod AI. All rights reserved. Built for modern infrastructure.</p>
       </footer>
