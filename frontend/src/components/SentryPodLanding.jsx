@@ -1,112 +1,118 @@
 import React from 'react';
+import logo from '../Images/logo.png';
+import heroVisual from '../Images/Network Visualization Image.png';
 import { 
-  Network, 
   ShieldCheck, 
   Activity, 
   Zap, 
   Search, 
   Database, 
-  ChevronRight 
+  ChevronRight,
+  Network 
 } from 'lucide-react';
 
+// --- Reusable Feature Card Component ---
 const FeatureCard = ({ icon: Icon, title, description }) => (
-  <div className="bg-slate-800/40 p-6 rounded-xl border border-slate-700 hover:border-blue-500 transition-all duration-300">
-    <div className="bg-blue-600/20 p-3 rounded-lg w-fit mb-4">
-      <Icon className="text-blue-400" size={24} />
+  <div className="bg-slate-800/40 p-6 rounded-xl border border-slate-700 hover:border-[#51A2FF] transition-all duration-300 group">
+    <div className="bg-[#51A2FF]/10 p-3 rounded-lg w-fit mb-4 group-hover:bg-[#51A2FF]/20">
+      <Icon className="text-[#51A2FF]" size={24} />
     </div>
     <h3 className="text-xl font-semibold text-white mb-2">{title}</h3>
-    <p className="text-slate-400 text-sm leading-relaxed">{description}</p>
+    <p className="text-[#CAD5E2] text-sm leading-relaxed">{description}</p>
   </div>
 );
 
 const SentryPodLanding = () => {
+  // Linear gradient: Dark on left (#020618) to Light on right (#919CA7)
+  const pageStyle = {
+    background: 'linear-gradient(90deg, #020618 0%, #1D293D 70%, #919CA7 150%)',
+    backgroundAttachment: 'fixed'
+  };
+
   return (
-    <div className="min-h-screen bg-[#0b0f1a] text-slate-200 font-sans selection:bg-blue-500/30">
+    <div className="min-h-screen text-slate-200 font-sans selection:bg-[#51A2FF]/30" style={pageStyle}>
       
-      {/*  HERO SECTION  */}
-      <header className="relative pt-20 pb-32 px-6 overflow-hidden">
+      {/* --- HERO SECTION --- */}
+      <header className="relative pt-2 pb-6 px-6 overflow-hidden">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
+          
+          {/* LEFT SIDE: Text Content */}
           <div className="z-10">
-            <div className="flex items-center gap-2 mb-8">
-              <div className="bg-emerald-400 p-2 rounded-lg">
-                <Network className="text-slate-900" size={28} />
-              </div>
-              <h1 className="text-3xl font-bold tracking-tighter text-white">SentryPod AI</h1>
+            {/* LOGO */}
+            <div className="mb-10">
+              <img 
+                src={logo} 
+                alt="SentryPod AI" 
+                className="h-32 md:h-40 w-auto object-contain" 
+              />
             </div>
             
-            <h2 className="text-5xl lg:text-6xl font-bold text-white leading-tight mb-6">
+            {/* HEADLINE */}
+            <h2 className="text-3xl lg:text-4xl font-bold leading-tight mb-6 text-transparent bg-clip-text bg-gradient-to-r from-[#51A2FF] to-[#00D492]">
               AI-Driven Network <br />
-              <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-emerald-400">
-                Monitoring and Automation
-              </span>
+              Monitoring and Automation <br />
+              Platform
             </h2>
-            <p className="text-lg text-slate-400 mb-10 max-w-lg">
-              Streamline your network operations with enterprise-grade monitoring, 
-              intelligent automation, and robust security.
+
+            {/* PARAGRAPH */}
+            <p className="text-lg mb-10 max-w-lg text-[#CAD5E2]">
+               Streamline your network operations with enterprise-grade monitoring, 
+               intelligent automation, and robust security. Sentry-Pod combines 
+               artificial intelligence with powerful network management to deliver 
+               unparalleled visibility and control.
             </p>
             
-            <button className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-lg font-bold flex items-center gap-2 transition-all">
+            {/* BUTTON */}
+            <button className="bg-[#155DFC] hover:bg-blue-600 text-white px-8 py-4 rounded-lg font-bold flex items-center gap-2 transition-all shadow-lg shadow-blue-500/20 active:scale-95">
               Get Started <ChevronRight size={20} />
             </button>
             
-            <div className="mt-8 flex gap-6 text-sm text-slate-500">
-              <span className="flex items-center gap-2">● 99.9% Uptime SLA</span>
-              <span className="flex items-center gap-2">● SOC2 Compliant</span>
+            {/* STATUS ICONS */}
+            <div className="mt-8 flex gap-6 text-sm text-[#CAD5E2]/70">
+              <span className="flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-[#00D492] animate-pulse"></span>
+                99.9% Uptime SLA
+              </span>
+              <span className="flex items-center gap-2">
+                <ShieldCheck size={18} className="text-[#51A2FF]" />
+                SOC 2 Compliant
+              </span>
             </div>
           </div>
 
-          <div className="relative group">
-            <div className="absolute -inset-1 bg-linear-to-r from-blue-500 to-emerald-500 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-1000"></div>
+          {/* RIGHT SIDE: Network Visualization (Big & Corner Pushed) */}
+          <div className="relative group flex lg:justify-end lg:-mr-34 xl:-mr-64 scale-110 lg:scale-135 transition-all duration-700">
+            {/* Glow effect behind image */}
+            <div className="absolute -inset-10 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition duration-1000"></div>
+            
             <img 
-              src="https://images.unsplash.com/photo-1558494949-ef010cbdcc4b?auto=format&fit=crop&q=80&w=800" 
+              src={heroVisual} 
               alt="Network Visualization" 
-              className="relative rounded-2xl border border-slate-700 shadow-2xl"
+              className="relative w-full max-w-2xl xl:max-w-4xl h-auto drop-shadow-[0_20px_60px_rgba(21,93,252,0.4)] transition-transform duration-500 group-hover:translate-x-4" 
             />
           </div>
+
         </div>
       </header>
 
-      {/* CORE FEATURES */}
-      <section className="py-24 px-6 bg-slate-900/30">
+      {/* --- CORE FEATURES --- */}
+      <section className="py-24 px-6 bg-black/10">
         <div className="max-w-7xl mx-auto text-center mb-16">
-          <h2 className="text-4xl font-bold text-white mb-4">Powerful Features for Modern Networks</h2>
-          <p className="text-slate-400">Everything you need to manage, monitor, and secure your infrastructure.</p>
+          <h2 className="text-4xl font-bold text-white mb-4">Powerful Features</h2>
+          <p className="text-[#CAD5E2]">Everything you need to manage, monitor, and secure your infrastructure.</p>
         </div>
 
         <div className="max-w-7xl mx-auto grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          <FeatureCard 
-            icon={Zap} 
-            title="AI-Powered Commands" 
-            description="Generate network configurations using natural language with intelligent AI assistance."
-          />
-          <FeatureCard 
-            icon={Network} 
-            title="Live Topology Mapping" 
-            description="Interactive visual representation of your entire network infrastructure in real-time."
-          />
-          <FeatureCard 
-            icon={ShieldCheck} 
-            title="Staging Data Approval" 
-            description="Review and approve configuration changes before deployment to production."
-          />
-          <FeatureCard 
-            icon={Search} 
-            title="Drift Detection" 
-            description="Automatically detect unauthorized configuration changes and policy violations."
-          />
-          <FeatureCard 
-            icon={Activity} 
-            title="Intelligent Syslog" 
-            description="AI-powered log analysis with root cause analysis and smart alerting."
-          />
-          <FeatureCard 
-            icon={Database} 
-            title="Enterprise Security" 
-            description="JIT authorization, RBAC, and comprehensive audit logging for compliance."
-          />
+          <FeatureCard icon={Zap} title="AI-Powered Commands" description="Generate network configurations using natural language." />
+          <FeatureCard icon={Network} title="Live Topology Mapping" description="Interactive visual representation of your entire network." />
+          <FeatureCard icon={ShieldCheck} title="Staging Data Approval" description="Review and approve changes before deployment." />
+          <FeatureCard icon={Search} title="Drift Detection" description="Automatically detect unauthorized configuration changes." />
+          <FeatureCard icon={Activity} title="Intelligent Syslog" description="AI-powered log analysis and smart alerting." />
+          <FeatureCard icon={Database} title="Enterprise Security" description="JIT authorization, RBAC, and audit logging." />
         </div>
       </section>
-      {/*  WHY CHOOSE SECTION  */}
+
+      {/* --- WHY CHOOSE SECTION --- */}
       <section className="py-24 px-6">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-16 items-center">
           <div>
@@ -119,9 +125,9 @@ const SentryPodLanding = () => {
                 "Complete audit trail for compliance requirements",
                 "Multi-vendor device support (Cisco, Juniper, Arista)"
               ].map((item, i) => (
-                <li key={i} className="flex items-start gap-3 text-slate-300">
-                  <div className="mt-1 bg-emerald-500/20 p-1 rounded">
-                    <ShieldCheck className="text-emerald-400" size={16} />
+                <li key={i} className="flex items-start gap-3 text-[#CAD5E2]">
+                  <div className="mt-1 bg-[#00D492]/20 p-1 rounded">
+                    <ShieldCheck className="text-[#00D492]" size={16} />
                   </div>
                   {item}
                 </li>
@@ -130,43 +136,25 @@ const SentryPodLanding = () => {
           </div>
           
           <div className="grid grid-cols-2 gap-4">
-            <div className="bg-blue-900/40 p-8 rounded-2xl border border-blue-500/30">
+            <div className="bg-[#51A2FF]/10 p-8 rounded-2xl border border-[#51A2FF]/30">
               <p className="text-4xl font-bold text-white mb-2">10k+</p>
-              <p className="text-blue-300 text-sm">Devices Monitored</p>
+              <p className="text-[#51A2FF] text-sm">Devices Monitored</p>
             </div>
-            <div className="bg-emerald-900/40 p-8 rounded-2xl border border-emerald-500/30">
+            <div className="bg-[#00D492]/10 p-8 rounded-2xl border border-[#00D492]/30">
               <p className="text-4xl font-bold text-white mb-2">99.9%</p>
-              <p className="text-emerald-300 text-sm">Uptime SLA</p>
+              <p className="text-[#00D492] text-sm">Uptime SLA</p>
             </div>
-            <div className="col-span-2 bg-slate-800 p-8 rounded-2xl border border-slate-700">
+            <div className="col-span-2 bg-slate-800/50 p-8 rounded-2xl border border-slate-700">
               <p className="text-white italic">"The most comprehensive network AI platform we've ever used."</p>
-              <p className="mt-4 text-slate-500 text-sm">— CTO, Fortune 500 Enterprise</p>
+              <p className="mt-4 text-[#CAD5E2] text-sm">— CTO, Fortune 500 Enterprise</p>
             </div>
           </div>
         </div>
       </section>
 
-      {/*  CTA SECTION  */}
-      <section className="py-20 px-6">
-        <div className="max-w-5xl mx-auto bg-linear-to-br from-blue-600 to-indigo-700 rounded-3xl p-12 text-center shadow-2xl relative overflow-hidden">
-          <div className="relative z-10">
-            <h2 className="text-4xl font-bold text-white mb-6">Ready to Transform Your Network?</h2>
-            <p className="text-blue-100 mb-10 text-lg max-w-2xl mx-auto">
-              Join hundreds of enterprises already using Sentry-Pod to automate and secure their network infrastructures.
-            </p>
-            <button className="bg-white text-blue-700 hover:bg-blue-50 px-10 py-4 rounded-xl font-bold transition-colors">
-              Get Started Now
-            </button>
-          </div>
-          {/* Subtle background circles */}
-          <div className="absolute top-0 right-0 -mr-20 -mt-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-          <div className="absolute bottom-0 left-0 -ml-20 -mb-20 w-64 h-64 bg-black/10 rounded-full blur-3xl"></div>
-        </div>
-      </section>
-
-      {/*  FOOTER  */}
-      <footer className="py-12 border-t border-slate-800 text-center text-slate-500 text-sm">
-        <p>© 2026 Sentry-Pod AI. All rights reserved. Built for modern infrastructure.</p>
+      {/* --- FOOTER --- */}
+      <footer className="py-12 border-t border-white/10 text-center text-[#CAD5E2]/50 text-sm">
+        <p>© 2026 Sentry-Pod AI. All rights reserved.</p>
       </footer>
     </div>
   );
