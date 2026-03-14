@@ -33,7 +33,7 @@ const SentryPodLanding = () => {
     <div className="min-h-screen text-slate-200 font-sans selection:bg-[#51A2FF]/30" style={pageStyle}>
       
       {/* --- HERO SECTION --- */}
-      <header className="relative pt-20 pb-32 px-6 overflow-hidden">
+      <header className="relative pt-2 pb-6 px-6 overflow-hidden">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
           
           {/* LEFT SIDE: Text Content */}
@@ -48,7 +48,7 @@ const SentryPodLanding = () => {
             </div>
             
             {/* HEADLINE */}
-            <h2 className="text-4xl lg:text-5xl font-bold leading-tight mb-6 text-transparent bg-clip-text bg-gradient-to-r from-[#51A2FF] to-[#00D492]">
+            <h2 className="text-3xl lg:text-4xl font-bold leading-tight mb-6 text-transparent bg-clip-text bg-gradient-to-r from-[#51A2FF] to-[#00D492]">
               AI-Driven Network <br />
               Monitoring and Automation <br />
               Platform
@@ -81,7 +81,7 @@ const SentryPodLanding = () => {
           </div>
 
           {/* RIGHT SIDE: Network Visualization (Big & Corner Pushed) */}
-          <div className="relative group flex lg:justify-end lg:-mr-32 xl:-mr-64 scale-110 lg:scale-150 transition-all duration-700">
+          <div className="relative group flex lg:justify-end lg:-mr-34 xl:-mr-64 scale-110 lg:scale-135 transition-all duration-700">
             {/* Glow effect behind image */}
             <div className="absolute -inset-10 bg-blue-500/10 rounded-full blur-3xl group-hover:bg-blue-500/20 transition duration-1000"></div>
             
