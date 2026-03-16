@@ -35,12 +35,12 @@ const SentryPodLanding = () => {
       <header className="relative pt-2 pb-0 px-6 overflow-hidden">
         <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-center">
           
-          <div className="z-10 -mt-15 lg: -mt-16">
+          <div className="z-10 -mt-15 lg:-mt-16">
             <div className="mb-4">
               <img src={logo} alt="SentryPod AI" className="h-32 md:h-40 w-auto object-contain" />
             </div>
             
-            <h2 className="text-3xl lg:text-4xl font-bold leading-tight mb-5 text-transparent bg-clip-text bg-gradient-to-r from-[#51A2FF] to-[#00D492]">
+            <h2 className="text-3xl lg:text-4xl font-bold leading-tight mb-5 text-transparent bg-clip-text bg-linear-to-r from-[#51A2FF] to-[#00D492]">
               AI-Driven Network <br />
               Monitoring and Automation <br />
               Platform
@@ -131,7 +131,7 @@ const SentryPodLanding = () => {
       {/* --- CTA SECTION --- */}
       <section className="py-24 px-6">
         <div className="max-w-5xl mx-auto">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#1E293B] to-[#334155] border border-white/10 p-12 lg:p-20 text-center shadow-2xl">
+          <div className="relative overflow-hidden rounded-3xl bg-linear-to-br from-[#1E293B] to-[#334155] border border-white/10 p-12 lg:p-20 text-center shadow-2xl">
             <div className="relative z-10">
               <h2 className="text-4xl lg:text-5xl font-bold text-white mb-6">Ready to Transform Your Network?</h2>
               <p className ="text-[#CAD5E2] mb-10">Join hundreds of enterprises already using Sentry-Pod to automate and secure their network infrastructure.</p>
