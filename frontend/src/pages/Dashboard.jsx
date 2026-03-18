@@ -6,12 +6,11 @@ import {
   Bell, CheckCircle2, LogOut, AlertTriangle, X 
 } from 'lucide-react';
 
-import logo from '../Images/logo.png'; 
+import logo from '../images/logo.png'; 
 
-//  REUSABLE COMPONENTS 
 const StatCard = ({ title, value, subValue, icon: Icon, iconBg, iconColor }) => (
   <div 
-    className="p-6 rounded-[24px] border border-slate-700/50 shadow-[0_5px_15px_rgba(0,0,0,0.6)] flex justify-between items-center relative overflow-hidden"
+    className="p-6 rounded-3xl border border-slate-700/50 shadow-[0_5px_15px_rgba(0,0,0,0.6)] flex justify-between items-center relative overflow-hidden"
     style={{ backgroundColor: '#1D293DED', fontFamily: '"Inter", sans-serif' }}
   >
     <div className="z-10">
@@ -90,7 +89,7 @@ const Dashboard = () => {
         <header className="h-16 border-b border-slate-800 flex items-center justify-between px-8 shrink-0" style={styles.sidebar}>
           
           {/* 1. Long Search Bar */}
-          <div className="relative flex-1 max-w-[800px]"> 
+          <div className="relative flex-1 max-w-200"> 
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
             <input 
               type="text" 
@@ -125,7 +124,7 @@ const Dashboard = () => {
                     <span className="text-[10px] text-blue-400 cursor-pointer hover:underline">Mark all read</span>
                   </div>
                   
-                  <div className="max-h-[300px] overflow-y-auto">
+                  <div className="max-h-75 overflow-y-auto">
                     {[
                       { title: 'Drift Detected', msg: 'VLAN changed on core-sw-01', time: '2m ago' },
                       { title: 'Security Alert', msg: 'Multiple failed logins detected', time: '15m ago' },
@@ -182,7 +181,7 @@ const Dashboard = () => {
           <div className="grid lg:grid-cols-2 gap-6">
 
             {/* Traffic Section */}
-            <div className="p-6 rounded-[24px] border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]" style={styles.card}>
+            <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]" style={styles.card}>
               <h4 className="text-sm font-medium text-slate-300 mb-8">Network Traffic (24h)</h4>
               <div className="h-56 relative px-2">
                 <div className="absolute inset-0 flex flex-col justify-between border-l border-b border-slate-700/50 text-[10px] text-slate-600 pb-1">
@@ -205,7 +204,7 @@ const Dashboard = () => {
             </div>
 
             {/* AI Console Section */}
-            <div className="p-6 rounded-[24px] border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] relative overflow-hidden" style={styles.card}>
+            <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] relative overflow-hidden" style={styles.card}>
               <div className="flex items-center gap-2 mb-8 text-slate-300">
                 <MessageSquare size={18} className="text-blue-400" />
                 <h4 className="text-sm font-bold">AI Intent Console Preview</h4>
@@ -231,7 +230,7 @@ const Dashboard = () => {
                   </div>
                 </div>
               </div>
-              <div className="flex justify-end mt-8 h-[42px]">
+              <div className="flex justify-end mt-8 h-10.5">
                 {status === 'pending' && (
                   <div className="flex gap-3">
                     <button onClick={() => setStatus('deployed')} className="bg-[#10B981]/10 border border-[#10B981]/40 text-[#10B981] px-6 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all active:scale-95"><CheckCircle2 size={16} /> Approve & Deploy</button>
@@ -253,7 +252,7 @@ const Dashboard = () => {
           </div>
 
           {/* ROW TABLE */}
-          <div className="rounded-[24px] border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] overflow-hidden" style={styles.card}>
+          <div className="rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] overflow-hidden" style={styles.card}>
             <div className="p-6 border-b border-slate-800/50"><h4 className="text-sm font-medium text-slate-300">Real-Time Network Status</h4></div>
             <div className="overflow-x-auto px-6 pb-6">
               <table className="w-full text-left">
@@ -288,7 +287,7 @@ const Dashboard = () => {
           <div className="grid lg:grid-cols-2 gap-6 pb-12">
             
             {/* DRIFT DETECTION CARD */}
-            <div className="p-6 rounded-[24px] border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]" style={styles.card}>
+            <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]" style={styles.card}>
               <div className="flex justify-between items-center mb-8">
                 <div className="flex items-center gap-2 text-amber-500">
                   <Network size={20} />
@@ -344,7 +343,7 @@ const Dashboard = () => {
             </div>
 
             {/* 2. SYSLOG INTELLIGENCE CARD */}
-            <div className="p-6 rounded-[24px] border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]" style={styles.card}>
+            <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]" style={styles.card}>
               <div className="flex items-center gap-2 mb-8 text-orange-500">
                 <AlertTriangle size={20} />
                 <h4 className="text-base font-bold text-slate-200">Syslog Intelligence</h4>

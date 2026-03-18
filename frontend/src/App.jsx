@@ -9,9 +9,7 @@ function App() {
   return (
     <BrowserRouter>
       <Routes>
-        {/* 3. Use the renamed component name here */}
-        <Route path="/" element={<HomePage />} />
-        
+        <Route path="/" element={<HomePage />} />  
         <Route path="/login" element={<Login />} />
         
         <Route path="/dashboard" element={<Dashboard />} />
