@@ -12,7 +12,7 @@ export default function AddUserModal({ onClose }) {
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative z-10 m-auto bg-[#161b22] border border-[#1e2530] rounded-2xl w-[400px] shadow-2xl">
+      <div className="relative z-10 m-auto bg-[#161b22] border border-[#1e2530] rounded-2xl w-[100] shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-[#1e2530]">
           <h2 className="text-white font-semibold text-base">Add New User</h2>

@@ -12,7 +12,7 @@ const logs = [
   { id: 'LOG-8928', timestamp: '2026-03-05 12:55:42', user: 'John Network', action: 'Device Reboot', target: 'dist-sw-03', status: 'success', details: 'Manual...' },
   { id: 'LOG-8927', timestamp: '2026-03-05 12:20:15', user: 'System', action: 'Failed Login Attempt', target: 'router-edge-01', status: 'failed', details: '3 cons...' },
 ];
-
+ 
 const statusConfig = {
   success: 'bg-green-900/60 text-green-400 border border-green-700',
   blocked: 'bg-red-900/60 text-red-400 border border-red-700',
@@ -87,10 +87,10 @@ export default function AuditLogs() {
           placeholder="Search logs..."
           className="flex-1 bg-[#0d1117] border border-[#1e2530] rounded-lg px-3 py-2 text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-blue-500"
         />
-        <button className="flex items-center gap-2 bg-[#0d1117] border border-[#1e2530] rounded-lg px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors min-w-[130px] justify-between">
+        <button className="flex items-center gap-2 bg-[#0d1117] border border-[#1e2530] rounded-lg px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors min-w-32.5 justify-between">
           Action Type <ChevronDown size={14} />
         </button>
-        <button className="flex items-center gap-2 bg-[#0d1117] border border-[#1e2530] rounded-lg px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors min-w-[120px] justify-between">
+        <button className="flex items-center gap-2 bg-[#0d1117] border border-[#1e2530] rounded-lg px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors min-w-30 justify-between">
           Severity <ChevronDown size={14} />
         </button>
         <button className="flex items-center gap-2 bg-[#0d1117] border border-[#1e2530] rounded-lg px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">
