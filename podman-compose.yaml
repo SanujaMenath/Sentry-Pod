@@ -1,70 +1,47 @@
-version: '3.8'
+version: "3.8"
 
 services:
-
   vault:
-    build:
-      context: ./vault
-    container_name: sentry-vault
-    ports:
-      - "8000:8000"
-    depends_on:
-      - db
+    image: postgres:16
+    restart: always
     environment:
-      - DATABASE_URL=postgresql://sentry_admin:sentry_password@db:5432/sentry_db
-      - [cite_start]SECRET_KEY=${SECRET_KEY}
-    networks:
-      - sentry-internal
-
-
-  command-center:
-    build:
-      context: ./command-center
-    container_name: sentry-command-center
+      POSTGRES_USER: sentry
+      POSTGRES_PASSWORD: ChangeMeSecure123!
+      POSTGRES_DB: sentry_nms
+    volumes:
+      - vault-data:/var/lib/postgresql/data
     ports:
-      - "5173:5173"
-    depends_on:
-      - vault
-    networks:
-      - sentry-internal
-
-
-  brain:
-    build:
-      context: ./brain
-    container_name: sentry-brain
-    environment:
-      - [cite_start]LLM_API_KEY=${LLM_API_KEY}
-    networks:
-      - sentry-internal
-
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sentry"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   watchman:
-    build:
-      context: ./watchman
-    container_name: sentry-watchman
+    build: ./watchman
+    restart: always
     depends_on:
-      - vault
-    networks:
-      - sentry-internal
-    cap_add:
-      - NET_ADMIN 
-
-  db:
-    image: postgres:15-alpine
-    container_name: sentry-db
+      vault:
+        condition: service_healthy
     environment:
-      - POSTGRES_USER=sentry_admin
-      - POSTGRES_PASSWORD=sentry_password
-      - POSTGRES_DB=sentry_db
+      DATABASE_URL: postgresql://sentry:ChangeMeSecure123!@vault:5432/sentry_nms
+    ports:
+      - "8000:8000"
     volumes:
-      - [cite_start]postgres_data:/var/lib/postgresql/data
-    networks:
-      - sentry-internal
+      - ./watchman:/app:Z
 
-networks:
-  sentry-internal:
-    driver: bridge
+  command-center:
+    build: ./command-center
+    restart: always
+    depends_on:
+      - watchman
+    ports:
+      - "3000:80"
+    volumes:
+      - ./command-center:/app:Z
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
 
 volumes:
-  postgres_data: 
+  vault-data:
