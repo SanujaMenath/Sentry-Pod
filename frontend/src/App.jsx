@@ -3,6 +3,7 @@ import HomePage from "./pages/Home";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard"; 
 
+import AuditLogs from "./pages/AuditLogs";
 
 function App() {
   return (
@@ -14,6 +15,8 @@ function App() {
         <Route path="/login" element={<Login />} />
         
         <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/audit-logs" element={<AuditLogs />} />
+
       </Routes>
     </BrowserRouter>
   );
