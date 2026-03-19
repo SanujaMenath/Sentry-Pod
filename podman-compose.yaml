@@ -38,8 +38,6 @@ services:
       - watchman
     ports:
       - "3000:80"
-    volumes:
-      - ./command-center:/app:Z
     environment:
       - REACT_APP_API_URL=http://localhost:8000
 

@@ -7,15 +7,14 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
-  // Updated gradient to 135deg to match the Landing Page 
   const pageStyle = {
     background: 'linear-gradient(135deg, #020618 0%, #1D293D 45%, #475569 100%)',
     backgroundAttachment: 'fixed'
   };
 
   const handleSignIn = (e) => {
+    console.log("I am here!");
     e.preventDefault(); 
-    // Navigation to dashboard
     navigate('/dashboard'); 
   };
 
