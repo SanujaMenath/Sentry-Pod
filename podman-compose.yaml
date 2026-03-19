@@ -32,7 +32,7 @@ services:
       - ./watchman:/app:Z
 
   command-center:
-    build: ./command-center
+    image: fresh-command-center
     restart: always
     depends_on:
       - watchman
