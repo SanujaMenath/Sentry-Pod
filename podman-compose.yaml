@@ -1,0 +1,45 @@
+version: "3.8"
+
+services:
+  vault:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_USER: sentry
+      POSTGRES_PASSWORD: ChangeMeSecure123!
+      POSTGRES_DB: sentry_nms
+    volumes:
+      - vault-data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sentry"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  watchman:
+    build: ./watchman
+    restart: always
+    depends_on:
+      vault:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql://sentry:ChangeMeSecure123!@vault:5432/sentry_nms
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./watchman:/app:Z
+
+  command-center:
+    image: fresh-command-center
+    restart: always
+    depends_on:
+      - watchman
+    ports:
+      - "3000:80"
+    environment:
+      - REACT_APP_API_URL=http://localhost:8000
+
+volumes:
+  vault-data:

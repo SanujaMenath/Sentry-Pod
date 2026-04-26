@@ -1,0 +1,20 @@
+ # Environments & Secrets
+.env
+*.env
+secrets.json
+
+# Python (Vault, Brain, Watchman)
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+env/
+
+# Frontend (Command Center)
+node_modules/
+dist/
+.DS_Store
+
+# Databases (PostgreSQL)
+pgdata/
+
