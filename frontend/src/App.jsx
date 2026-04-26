@@ -1,6 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useState } from "react";
-import SentryPodLanding from "./components/SentryPodLanding";
+import HomePage from "./pages/Home"; 
 import Login from "./pages/Login";
 import AuditLogs from "./pages/AuditLogs";
 import RBACUsers from "./pages/RBACUsers";
@@ -22,12 +22,15 @@ function Layout({ children }) {
     </div>
   );
 }
+import Dashboard from "./pages/Dashboard"; 
+
+import AuditLogs from "./pages/AuditLogs";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
-        <Route path="/" element={<SentryPodLanding />} />
+        <Route path="/" element={<HomePage />} />  
         <Route path="/login" element={<Login />} />
         <Route path="/audit-logs" element={<Layout><AuditLogs /></Layout>} />
         <Route path="/users" element={<Layout><RBACUsers /></Layout>} />

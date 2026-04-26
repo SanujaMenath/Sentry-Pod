@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom'; 
-import logo from '../Images/logo.png';
-import heroVisual from '../Images/Network Visualization Image.png';
+import logo from '../images/logo.png';
+import heroVisual from '../images/Network Visualization Image.png';
 import { 
   ShieldCheck, 
   Activity, 

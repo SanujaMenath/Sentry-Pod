@@ -7,8 +7,6 @@ import {
 } from 'lucide-react';
 
 import logo from '../images/logo.png'; 
-import Navbar from '../components/Navbar';
-import Sidebar from '../components/Sidebar';
 
 const StatCard = ({ title, value, subValue, icon: Icon, iconBg, iconColor }) => (
   <div 
@@ -49,37 +47,122 @@ const Dashboard = () => {
 
   const styles = {
     sidebar: { backgroundColor: '#020618ED', fontFamily: '"Inter", sans-serif' },
-    
-    main: { 
-        background: 'linear-gradient(135deg, #F8FAFC 0%, #D1D5DB 100%)', 
-        backgroundAttachment: 'fixed',
-        fontFamily: '"Inter", sans-serif' 
-    },
-    
+    main: { backgroundColor: '#919CA763', fontFamily: '"Inter", sans-serif' },
     card: { backgroundColor: '#1D293DED', fontFamily: '"Inter", sans-serif' },
-    
     headline: { 
-        color: '#0F172A', fontSize: '30px', fontWeight: '800', fontFamily: '"Inter", sans-serif',
-        letterSpacing: '-0.025em'
+        color: '#000000FA', fontSize: '30px', fontWeight: '800', fontFamily: '"Inter", sans-serif',
+        filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.4))'
     },
-    
     subtext: { 
-        color: '#475569', fontSize: '16px', fontWeight: '500', fontFamily: '"Inter", sans-serif'
+        color: '#5A697E', fontSize: '16px', fontWeight: '500', fontFamily: '"Inter", sans-serif',
+        filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.2))'
     }
   };
+
   return (
     <div className="flex min-h-screen" style={styles.main}>
       
-      {/* 1. REUSABLE SIDEBAR */}
-      <Sidebar activePage="dashboard" />
+      {/* NAVBAR  */}
+      <aside className="w-64 border-r border-slate-800 p-6 hidden lg:flex flex-col shrink-0" style={styles.sidebar}>
+        <div className="mb-10 px-2">
+          <img src={logo} alt="SentryPod AI" className="h-12 w-auto object-contain" />
+        </div>
+        <nav className="space-y-2 flex-1">
+          <SidebarItem icon={LayoutDashboard} label="Dashboard" active />
+          <SidebarItem icon={Network} label="Topology Map" />
+          <SidebarItem icon={MessageSquare} label="AI Chat Console" />
+          <SidebarItem icon={ShieldAlert} label="Staging Gate" />
+          <SidebarItem icon={Server} label="Network Devices" />
+          <SidebarItem icon={ClipboardList} label="Audit Logs" />
+          <SidebarItem icon={Users} label="RBAC / Users" />
+          <SidebarItem icon={Settings} label="Settings" />
+        </nav>
+        <button onClick={() => navigate('/login')} className="mt-auto flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-rose-400 transition-colors">
+          <LogOut size={18} />
+          <span className="text-sm font-medium">Logout</span>
+        </button>
+      </aside>
 
       <main className="flex-1 flex flex-col overflow-hidden">
 
-        {/* 2. REUSABLE NAVBAR */}
-        <Navbar />
-        
+        {/*TOP_NAVIGATION */}
+        <header className="h-16 border-b border-slate-800 flex items-center justify-between px-8 shrink-0" style={styles.sidebar}>
+          
+          {/* 1. Long Search Bar */}
+          <div className="relative flex-1 max-w-200"> 
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
+            <input 
+              type="text" 
+              placeholder="Search devices, logs, configurations..." 
+              className="w-full bg-[#0D121F] border border-slate-700/50 rounded-xl py-2 pl-12 pr-4 text-sm text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500/30 transition-all" 
+            />
+          </div>
 
-                {/* DASHBOARD CONTENT */}
+  
+          <div className="flex items-center gap-6 ml-8">
+            
+            <div className="hidden xl:flex items-center gap-2 px-4 py-1.5 bg-[#00D492]/5 border border-[#00D492]/20 rounded-full">
+              <div className="w-1.5 h-1.5 rounded-full bg-[#00D492] animate-pulse"></div>
+              <span className="text-[#00D492] text-[11px] font-bold">AI Online</span>
+            </div>
+
+            {/* Notification bell */}
+            <div className="relative">
+              <div 
+                onClick={() => setShowNotifications(!showNotifications)}
+                className={`relative p-2 rounded-lg transition-all cursor-pointer ${showNotifications ? 'bg-slate-800 text-white' : 'text-slate-400 hover:text-white'}`}
+              >
+                <Bell size={20} />
+                <span className="absolute top-2 right-2 w-2 h-2 bg-rose-500 border-2 border-[#020618] rounded-full"></span>
+              </div>
+
+              {/* DROPDOWN MENU */}
+              {showNotifications && (
+                <div className="absolute right-0 mt-3 w-80 bg-[#1D293D] border border-slate-700/50 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                  <div className="p-4 border-b border-slate-800 flex justify-between items-center">
+                    <span className="text-xs font-bold text-white uppercase tracking-wider">Notifications</span>
+                    <span className="text-[10px] text-blue-400 cursor-pointer hover:underline">Mark all read</span>
+                  </div>
+                  
+                  <div className="max-h-75 overflow-y-auto">
+                    {[
+                      { title: 'Drift Detected', msg: 'VLAN changed on core-sw-01', time: '2m ago' },
+                      { title: 'Security Alert', msg: 'Multiple failed logins detected', time: '15m ago' },
+                      { title: 'System Update', msg: 'New AI model v2.1 deployed', time: '1h ago' }
+                    ].map((n, i) => (
+                      <div key={i} className="p-4 border-b border-slate-800/50 hover:bg-slate-800/50 transition-colors cursor-pointer">
+                        <div className="flex justify-between items-start mb-1">
+                          <p className="text-[13px] font-bold text-slate-200">{n.title}</p>
+                          <span className="text-[10px] text-slate-500">{n.time}</span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 leading-snug">{n.msg}</p>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="p-3 text-center bg-slate-900/50">
+                    <button className="text-[11px] font-bold text-slate-400 hover:text-white transition-colors">
+                      View All Activity
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Admin Profile Section */}
+            <div className="flex items-center gap-3 border-l border-slate-800 pl-6 shrink-0">
+              <div className="w-9 h-9 bg-blue-600 rounded-full flex items-center justify-center text-[11px] font-bold text-white shadow-lg shadow-blue-600/30">
+                AD
+              </div>
+              <div className="text-left leading-tight hidden sm:block">
+                <p className="text-[13px] font-bold text-white">Admin</p>
+                <p className="text-[10px] text-slate-500">System Administrator</p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* DASHBOARD CONTENT */}
         <div className="flex-1 overflow-y-auto p-8 space-y-8">
           <div>
             <h1 style={styles.headline}>Command Center</h1>

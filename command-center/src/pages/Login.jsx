@@ -13,7 +13,6 @@ const Login = () => {
   };
 
   const handleSignIn = (e) => {
-    console.log("I am here!");
     e.preventDefault(); 
     navigate('/dashboard'); 
   };

@@ -1,42 +1,66 @@
-import { LayoutDashboard, Network, MessageSquare, GitBranch, Server, FileText, Users, Settings } from 'lucide-react';
-import logo from '../Images/logo.png';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import { 
+  LayoutDashboard, Network, MessageSquare, ShieldAlert, 
+  Server, ClipboardList, Users, Settings, LogOut 
+} from 'lucide-react';
+import logo from '../images/logo.png'; 
 
+// Inside Sidebar.jsx
 const navItems = [
-  { icon: LayoutDashboard, label: 'Dashboard', id: 'dashboard' },
-  { icon: Network, label: 'Topology Map', id: 'topology' },
-  { icon: MessageSquare, label: 'AI Chat Console', id: 'ai-chat' },
-  { icon: GitBranch, label: 'Staging Gate', id: 'staging' },
-  { icon: Server, label: 'Network Devices', id: 'network' },
-  { icon: FileText, label: 'Audit Logs', id: 'audit' },
-  { icon: Users, label: 'RBAC / Users', id: 'users' },
-  { icon: Settings, label: 'Settings', id: 'settings' },
+  { icon: LayoutDashboard, label: 'Dashboard', id: 'dashboard', path: '/dashboard' },
+  { icon: Network, label: 'Topology Map', id: 'topology', path: '/topology' },
+  { icon: MessageSquare, label: 'AI Chat Console', id: 'ai-chat', path: '/ai-chat' },
+  { icon: ShieldAlert, label: 'Staging Gate', id: 'staging', path: '/staging' },
+  { icon: Server, label: 'Network Devices', id: 'network', path: '/devices' },
+  { icon: ClipboardList, label: 'Audit Logs', id: 'audit', path: '/audit-logs' }, 
+  { icon: Users, label: 'RBAC / Users', id: 'users', path: '/users' },
+  { icon: Settings, label: 'Settings', id: 'settings', path: '/settings' },
 ];
 
-export default function Sidebar({ activePage, onNavigate }) {
+export default function Sidebar({ activePage }) {
+  const navigate = useNavigate();
+
   return (
-    <div className="w-48 min-h-screen bg-[#0d1117] flex flex-col border-r border-[#1e2530]">
-      <div className="p-4 border-b border-[#1e2530]">
-        <div className="flex items-center gap-2">
-          <img src={logo} alt="SentryPod AI" className="h-10 w-auto object-contain" />
-        </div>
+    <aside 
+      className="w-64 border-r border-slate-800 p-6 hidden lg:flex flex-col shrink-0 min-h-screen" 
+      style={{ backgroundColor: '#020618ED', fontFamily: '"Inter", sans-serif' }}
+    >
+      {/* YOUR BRAND LOGO */}
+      <div className="mb-10 px-2">
+        <img src={logo} alt="SentryPod AI" className="h-12 w-auto object-contain" />
       </div>
-      <nav className="flex-1 py-4">
-        {navItems.map(({ icon: Icon, label, id }) => (
+
+      {/* NAVIGATION ITEMS */}
+      <nav className="space-y-2 flex-1">
+        {navItems.map(({ icon: Icon, label, id, path }) => (
           <button
             key={id}
-            onClick={() => onNavigate(id)}
-            className={`w-full flex items-center gap-3 px-4 py-2.5 text-sm transition-all duration-150 text-left
+            onClick={() => navigate(path)}
+            className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-150 text-left
               ${activePage === id
-                ? 'bg-blue-600 text-white font-medium'
-                : 'text-gray-400 hover:text-white hover:bg-[#1e2530]'
+                ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
+                : 'text-slate-400 hover:text-white hover:bg-slate-800'
               }`}
           >
-            <Icon size={16} />
+            <Icon size={18} />
             <span>{label}</span>
           </button>
         ))}
       </nav>
-      <div className="p-4 text-xs text-gray-600">v2.1.0 • © 2026 Sentry-Pod</div>
-    </div>
+
+      {/* LOGOUT BUTTON */}
+      <button 
+        onClick={() => navigate('/login')} 
+        className="mt-auto flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-rose-400 transition-colors"
+      >
+        <LogOut size={18} />
+        <span className="text-sm font-medium">Logout</span>
+      </button>
+      
+      <div className="mt-4 px-4 text-[10px] text-slate-600 font-medium uppercase tracking-widest">
+        v2.1.0 • © 2026 Sentry-Pod
+      </div>
+    </aside>
   );
 }
