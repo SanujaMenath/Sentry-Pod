@@ -1,6 +1,27 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { useState } from "react";
 import HomePage from "./pages/Home"; 
 import Login from "./pages/Login";
+import AuditLogs from "./pages/AuditLogs";
+import RBACUsers from "./pages/RBACUsers";
+import SettingsPage from "./pages/Settings";
+import Sidebar from "./components/Sidebar";
+import Navbar from "./components/Navbar";
+
+function Layout({ children }) {
+  const [activePage, setActivePage] = useState('audit');
+  return (
+    <div className="flex h-screen bg-[#0d1117] font-sans overflow-hidden">
+      <Sidebar activePage={activePage} onNavigate={setActivePage} />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Navbar />
+        <div className="flex-1 overflow-auto">
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
 import Dashboard from "./pages/Dashboard"; 
 
 import AuditLogs from "./pages/AuditLogs";
@@ -11,10 +32,9 @@ function App() {
       <Routes>
         <Route path="/" element={<HomePage />} />  
         <Route path="/login" element={<Login />} />
-        
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/audit-logs" element={<AuditLogs />} />
-
+        <Route path="/audit-logs" element={<Layout><AuditLogs /></Layout>} />
+        <Route path="/users" element={<Layout><RBACUsers /></Layout>} />
+        <Route path="/settings" element={<Layout><SettingsPage /></Layout>} />
       </Routes>
     </BrowserRouter>
   );
