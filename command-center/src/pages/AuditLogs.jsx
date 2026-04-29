@@ -1,9 +1,9 @@
-import { useState } from 'react';
+ import { useState } from 'react';
 import { Download, FileText, CheckCircle, AlertTriangle, XCircle, ChevronDown, Calendar } from 'lucide-react';
 import ExportLogsModal from '../components/ExportLogsModal';
 
 const logs = [
-  { id: 'LOG-8934', timestamp: '2026-03-05 14:23:45', user: 'Admin User', action: 'Configuration Change', target: 'access-sw-02', status: 'success', details: 'Applied...' },
+  { id: 'LOG-893import4', timestamp: '2026-03-05 14:23:45', user: 'Admin User', action: 'Configuration Change', target: 'access-sw-02', status: 'success', details: 'Applied...' },
   { id: 'LOG-8933', timestamp: '2026-03-05 14:15:22', user: 'John Network', action: 'Device Login', target: 'core-sw-01', status: 'success', details: 'SSH log...' },
   { id: 'LOG-8932', timestamp: '2026-03-05 13:58:10', user: 'System', action: 'Port Security Violation', target: 'access-sw-02 G11/0/24', status: 'blocked', details: 'MAC ac...' },
   { id: 'LOG-8931', timestamp: '2026-03-05 13:45:33', user: 'Sarah Security', action: 'User Role Modified', target: 'Mike Monitor', status: 'success', details: 'Change...' },
@@ -23,8 +23,23 @@ const statusConfig = {
 export default function AuditLogs() {
   const [showExport, setShowExport] = useState(false);
 
+   const styles = {
+    main: { 
+      background: 'linear-gradient(135deg, #F8FAFC 0%, #D1D5DB 100%)', 
+      backgroundAttachment: 'fixed',
+      fontFamily: '"Inter", sans-serif' 
+    },
+    card: { backgroundColor: '#1D293DED', fontFamily: '"Inter", sans-serif' }
+  };
+
   return (
-    <div className="flex-1 bg-[#f0f2f5] p-6 overflow-auto">
+    <div className="flex min-h-screen" style={styles.main}>
+     
+      <main className="flex-1 flex flex-col overflow-hidden">
+        
+        {/* MAIN SCROLLABLE CONTENT */}
+        <div className="flex-1 overflow-y-auto p-8 space-y-8">
+
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
@@ -131,7 +146,10 @@ export default function AuditLogs() {
         </table>
       </div>
 
-      {showExport && <ExportLogsModal onClose={() => setShowExport(false)} />}
-    </div>
-  );
+      </div> 
+  </main> 
+
+  {showExport && <ExportLogsModal onClose={() => setShowExport(false)} />}
+</div>
+);
 }
