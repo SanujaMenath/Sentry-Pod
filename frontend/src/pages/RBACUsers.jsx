@@ -38,7 +38,7 @@ export default function RBACUsers() {
   const [showAddUser, setShowAddUser] = useState(false);
 
   return (
-    <div className="flex-1 bg-[#f0f2f5] p-6 overflow-auto">
+    <div className="flex-1 min-h-screen bg-[#f0f2f5] p-6 overflow-auto">
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
