@@ -1,8 +1,6 @@
  import { useState } from 'react';
 import { Download, FileText, CheckCircle, AlertTriangle, XCircle, ChevronDown, Calendar } from 'lucide-react';
 import ExportLogsModal from '../components/ExportLogsModal';
-import Sidebar from '../components/Sidebar';
-import Navbar from '../components/Navbar';
 
 const logs = [
   { id: 'LOG-893import4', timestamp: '2026-03-05 14:23:45', user: 'Admin User', action: 'Configuration Change', target: 'access-sw-02', status: 'success', details: 'Applied...' },
@@ -36,14 +34,9 @@ export default function AuditLogs() {
 
   return (
     <div className="flex min-h-screen" style={styles.main}>
-      {/* SIDEBAR - Tell it 'audit' is the active page */}
-      <Sidebar activePage="audit" />
-
+     
       <main className="flex-1 flex flex-col overflow-hidden">
         
-        {/* TOP NAVBAR */}
-        <Navbar />
-
         {/* MAIN SCROLLABLE CONTENT */}
         <div className="flex-1 overflow-y-auto p-8 space-y-8">
 

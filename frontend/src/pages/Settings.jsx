@@ -46,7 +46,7 @@ export default function SettingsPage() {
   const toggle = (key) => setSettings(prev => ({ ...prev, [key]: !prev[key] }));
 
   return (
-    <div className="flex-1 bg-[#f0f2f5] p-6 overflow-auto">
+    <div className="flex-1 min-h-screen bg-[#f0f2f5] p-6 overflow-auto">
       {/* Header */}
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-gray-800 mb-1">Settings</h1>

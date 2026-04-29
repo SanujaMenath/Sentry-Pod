@@ -2,30 +2,24 @@ version: "3.8"
 
 services:
   vault:
-    image: postgres:16
+    image: mongo:latest
+    container_name: sentry-pod_vault_1
     restart: always
     environment:
-      POSTGRES_USER: sentry
-      POSTGRES_PASSWORD: ChangeMeSecure123!
-      POSTGRES_DB: sentry_nms
-    volumes:
-      - vault-data:/var/lib/postgresql/data
+      MONGO_INITDB_ROOT_USERNAME: sentry_pod
+      MONGO_INITDB_ROOT_PASSWORD: Admin123
     ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U sentry"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      - "27017:27017"
+    volumes:
+      - vault-data:/data/db
 
   watchman:
     build: ./watchman
     restart: always
     depends_on:
-      vault:
-        condition: service_healthy
+      - vault
     environment:
-      DATABASE_URL: postgresql://sentry:ChangeMeSecure123!@vault:5432/sentry_nms
+      DATABASE_URL: mongodb://sentry_pod:Admin123@vault:27017/sentry_nms?authSource=admin
     ports:
       - "8000:8000"
     volumes:
