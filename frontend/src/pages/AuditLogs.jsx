@@ -57,7 +57,7 @@ export default function AuditLogs() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-4 gap-4 mb-6">
-        <div className="bg-[#161b22] border border-[#1e2530] rounded-xl p-4 flex items-center justify-between">
+        <div className="bg-[#1D293DED] border border-[#1e2530] rounded-xl p-4 flex items-center justify-between">
           <div>
             <p className="text-xs text-gray-500 mb-1">Total Events</p>
             <p className="text-2xl font-bold text-white">8,934</p>
@@ -66,7 +66,7 @@ export default function AuditLogs() {
             <FileText size={20} className="text-blue-400" />
           </div>
         </div>
-        <div className="bg-[#161b22] border border-[#1e2530] rounded-xl p-4 flex items-center justify-between">
+        <div className="bg-[#1D293DED] border border-[#1e2530] rounded-xl p-4 flex items-center justify-between">
           <div>
             <p className="text-xs text-gray-500 mb-1">Success</p>
             <p className="text-2xl font-bold text-green-400">7,821</p>
@@ -75,7 +75,7 @@ export default function AuditLogs() {
             <CheckCircle size={20} className="text-green-400" />
           </div>
         </div>
-        <div className="bg-[#161b22] border border-[#1e2530] rounded-xl p-4 flex items-center justify-between">
+        <div className="bg-[#1D293DED] border border-[#1e2530] rounded-xl p-4 flex items-center justify-between">
           <div>
             <p className="text-xs text-gray-500 mb-1">Warnings</p>
             <p className="text-2xl font-bold text-yellow-400">892</p>
@@ -84,7 +84,7 @@ export default function AuditLogs() {
             <AlertTriangle size={20} className="text-yellow-400" />
           </div>
         </div>
-        <div className="bg-[#161b22] border border-[#1e2530] rounded-xl p-4 flex items-center justify-between">
+        <div className="bg-[#1D293DED] border border-[#1e2530] rounded-xl p-4 flex items-center justify-between">
           <div>
             <p className="text-xs text-gray-500 mb-1">Critical</p>
             <p className="text-2xl font-bold text-red-400">221</p>
@@ -96,7 +96,7 @@ export default function AuditLogs() {
       </div>
 
       {/* Filter Bar */}
-      <div className="bg-[#161b22] border border-[#1e2530] rounded-xl p-4 mb-6 flex items-center gap-3">
+      <div className="bg-[#1D293DED] border border-[#1e2530] rounded-xl p-4 mb-6 flex items-center gap-3">
         <input
           type="text"
           placeholder="Search logs..."
@@ -114,7 +114,7 @@ export default function AuditLogs() {
       </div>
 
       {/* Table */}
-      <div className="bg-[#161b22] border border-[#1e2530] rounded-xl overflow-hidden">
+      <div className="bg-[#1D293DED] border border-[#1e2530] rounded-xl overflow-hidden">
         <div className="px-5 py-4 border-b border-[#1e2530]">
           <h2 className="text-sm font-semibold text-white">Recent Activity</h2>
         </div>
