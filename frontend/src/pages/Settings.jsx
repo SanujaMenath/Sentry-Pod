@@ -55,7 +55,7 @@ export default function SettingsPage() {
 
       <div className="grid grid-cols-2 gap-5">
         {/* Notifications */}
-        <div className="bg-[#1a2035] border border-[#2a3150] rounded-xl p-5">
+        <div className="bg-[#1D293DED] border border-[#2a3150] rounded-xl p-5">
           <div className="flex items-center gap-2 mb-1">
             <Bell size={16} className="text-blue-400" />
             <h2 className="text-sm font-semibold text-white">Notifications</h2>
@@ -69,7 +69,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Security */}
-        <div className="bg-[#1a2035] border border-[#2a3150] rounded-xl p-5">
+        <div className="bg-[#1D293DED] border border-[#2a3150] rounded-xl p-5">
           <div className="flex items-center gap-2 mb-1">
             <Shield size={16} className="text-green-400" />
             <h2 className="text-sm font-semibold text-white">Security</h2>
@@ -83,7 +83,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Network Settings */}
-        <div className="bg-[#1a2035] border border-[#2a3150] rounded-xl p-5">
+        <div className="bg-[#1D293DED] border border-[#2a3150] rounded-xl p-5">
           <div className="flex items-center gap-2 mb-1">
             <Globe size={16} className="text-purple-400" />
             <h2 className="text-sm font-semibold text-white">Network Settings</h2>
@@ -95,7 +95,7 @@ export default function SettingsPage() {
               <input
                 value={network.snmp}
                 onChange={e => setNetwork({ ...network, snmp: e.target.value })}
-                className="w-full bg-[#141928] border border-[#2a3150] rounded-lg px-3 py-2.5 text-sm text-gray-300 focus:outline-none focus:border-blue-500"
+                className="w-full bg-[#1D293DED] border border-[#2a3150] rounded-lg px-3 py-2.5 text-sm text-gray-300 focus:outline-none focus:border-blue-500"
               />
             </div>
             <div>
@@ -103,7 +103,7 @@ export default function SettingsPage() {
               <input
                 value={network.syslog}
                 onChange={e => setNetwork({ ...network, syslog: e.target.value })}
-                className="w-full bg-[#141928] border border-[#2a3150] rounded-lg px-3 py-2.5 text-sm text-gray-300 focus:outline-none focus:border-blue-500"
+                className="w-full bg-[#1D293DED] border border-[#2a3150] rounded-lg px-3 py-2.5 text-sm text-gray-300 focus:outline-none focus:border-blue-500"
               />
             </div>
             <div>
@@ -111,7 +111,7 @@ export default function SettingsPage() {
               <input
                 value={network.ntp}
                 onChange={e => setNetwork({ ...network, ntp: e.target.value })}
-                className="w-full bg-[#141928] border border-[#2a3150] rounded-lg px-3 py-2.5 text-sm text-gray-300 focus:outline-none focus:border-blue-500"
+                className="w-full bg-[#1D293DED] border border-[#2a3150] rounded-lg px-3 py-2.5 text-sm text-gray-300 focus:outline-none focus:border-blue-500"
               />
             </div>
             <button className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-lg text-sm font-medium transition-colors mt-2">
@@ -121,7 +121,7 @@ export default function SettingsPage() {
         </div>
 
         {/* Backup & Restore */}
-        <div className="bg-[#1a2035] border border-[#2a3150] rounded-xl p-5">
+        <div className="bg-[#1D293DED] border border-[#2a3150] rounded-xl p-5">
           <div className="flex items-center gap-2 mb-1">
             <Database size={16} className="text-yellow-400" />
             <h2 className="text-sm font-semibold text-white">Backup & Restore</h2>
@@ -140,10 +140,10 @@ export default function SettingsPage() {
               <p className="text-sm text-white font-mono">2026-03-05 02:00:15</p>
             </div>
             <div className="grid grid-cols-2 gap-3 pt-2">
-              <button className="py-2.5 rounded-lg text-sm font-medium bg-[#141928] border border-[#2a3150] text-gray-300 hover:text-white transition-colors">
+              <button className="py-2.5 rounded-lg text-sm font-medium bg-[#1D293DED] border border-[#2a3150] text-gray-300 hover:text-white transition-colors">
                 Backup Now
               </button>
-              <button className="py-2.5 rounded-lg text-sm font-medium bg-[#141928] border border-[#2a3150] text-gray-300 hover:text-white transition-colors">
+              <button className="py-2.5 rounded-lg text-sm font-medium bg-[#1D293DED] border border-[#2a3150] text-gray-300 hover:text-white transition-colors">
                 Restore
               </button>
             </div>
