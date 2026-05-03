@@ -57,7 +57,7 @@ export default function RBACUsers() {
       {/* Role Cards */}
       <div className="grid grid-cols-5 gap-3 mb-6">
         {roles.map(role => (
-          <div key={role.name} className={`${role.bg} border rounded-xl p-4 relative`}>
+          <div key={role.name} className={" bg-[#1D293DED]  border rounded-xl p-4 relative"}>
             <div className="absolute top-3 right-3">
               <span className="w-5 h-5 rounded-full bg-orange-500 text-white text-xs flex items-center justify-center font-bold">
                 {role.count}
@@ -71,7 +71,7 @@ export default function RBACUsers() {
       </div>
 
       {/* Users Table */}
-      <div className="bg-[#161b22] border border-[#1e2530] rounded-xl overflow-hidden">
+      <div className="bg-[#1D293DED] border border-[#1e2530] rounded-xl overflow-hidden">
         <div className="px-5 py-4 border-b border-[#1e2530]">
           <h2 className="text-sm font-semibold text-white">All Users</h2>
         </div>

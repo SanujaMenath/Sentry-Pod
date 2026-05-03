@@ -13,7 +13,7 @@ const navItems = [
   { icon: ShieldAlert, label: 'Staging Gate', id: 'staging', path: '/staging' },
   { icon: Server, label: 'Network Devices', id: 'network', path: '/network-devices' },
   { icon: ClipboardList, label: 'Audit Logs', id: 'audit', path: '/audit-logs' }, 
-  { icon: Users, label: 'RBAC / Users', id: 'users', path: '/users' },
+  { icon: Users, label: 'Users', id: 'users', path: '/users' },
   { icon: Settings, label: 'Settings', id: 'settings', path: '/settings' },
 ];
 
