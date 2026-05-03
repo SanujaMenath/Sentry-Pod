@@ -9,6 +9,7 @@ import RBACUsers from "./pages/RBACUsers";
 import SettingsPage from "./pages/Settings";
 import TopologyMap from "./pages/TopologyMap";
 import NetworkDevices from "./pages/NetworkDevices";
+import AiChat from "./pages/AiChat";
 import { Network } from "lucide-react";
 
 function App() {
@@ -20,6 +21,7 @@ function App() {
 
         <Route element={<RootLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/ai-chat" element={<AiChat />} />
           <Route path="/topology" element={<TopologyMap />} />
           <Route path="/network-devices" element={<NetworkDevices />} />
           <Route path="/audit-logs" element={<AuditLogs />} />
