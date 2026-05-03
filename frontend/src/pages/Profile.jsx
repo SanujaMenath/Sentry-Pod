@@ -43,35 +43,35 @@ export default function Profile() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
       {/* LEFT COLUMN: PROFILE SUMMARY & ACTIVITY */}
-<div className="lg:col-span-1 space-y-[1.5rem]">
+<div className="lg:col-span-1 space-y-11">
   
   {/* PROFILE SUMMARY CARD */}
   <div 
-    className="p-[2.5rem] rounded-[1.5rem] border border-slate-700/30 shadow-[0_0.5rem_2rem_rgba(0,0,0,0.2)] text-center transition-transform hover:scale-[1.01]"
+    className="p-8 rounded-3xl border border-slate-700/30 shadow-[0_0.5rem_2rem_rgba(0,0,0,0.2)] text-center transition-transform hover:scale-[1.01]"
     style={styles.card}
   >
-    <div className="w-[6rem] h-[6rem] bg-blue-600 rounded-full mx-auto mb-[1.5rem] flex items-center justify-center text-[2.5rem] font-bold text-white shadow-[0_0.5rem_1.5rem_rgba(37,99,235,0.4)]">
+    <div className="w-24 h-24 bg-blue-600 rounded-full mx-auto mb-6 flex items-center justify-center text-[2.5rem] font-bold text-white shadow-[0_0.5rem_1.5rem_rgba(37,99,235,0.4)]">
       {name.charAt(0)}
     </div>
-    <h2 className="text-[1.25rem] font-bold text-slate-200 mb-[0.25rem]">{name}</h2>
-    <p className="text-slate-400 text-[0.875rem] mb-[1.5rem] font-medium">Security Administrator</p>
-    <div className="inline-flex items-center gap-[0.5rem] px-[1rem] py-[0.4rem] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-[0.75rem] text-[0.75rem] font-bold">
-      <ShieldCheck className="w-[1rem] h-[1rem]" />
+    <h2 className="text-[1.25rem] font-bold text-slate-200 mb-1">{name}</h2>
+    <p className="text-slate-400 text-[0.875rem] mb-6 font-medium">Security Administrator</p>
+    <div className="inline-flex items-center gap-2 px-4 py-[0.4rem] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-[0.75rem] font-bold">
+      <ShieldCheck className="w-4 h-4" />
       Verified Account
     </div>
   </div>
 
   {/* ACCOUNT STATUS CARD */}
-  <div className="p-[1.5rem] rounded-[1.5rem] border border-slate-700/30 shadow-[0_0.5rem_2rem_rgba(0,0,0,0.2)]" style={styles.card}>
-    <h4 className="text-[0.75rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-[1rem] px-[0.5rem]">
+  <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_0.5rem_2rem_rgba(0,0,0,0.2)]" style={styles.card}>
+    <h4 className="text-[0.75rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-4 px-2">
       Account Status
     </h4>
-    <div className="space-y-[0.75rem]">
-      <div className="flex justify-between items-center p-[0.75rem] bg-[#0D121F]/40 rounded-[0.75rem] border border-slate-800/50">
+    <div className="space-y-3">
+      <div className="flex justify-between items-center p-3 bg-[#0D121F]/40 rounded-xl border border-slate-800/50">
         <span className="text-slate-400 text-[0.8rem]">Two-Factor Auth</span>
         <span className="text-emerald-400 text-[0.7rem] font-bold uppercase">Active</span>
       </div>
-      <div className="flex justify-between items-center p-[0.75rem] bg-[#0D121F]/40 rounded-[0.75rem] border border-slate-800/50">
+      <div className="flex justify-between items-center p-3 bg-[#0D121F]/40 rounded-xl border border-slate-800/50">
         <span className="text-slate-400 text-[0.8rem]">Role Permissions</span>
         <span className="text-blue-400 text-[0.8rem] font-medium">Full Access</span>
       </div>
@@ -79,17 +79,17 @@ export default function Profile() {
   </div>
 
   {/*RECENT ACTIVITY CARD */}
-  <div className="p-[1.5rem] rounded-[1.5rem] border border-slate-700/30 shadow-[0_0.5rem_2rem_rgba(0,0,0,0.2)]" style={styles.card}>
-    <h4 className="text-[0.75rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-[1rem] px-[0.5rem]">
+  <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_0.5rem_2rem_rgba(0,0,0,0.2)]" style={styles.card}>
+    <h4 className="text-[0.75rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-4 px-2">
       Recent Security Activity
     </h4>
-    <div className="space-y-[0.5rem]">
+    <div className="space-y-4">
       {[
         { event: "Password Changed", time: "2 days ago", color: "text-slate-300" },
         { event: "New Login: Chrome / Windows", time: "Yesterday", color: "text-slate-300" },
         { event: "2FA Verified", time: "2 hours ago", color: "text-emerald-400" }
       ].map((item, idx) => (
-        <div key={idx} className="flex flex-col p-[0.75rem] hover:bg-[#0D121F]/30 rounded-[0.75rem] transition-colors border border-transparent hover:border-slate-800/50">
+        <div key={idx} className="flex flex-col p-4 hover:bg-[#0D121F]/30 rounded-xl transition-colors border border-transparent hover:border-slate-800/50">
           <span className={`text-[0.8rem] font-medium ${item.color}`}>{item.event}</span>
           <span className="text-[0.7rem] text-slate-500">{item.time}</span>
         </div>
@@ -102,113 +102,113 @@ export default function Profile() {
         <div className="lg:col-span-2 space-y-6">
           
           {/* GENERAL INFORMATION CARD */}
-<div className="rounded-[1.5rem] border border-slate-700/30 shadow-[0_0.5rem_2rem_rgba(0,0,0,0.2)] overflow-hidden transition-all hover:shadow-[0_0.8rem_2.5rem_rgba(0,0,0,0.3)]" style={styles.card}>
+<div className="rounded-3xl border border-slate-700/30 shadow-[0_0.5rem_2rem_rgba(0,0,0,0.2)] overflow-hidden transition-all hover:shadow-[0_0.8rem_2.5rem_rgba(0,0,0,0.3)]" style={styles.card}>
 
-  <div className="p-[2rem]">
-    <div className="flex items-center gap-[0.75rem] mb-[2rem] text-slate-200 border-b border-slate-800/50 pb-[1rem]">
+  <div className="p-8">
+    <div className="flex items-center gap-3 mb-8 text-slate-200 border-b border-slate-800/50 pb-4">
       <User className="w-[1.2rem] h-[1.2rem] text-blue-400" />
       <h4 className="text-[0.9rem] font-bold tracking-tight text-slate-100">General Information</h4>
     </div>
     
-    <div className="space-y-[1.5rem]">
+    <div className="space-y-6">
       {/* Row 1: Full Name */}
       <div className="group">
-        <label className="block text-[0.7rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-[0.5rem] group-focus-within:text-blue-400 transition-colors">
+        <label className="block text-[0.7rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-2 group-focus-within:text-blue-400 transition-colors">
           Full Name
         </label>
         <input 
           type="text" 
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] px-[1.2rem] py-[0.9rem] text-[1rem] text-slate-200 outline-none ring-[0.125rem] ring-transparent focus:ring-blue-600/40 focus:border-blue-500/50 transition-all shadow-inner"
+          className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] px-[1.2rem] py-[0.9rem] text-[1rem] text-slate-200 outline-none ring-2 ring-transparent focus:ring-blue-600/40 focus:border-blue-500/50 transition-all shadow-inner"
         />
       </div>
 
       {/* Row 2: Email and Phone */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-[1rem]">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="group">
-          <label className="block text-[0.7rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-[0.5rem] group-focus-within:text-blue-400 transition-colors">
+          <label className="block text-[0.7rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-2 group-focus-within:text-blue-400 transition-colors">
             Email Address
           </label>
           <input 
             type="email" 
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] px-[1.2rem] py-[0.9rem] text-[1rem] text-slate-200 outline-none ring-[0.125rem] ring-transparent focus:ring-blue-600/40 focus:border-blue-500/50 transition-all shadow-inner"
+            className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] px-[1.2rem] py-[0.9rem] text-[1rem] text-slate-200 outline-none ring-2 ring-transparent focus:ring-blue-600/40 focus:border-blue-500/50 transition-all shadow-inner"
           />
         </div>
         <div className="group">
-          <label className="block text-[0.7rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-[0.5rem] group-focus-within:text-blue-400 transition-colors">
+          <label className="block text-[0.7rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-2 group-focus-within:text-blue-400 transition-colors">
             Phone Number
           </label>
           <input 
             type="tel" 
             placeholder="+1 (555) 000-0000"
-            className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] px-[1.2rem] py-[0.9rem] text-[1rem] text-slate-200 outline-none ring-[0.125rem] ring-transparent focus:ring-blue-600/40 focus:border-blue-500/50 transition-all shadow-inner"
+            className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] px-[1.2rem] py-[0.9rem] text-[1rem] text-slate-200 outline-none ring-2 ring-transparent focus:ring-blue-600/40 focus:border-blue-500/50 transition-all shadow-inner"
           />
         </div>
       </div>
 
       {/* Row 3: Bio / Department */}
       <div className="group">
-        <label className="block text-[0.7rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-[0.5rem] group-focus-within:text-blue-400 transition-colors">
+        <label className="block text-[0.7rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-2 group-focus-within:text-blue-400 transition-colors">
           Bio / Department
         </label>
         <textarea 
           rows="3"
           placeholder="Brief description of your role..."
-          className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] px-[1.2rem] py-[0.9rem] text-[1rem] text-slate-200 outline-none ring-[0.125rem] ring-transparent focus:ring-blue-600/40 focus:border-blue-500/50 transition-all shadow-inner resize-none"
+          className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] px-[1.2rem] py-[0.9rem] text-[1rem] text-slate-200 outline-none ring-2 ring-transparent focus:ring-blue-600/40 focus:border-blue-500/50 transition-all shadow-inner resize-none"
         ></textarea>
       </div>
 
-      <button className="bg-blue-600 hover:bg-blue-500 text-white px-[2rem] py-[0.75rem] rounded-[0.8rem] text-[0.85rem] font-black flex items-center gap-[0.6rem] transition-all active:scale-[0.97] shadow-[0_0.4rem_1.2rem_rgba(37,99,235,0.3)]">
-        <CheckCircle2 className="w-[1.1rem] h-[1.1rem]" /> SAVE CHANGES
+      <button className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-[0.8rem] text-[0.85rem] font-black flex items-center gap-2 transition-all active:scale-[0.97] shadow-[0_0.4rem_1.2rem_rgba(37,99,235,0.3)]">
+        <CheckCircle2 className="w-4 h-4" /> SAVE CHANGES
       </button>
     </div>
   </div>
 </div>
 
           {/* SECURITY & PASSWORD */}
-            <div className="rounded-[1.5rem] border border-slate-700/30 shadow-[0_0.5rem_2rem_rgba(0,0,0,0.2)] overflow-hidden" style={styles.card}>
+            <div className="rounded-3xl border border-slate-700/30 shadow-[0_0.5rem_2rem_rgba(0,0,0,0.2)] overflow-hidden" style={styles.card}>
             
-              <div className="p-[2rem]">
-                <div className="flex items-center gap-[0.75rem] mb-[2rem] text-slate-200 border-b border-slate-800/50 pb-[1rem]">
+              <div className="p-8">
+                <div className="flex items-center gap-3 mb-8 text-slate-200 border-b border-slate-800/50 pb-4">
                   <Lock className="w-[1.2rem] h-[1.2rem] text-rose-400" />
                   <h4 className="text-[0.9rem] font-bold tracking-tight">Security & Password</h4>
                 </div>
                 
-                <div className="space-y-[1.5rem]">
+                <div className="space-y-6">
                 
                   <div>
-                    <label className="block text-[0.7rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-[0.5rem]">Current Password</label>
+                    <label className="block text-[0.7rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-2">Current Password</label>
                     <input 
                       type="password" 
                       placeholder="••••••••" 
-                      className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] px-[1.2rem] py-[0.9rem] text-[1rem] text-slate-200 outline-none focus:ring-[0.125rem] focus:ring-rose-500/40" 
+                      className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] px-[1.2rem] py-[0.9rem] text-[1rem] text-slate-200 outline-none focus:ring-2 focus:ring-rose-500/40" 
                     />
                   </div>
 
                 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-[1rem]">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <label className="block text-[0.7rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-[0.5rem]">New Password</label>
+                      <label className="block text-[0.7rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-2">New Password</label>
                       <input 
                         type="password" 
                         placeholder="New Password" 
-                        className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] px-[1.2rem] py-[0.9rem] text-[1rem] text-slate-200 outline-none focus:ring-[0.125rem] focus:ring-rose-500/40" 
+                        className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] px-[1.2rem] py-[0.9rem] text-[1rem] text-slate-200 outline-none focus:ring-2 focus:ring-rose-500/40" 
                       />
                     </div>
                     <div>
-                      <label className="block text-[0.7rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-[0.5rem]">Confirm New Password</label>
+                      <label className="block text-[0.7rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-2">Confirm New Password</label>
                       <input 
                         type="password" 
                         placeholder="Confirm Password" 
-                        className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] px-[1.2rem] py-[0.9rem] text-[1rem] text-slate-200 outline-none focus:ring-[0.125rem] focus:ring-rose-500/40" 
+                        className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] px-[1.2rem] py-[0.9rem] text-[1rem] text-slate-200 outline-none focus:ring-2 focus:ring-rose-500/40" 
                       />
                     </div>
                   </div>
 
-                  <button className="bg-blue-600 hover:bg-blue-500 text-white px-[2rem] py-[0.75rem] rounded-[0.8rem] text-[0.85rem] font-black transition-all active:scale-[0.97] shadow-[0_0.4rem_1.2rem_rgba(37,99,235,0.3)]">
+                  <button className="bg-blue-600 hover:bg-blue-500 text-white px-8 py-3 rounded-[0.8rem] text-[0.85rem] font-black transition-all active:scale-[0.97] shadow-[0_0.4rem_1.2rem_rgba(37,99,235,0.3)]">
                     UPDATE PASSWORD
                   </button>
                 </div>
