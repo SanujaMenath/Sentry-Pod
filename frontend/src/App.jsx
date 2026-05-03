@@ -22,6 +22,7 @@ function App() {
 
         <Route element={<RootLayout />}>
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/ai-chat" element={<AiChat />} />
           <Route path="/topology" element={<TopologyMap />} />
           <Route path="/ai-chat" element={<AiChat />} />
           <Route path="/staging" element={<StagingGate />} />

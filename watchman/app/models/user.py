@@ -1,16 +1,16 @@
-# watchman/app/models/user.py
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field
 from typing import Optional
 
-class UserLogin(BaseModel):
-    username: str
-    password: str
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
+class UserCreate(BaseModel):
+    full_name: str = Field(..., example="John Doe")
+    email: EmailStr = Field(..., example="john.doe@sentrypod.io")
+    username: str = Field(..., example="john_sentry")
+    password: str = Field(..., min_length=8)
+    role: str = Field(..., example="Admin")
 
 class UserResponse(BaseModel):
-    username: str
+    id: str
     full_name: str
+    email: EmailStr
+    username: str
     role: str
