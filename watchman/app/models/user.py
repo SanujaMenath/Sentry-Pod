@@ -14,3 +14,11 @@ class UserResponse(BaseModel):
     email: EmailStr
     username: str
     role: str
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str
+
+class UserLogin(BaseModel):
+    username: str
+    password: str
