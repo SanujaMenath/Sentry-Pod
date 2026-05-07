@@ -9,6 +9,8 @@ export const login = async (username, password) => {
     if (response.data.access_token) {
       // Store token in LocalStorage for persistence
       localStorage.setItem('token', response.data.access_token);
+      // Store username for audit logging
+      localStorage.setItem('username', username);
     }
     
     return response.data;
@@ -19,4 +21,5 @@ export const login = async (username, password) => {
 
 export const logout = () => {
   localStorage.removeItem('token');
+  localStorage.removeItem('username');
 };

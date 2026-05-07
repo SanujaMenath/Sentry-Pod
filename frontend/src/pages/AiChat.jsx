@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { Bot, Send, Zap, Shield, Wrench, BarChart3, ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
+import { logAction } from "../services/auditService";
 
 const mocha = {
   base: "#1e1e2e",
@@ -238,6 +239,16 @@ export default function AiChat() {
         if (finalStatus !== "pending") {
           clearInterval(checkCompletion);
           
+          // Log the action to audit trail
+          const username = localStorage.getItem('username') || 'Anonymous User';
+          logAction(
+            action.name,
+            action.playbook,
+            finalStatus,
+            outputLines.join("\n"),
+            username
+          ).catch(err => console.error('Failed to log action:', err));
+          
           setMessages((prevMessages) => {
             const updated = [...prevMessages];
             const lastAIMessage = updated[updated.length - 1];
@@ -254,6 +265,15 @@ export default function AiChat() {
         }
       }, 100);
     } catch (error) {
+      const username = localStorage.getItem('username') || 'Anonymous User';
+      logAction(
+        action.name,
+        action.playbook,
+        'error',
+        error.message,
+        username
+      ).catch(err => console.error('Failed to log action:', err));
+      
       setMessages((prevMessages) => [
         ...prevMessages,
         {
