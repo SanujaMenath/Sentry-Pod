@@ -1,0 +1,10 @@
+- name: Enable CDP
+  hosts: allHosts
+  gather_facts: false
+
+  tasks:
+    - name: Enable CDP if not
+      cisco.ios.ios_cdp_global:
+        config:
+          enabled: true
+        state: merged

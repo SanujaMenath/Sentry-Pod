@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
 from app.route import user_routes
 from app.route import auth_routes
+from app.route import playbook_routes
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION)
 
@@ -16,6 +17,7 @@ app.add_middleware(
 
 app.include_router(user_routes.router)
 app.include_router(auth_routes.router)
+app.include_router(playbook_routes.router)
 
 @app.get("/")
 async def root():

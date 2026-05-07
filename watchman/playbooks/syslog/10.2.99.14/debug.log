@@ -1,0 +1,16 @@
+Mar  1 00:18:50 10.2.99.14 %LINK-5-CHANGED: Interface FastEthernet1/3, changed state to administratively down
+Mar  1 00:19:10 10.2.99.14 %LINK-3-UPDOWN: Interface FastEthernet1/3, changed state to up
+Mar  1 03:04:37 10.2.99.14 %LINK-3-UPDOWN: Interface FastEthernet1/3, changed state to up
+Mar  1 03:18:46 10.2.99.14 %SYS-5-CONFIG_I: Configured from console by admin on vty0 (192.168.122.1)
+Mar  1 03:20:14 10.2.99.14 %SYS-5-CONFIG_I: Configured from console by console
+Apr 30 11:31:58 10.2.99.14 %LINK-5-CHANGED: Interface FastEthernet1/3, changed state to administratively down
+May  1 09:26:49 10.2.99.14 %LINK-3-UPDOWN: Interface FastEthernet1/3, changed state to up
+May  1 09:27:10 10.2.99.14 %SYS-5-CONFIG_I: Configured from console by console
+May  1 09:28:37 10.2.99.14 %LINK-5-CHANGED: Interface FastEthernet1/3, changed state to administratively down
+May  2 02:13:08 10.2.99.14 %LINK-5-CHANGED: Interface FastEthernet1/3, changed state to administratively down
+May  2 02:13:31 10.2.99.14 %SYS-5-CONFIG_I: Configured from console by console
+May  2 02:14:11 10.2.99.14 %LINK-3-UPDOWN: Interface FastEthernet1/3, changed state to up
+May  2 07:56:11 10.2.99.14 %SYS-5-CONFIG_I: Configured from console by admin on vty0 (192.168.122.1)
+May  2 10:56:34 10.2.99.14 %LINK-5-CHANGED: Interface FastEthernet1/3, changed state to administratively down
+May  2 10:56:44 10.2.99.14 %LINK-3-UPDOWN: Interface FastEthernet1/3, changed state to up
+May  2 11:19:12 10.2.99.14 %PCMCIAFS-5-DIBERR: PCMCIA disk 0 is formatted from a different router or PC. A format in this router is required before an image can be booted from this device

@@ -1,0 +1,9 @@
+- name: setup Default Gateways
+  hosts: Access_Switches
+  gather_facts: false
+
+  tasks:
+    - name: Enter Default Gateway
+      cisco.ios.ios_config:
+        lines:
+          - ip default-gateway {{defaultGateway}}

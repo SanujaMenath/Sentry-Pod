@@ -1,5 +1,78 @@
 import React, { useState } from "react";
-import { Bot, Send } from "lucide-react";
+import { Bot, Send, Zap, Shield, Wrench, BarChart3, ChevronDown, ChevronUp } from "lucide-react";
+
+const mocha = {
+  base: "#1e1e2e",
+  mantle: "#181825",
+  surface0: "#313244",
+  surface1: "#45475a",
+  text: "#cdd6f4",
+  subtext1: "#bac2de",
+  lavender: "#b4befe",
+  blue: "#89b4fa",
+  green: "#a6e3a1",
+  yellow: "#f9e2af",
+  red: "#f38ba8",
+  peach: "#fab387",
+  sapphire: "#74c7ec",
+  sky: "#89dceb",
+};
+
+const classifyLine = (line) => {
+  if (!line.trim()) {
+    return { color: mocha.subtext1 };
+  }
+
+  if (line.startsWith("PLAY RECAP")) return { color: mocha.lavender, weight: 700 };
+  if (line.startsWith("PLAY [")) return { color: mocha.blue, weight: 700 };
+  if (line.startsWith("TASK [")) return { color: mocha.sapphire, weight: 700 };
+  if (line.startsWith("ok:")) return { color: mocha.green };
+  if (line.startsWith("changed:")) return { color: mocha.yellow };
+  if (line.startsWith("failed:")) return { color: mocha.red, weight: 700 };
+  if (line.startsWith("skipped:")) return { color: mocha.peach };
+  if (line.startsWith("fatal:")) return { color: mocha.red, weight: 700 };
+  if (line.startsWith("[")) return { color: mocha.subtext1 };
+
+  return { color: mocha.text };
+};
+
+const ExpandableOutput = ({ output }) => {
+  const [expanded, setExpanded] = useState(false);
+  
+  if (!output) return null;
+  
+  const lines = output.split('\n');
+  const preview = lines.slice(0, 10);
+  const hasMore = lines.length > preview.length;
+  
+  return (
+    <div className="mt-3 rounded-xl border border-[#45475a] bg-[#1e1e2e] p-4 shadow-inner shadow-black/20">
+      <button
+        onClick={() => setExpanded(!expanded)}
+        className="mb-3 flex items-center gap-2 text-sm text-[#cdd6f4] transition-colors hover:text-white"
+      >
+        {hasMore && (expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
+        <span className="font-mono text-xs">{lines.length} lines of output</span>
+      </button>
+      <div className="max-h-72 overflow-auto rounded-lg border border-[#313244] bg-[#181825] p-3 font-mono text-xs leading-5">
+        {(expanded ? lines : preview).map((line, index) => {
+          const style = classifyLine(line);
+
+          return (
+            <div key={`${index}-${line}`} style={{ color: style.color, fontWeight: style.weight || 400 }} className="whitespace-pre-wrap break-words">
+              {line}
+            </div>
+          );
+        })}
+        {hasMore && !expanded && (
+          <div style={{ color: mocha.subtext1 }} className="mt-2 italic">
+            ...expand to view the rest of the playbook output
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
 
 export default function AiChat() {
   const [messages, setMessages] = useState([
@@ -10,6 +83,98 @@ export default function AiChat() {
     },
   ]);
   const [input, setInput] = useState("");
+  const [executingAction, setExecutingAction] = useState(null);
+
+  const quickActions = [
+    {
+      id: "backup",
+      name: "Backup Devices",
+      description: "Create backups of all network device configurations",
+      icon: Zap,
+      color: "bg-blue-600/20 border-blue-600/50 hover:bg-blue-600/30",
+      iconColor: "text-blue-400",
+      playbook: "get_facts.yml"
+    },
+    {
+      id: "security",
+      name: "Apply Security Policies",
+      description: "Deploy security patches and policies across devices",
+      icon: Shield,
+      color: "bg-red-600/20 border-red-600/50 hover:bg-red-600/30",
+      iconColor: "text-red-400",
+      playbook: "enableCDP.yml"
+    },
+    {
+      id: "config",
+      name: "Update Configuration",
+      description: "Push configuration updates to network devices",
+      icon: Wrench,
+      color: "bg-amber-600/20 border-amber-600/50 hover:bg-amber-600/30",
+      iconColor: "text-amber-400",
+      playbook: "practice1.yml"
+    },
+    {
+      id: "compliance",
+      name: "Run Compliance Check",
+      description: "Perform compliance validation and report on device status",
+      icon: BarChart3,
+      color: "bg-emerald-600/20 border-emerald-600/50 hover:bg-emerald-600/30",
+      iconColor: "text-emerald-400",
+      playbook: "HSRP_active.yml"
+    },
+  ];
+
+  const executeAction = async (action) => {
+    setExecutingAction(action.id);
+    
+    try {
+      const response = await fetch("http://localhost:8000/playbooks/execute", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          playbook_name: action.playbook,
+          description: action.name,
+        }),
+      });
+
+      const data = await response.json();
+      
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          role: "user",
+          text: `Execute: ${action.name}`,
+          time: "Now",
+        },
+        {
+          role: "ai",
+          text: data.status === "success" 
+            ? `✅ ${action.name} completed successfully!`
+            : `❌ ${action.name} failed: ${data.message}`,
+          output: data.output || null,
+          time: "Now",
+        },
+      ]);
+    } catch (error) {
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        {
+          role: "user",
+          text: `Execute: ${action.name}`,
+          time: "Now",
+        },
+        {
+          role: "ai",
+          text: `❌ Error executing action: ${error.message}`,
+          time: "Now",
+        },
+      ]);
+    }
+    
+    setExecutingAction(null);
+  };
 
   const sendMessage = () => {
     if (!input.trim()) return;
@@ -30,6 +195,33 @@ export default function AiChat() {
         Natural language network management and configuration
       </p>
 
+      <div className="mb-8">
+        <h2 className="text-[#0F172A] text-lg font-bold mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {quickActions.map((action) => {
+            const Icon = action.icon;
+            return (
+              <button
+                key={action.id}
+                onClick={() => executeAction(action)}
+                disabled={executingAction !== null}
+                className={`flex flex-col items-start p-5 rounded-2xl border ${action.color} transition-all duration-200 backdrop-blur-sm disabled:opacity-50 disabled:cursor-not-allowed hover:shadow-lg`}
+              >
+                <div className={`p-3 rounded-lg ${action.color.split(" ")[0]} mb-3`}>
+                  <Icon className={`${action.iconColor}`} size={24} />
+                </div>
+                <h3 className="text-[#0F172A] font-bold text-sm mb-1">
+                  {action.name}
+                </h3>
+                <p className="text-[#64748B] text-xs leading-relaxed">
+                  {action.description}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
       <div className="flex min-h-[525px] flex-col overflow-hidden rounded-3xl bg-[#1D293DED] border border-slate-700/50 shadow-lg">
         <div className="flex-1 space-y-5 p-6">
           {messages.map((message, index) => (
@@ -40,7 +232,7 @@ export default function AiChat() {
                 </div>
               )}
 
-              <div className={`max-w-3xl rounded-2xl px-5 py-4 text-sm leading-relaxed ${message.role === "user" ? "bg-blue-600 text-white" : "bg-[#0F172A] text-slate-300"}`}>
+              <div className={`max-w-4xl rounded-2xl px-5 py-4 text-sm leading-relaxed ${message.role === "user" ? "bg-blue-600 text-white" : "bg-[#0F172A] text-slate-300"}`}>
                 {message.role === "ai" && (
                   <div className="mb-2 flex items-center gap-2">
                     <span className="rounded-lg bg-blue-600/30 px-2 py-1 text-xs font-bold text-blue-200">AI Assistant</span>
@@ -48,6 +240,7 @@ export default function AiChat() {
                   </div>
                 )}
                 {message.text}
+                {message.output && <ExpandableOutput output={message.output} />}
               </div>
             </div>
           ))}

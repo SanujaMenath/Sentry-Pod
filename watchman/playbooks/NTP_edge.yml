@@ -1,0 +1,11 @@
+- name: Edge router NTP
+  hosts: Edge_routers
+  gather_facts: false
+
+  tasks:
+    - name: Configure NTP
+      cisco.ios.ios_config:
+        lines:
+          - ntp server 192.168.122.1 version 4
+          - clock timezone SLST 5 30
+          - ntp max-associations 1
