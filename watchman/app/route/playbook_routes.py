@@ -22,6 +22,39 @@ class PlaybookResponse(BaseModel):
 # Get the directory where this script is located
 BASE_DIR = Path(__file__).parent.parent.parent
 PLAYBOOKS_DIR = BASE_DIR / "playbooks"
+HOSTS_INI_PATH = PLAYBOOKS_DIR / "hosts.ini"
+
+
+def get_all_hosts_from_inventory() -> list[str]:
+    """Return all hostnames listed under [allHosts] in hosts.ini."""
+    if not HOSTS_INI_PATH.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Inventory file 'hosts.ini' not found"
+        )
+
+    hostnames: list[str] = []
+    in_all_hosts = False
+
+    with HOSTS_INI_PATH.open("r", encoding="utf-8") as inventory_file:
+        for raw_line in inventory_file:
+            line = raw_line.strip()
+
+            if not line or line.startswith("#") or line.startswith(";"):
+                continue
+
+            if line.startswith("[") and line.endswith("]"):
+                in_all_hosts = line.lower() == "[allhosts]"
+                continue
+
+            if not in_all_hosts:
+                continue
+
+            # Ansible inventory host entries can include inline variables.
+            hostname = line.split()[0]
+            hostnames.append(hostname)
+
+    return hostnames
 
 @router.post("/execute", response_model=PlaybookResponse)
 async def execute_playbook(request: PlaybookRequest):
@@ -161,6 +194,26 @@ async def list_playbooks():
             "playbooks": sorted(playbooks),
             "count": len(playbooks)
         }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
+@router.get("/inventory/all-hosts-count")
+async def get_all_hosts_count():
+    """Return the number of devices listed under [allHosts] in hosts.ini."""
+    try:
+        hostnames = get_all_hosts_from_inventory()
+        return {
+            "status": "success",
+            "group": "allHosts",
+            "count": len(hostnames),
+            "hosts": hostnames,
+        }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

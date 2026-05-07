@@ -33,7 +33,7 @@ async def log_action(entry: AuditLogEntry):
             "status": entry.status,
             "output": entry.output,
             "username": entry.username,
-            "timestamp": datetime.utcnow().isoformat(),
+            "timestamp": datetime.utcnow().isoformat() + "Z",
         }
         
         result = await audit_logs_collection.insert_one(audit_entry)

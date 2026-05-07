@@ -1,6 +1,7 @@
  import { useState, useEffect } from 'react';
 import { Download, FileText, CheckCircle, AlertTriangle, XCircle, ChevronDown, Calendar } from 'lucide-react';
 import ExportLogsModal from '../components/ExportLogsModal';
+import AuditLogDetailModal from '../components/AuditLogDetailModal';
 import { getAllAuditLogs } from '../services/auditService';
 
 const statusConfig = {
@@ -27,6 +28,7 @@ const formatLogForDisplay = (log) => {
     target: log.playbook_name,
     status: mappedStatus,
     details: log.output ? log.output.substring(0, 50) + '...' : 'No details',
+    output: log.output || '', // Keep full output for modal
   };
 };
 
@@ -35,6 +37,7 @@ export default function AuditLogs() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showExport, setShowExport] = useState(false);
+  const [selectedLog, setSelectedLog] = useState(null);
 
   useEffect(() => {
     const fetchLogs = async () => {
@@ -176,7 +179,11 @@ export default function AuditLogs() {
             </thead>
             <tbody>
               {logs.map((log, i) => (
-                <tr key={log.id} className={`border-b border-[#1e2530] hover:bg-[#1e2530]/50 transition-colors ${i % 2 === 0 ? '' : ''}`}>
+                <tr
+                  key={log.id}
+                  onClick={() => setSelectedLog(log)}
+                  className={`border-b border-[#1e2530] hover:bg-[#1e2530]/50 transition-colors cursor-pointer ${i % 2 === 0 ? '' : ''}`}
+                >
                   <td className="px-4 py-3 text-blue-400 font-mono text-xs">{log.id}</td>
                   <td className="px-4 py-3 text-gray-400 font-mono text-xs whitespace-nowrap">{log.timestamp}</td>
                   <td className="px-4 py-3 text-gray-300 text-xs">{log.user}</td>
@@ -199,6 +206,7 @@ export default function AuditLogs() {
   </main> 
 
   {showExport && <ExportLogsModal onClose={() => setShowExport(false)} />}
+  {selectedLog && <AuditLogDetailModal log={selectedLog} onClose={() => setSelectedLog(null)} />}
 </div>
 );
 }
