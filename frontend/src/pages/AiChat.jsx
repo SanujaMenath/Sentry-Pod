@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Bot, Send, Zap, Shield, Wrench, BarChart3, ChevronDown, ChevronUp } from "lucide-react";
+import { Bot, Send, Zap, Shield, Wrench, BarChart3, ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
 
 const mocha = {
   base: "#1e1e2e",
@@ -38,22 +38,54 @@ const classifyLine = (line) => {
 
 const ExpandableOutput = ({ output }) => {
   const [expanded, setExpanded] = useState(false);
+  const [copied, setCopied] = useState(false);
   
   if (!output) return null;
   
   const lines = output.split('\n');
   const preview = lines.slice(0, 10);
   const hasMore = lines.length > preview.length;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(output);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy:', err);
+    }
+  };
   
   return (
     <div className="mt-3 rounded-xl border border-[#45475a] bg-[#1e1e2e] p-4 shadow-inner shadow-black/20">
-      <button
-        onClick={() => setExpanded(!expanded)}
-        className="mb-3 flex items-center gap-2 text-sm text-[#cdd6f4] transition-colors hover:text-white"
-      >
-        {hasMore && (expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
-        <span className="font-mono text-xs">{lines.length} lines of output</span>
-      </button>
+      <div className="mb-3 flex items-center justify-between">
+        <button
+          onClick={() => setExpanded(!expanded)}
+          className="flex items-center gap-2 text-sm text-[#cdd6f4] transition-colors hover:text-white"
+        >
+          {hasMore && (expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
+          <span className="font-mono text-xs">{lines.length} lines of output</span>
+        </button>
+
+        <button
+          onClick={handleCopy}
+          className="flex items-center gap-2 rounded-lg bg-[#45475a]/50 px-3 py-1.5 text-xs text-[#cdd6f4] transition-all hover:bg-[#45475a] hover:text-white"
+          title="Copy output to clipboard"
+        >
+          {copied ? (
+            <>
+              <Check size={14} />
+              <span>Copied!</span>
+            </>
+          ) : (
+            <>
+              <Copy size={14} />
+              <span>Copy</span>
+            </>
+          )}
+        </button>
+      </div>
+
       <div className="max-h-72 overflow-auto rounded-lg border border-[#313244] bg-[#181825] p-3 font-mono text-xs leading-5">
         {(expanded ? lines : preview).map((line, index) => {
           const style = classifyLine(line);
@@ -127,36 +159,100 @@ export default function AiChat() {
   const executeAction = async (action) => {
     setExecutingAction(action.id);
     
-    try {
-      const response = await fetch("http://localhost:8000/playbooks/execute", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          playbook_name: action.playbook,
-          description: action.name,
-        }),
-      });
+    let outputLines = [];
+    let finalStatus = "pending";
+    let userMessageAdded = false;
 
-      const data = await response.json();
+    try {
+      const eventSource = new EventSource(
+        `http://localhost:8000/playbooks/execute-stream/${action.playbook}`
+      );
+
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+
+          if (data.type === "output") {
+            outputLines.push(data.line);
+            
+            if (!userMessageAdded) {
+              setMessages((prevMessages) => [
+                ...prevMessages,
+                {
+                  role: "user",
+                  text: `Execute: ${action.name}`,
+                  time: "Now",
+                },
+                {
+                  role: "ai",
+                  text: `🔄 ${action.name} is running...`,
+                  output: outputLines.join("\n"),
+                  time: "Now",
+                },
+              ]);
+              userMessageAdded = true;
+            } else {
+              // Update output in real-time
+              setMessages((prevMessages) => {
+                const updated = [...prevMessages];
+                const lastAIMessage = updated[updated.length - 1];
+                if (lastAIMessage && lastAIMessage.role === "ai") {
+                  lastAIMessage.output = outputLines.join("\n");
+                }
+                return updated;
+              });
+            }
+          } else if (data.type === "complete") {
+            finalStatus = data.status;
+            eventSource.close();
+          } else if (data.type === "error") {
+            finalStatus = "error";
+            eventSource.close();
+          }
+        } catch (parseError) {
+          console.error("Error parsing event:", parseError);
+        }
+      };
+
+      eventSource.onerror = () => {
+        eventSource.close();
+        finalStatus = "failed";
+        
+        setMessages((prevMessages) => {
+          const updated = [...prevMessages];
+          const lastAIMessage = updated[updated.length - 1];
+          if (lastAIMessage && lastAIMessage.role === "ai") {
+            lastAIMessage.text = 
+              finalStatus === "success"
+                ? `✅ ${action.name} completed successfully!`
+                : `❌ ${action.name} failed!`;
+          }
+          return updated;
+        });
+        
+        setExecutingAction(null);
+      };
       
-      setMessages((prevMessages) => [
-        ...prevMessages,
-        {
-          role: "user",
-          text: `Execute: ${action.name}`,
-          time: "Now",
-        },
-        {
-          role: "ai",
-          text: data.status === "success" 
-            ? `✅ ${action.name} completed successfully!`
-            : `❌ ${action.name} failed: ${data.message}`,
-          output: data.output || null,
-          time: "Now",
-        },
-      ]);
+      // Wait a bit for the stream to complete before updating final status
+      const checkCompletion = setInterval(() => {
+        if (finalStatus !== "pending") {
+          clearInterval(checkCompletion);
+          
+          setMessages((prevMessages) => {
+            const updated = [...prevMessages];
+            const lastAIMessage = updated[updated.length - 1];
+            if (lastAIMessage && lastAIMessage.role === "ai") {
+              lastAIMessage.text = 
+                finalStatus === "success"
+                  ? `✅ ${action.name} completed successfully!`
+                  : `❌ ${action.name} failed!`;
+            }
+            return updated;
+          });
+          
+          setExecutingAction(null);
+        }
+      }, 100);
     } catch (error) {
       setMessages((prevMessages) => [
         ...prevMessages,
@@ -171,9 +267,8 @@ export default function AiChat() {
           time: "Now",
         },
       ]);
+      setExecutingAction(null);
     }
-    
-    setExecutingAction(null);
   };
 
   const sendMessage = () => {
