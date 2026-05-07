@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Bot, Send, Zap, Shield, Wrench, BarChart3, ChevronDown, ChevronUp, Copy, Check } from "lucide-react";
 import { logAction } from "../services/auditService";
+import { generateText } from "../services/llmService";
 
 const mocha = {
   base: "#1e1e2e",
@@ -117,6 +118,22 @@ export default function AiChat() {
   ]);
   const [input, setInput] = useState("");
   const [executingAction, setExecutingAction] = useState(null);
+
+  const hfModels = [
+    { id: "deepseek-ai/DeepSeek-R1:novita", label: "DeepSeek R1 (Best reasoning)" },
+    { id: "google/gemma-4-31B-it:novita", label: "Gemma 4 31B (Faster chat)" },
+    { id: "Qwen/Qwen3.5-4B", label: "Qwen 3.5-4B (Balanced)" },
+    { id: "meta-llama/Llama-3.1-8B-Instruct:novita", label: "Llama-3.1-8B-Instruct(Fastest)" },
+  ];
+
+  const [selectedModel, setSelectedModel] = useState(() => {
+    return localStorage.getItem("hf_model") || "deepseek-ai/DeepSeek-R1:novita";
+  });
+
+  const handleModelChange = (modelId) => {
+    setSelectedModel(modelId);
+    localStorage.setItem("hf_model", modelId);
+  };
 
   const quickActions = [
     {
@@ -291,14 +308,49 @@ export default function AiChat() {
     }
   };
 
-  const sendMessage = () => {
+  const sendMessage = async () => {
     if (!input.trim()) return;
-    setMessages([
-      ...messages,
-      { role: "user", text: input, time: "Now" },
-      { role: "ai", text: "I can stage that configuration change and send it to the Staging Gate for approval.", time: "Now" },
+    const userText = input.trim();
+
+    setMessages((prev) => [
+      ...prev,
+      { role: "user", text: userText, time: "Now" },
+      { role: "ai", text: "Thinking...", time: "Now" },
     ]);
+
     setInput("");
+
+    try {
+      const response = await generateText(userText, selectedModel);
+      setMessages((prev) => {
+        const updated = [...prev];
+        // Replace the last AI placeholder message with the real reply
+        for (let i = updated.length - 1; i >= 0; i--) {
+          if (updated[i].role === "ai" && updated[i].text === "Thinking...") {
+            updated[i] = {
+              role: "ai",
+              text: response.text,
+              reasoning: response.reasoning,
+              model: response.model,
+              time: "Now",
+            };
+            break;
+          }
+        }
+        return updated;
+      });
+    } catch (err) {
+      setMessages((prev) => {
+        const updated = [...prev];
+        for (let i = updated.length - 1; i >= 0; i--) {
+          if (updated[i].role === "ai" && updated[i].text === "Thinking...") {
+            updated[i] = { role: "ai", text: `❌ Error: ${err.message}`, time: "Now" };
+            break;
+          }
+        }
+        return updated;
+      });
+    }
   };
 
   return (
@@ -350,8 +402,16 @@ export default function AiChat() {
               <div className={`max-w-4xl rounded-2xl px-5 py-4 text-sm leading-relaxed ${message.role === "user" ? "bg-blue-600 text-white" : "bg-[#0F172A] text-slate-300"}`}>
                 {message.role === "ai" && (
                   <div className="mb-2 flex items-center gap-2">
-                    <span className="rounded-lg bg-blue-600/30 px-2 py-1 text-xs font-bold text-blue-200">AI Assistant</span>
+                    <span className="rounded-lg bg-blue-600/30 px-2 py-1 text-xs font-bold text-blue-200">
+                      {message.model === "google/gemma-4-31B-it:novita" ? "Gemma 4 31B" : "AI Assistant"}
+                    </span>
                     <span className="text-xs text-slate-500">{message.time}</span>
+                  </div>
+                )}
+                {message.reasoning && (
+                  <div className="mb-4 rounded-lg border border-purple-500/30 bg-purple-900/20 p-3">
+                    <p className="mb-2 text-xs font-semibold text-purple-300">💭 Thinking Process:</p>
+                    <p className="text-xs text-purple-200/80">{message.reasoning}</p>
                   </div>
                 )}
                 {message.text}
@@ -362,6 +422,21 @@ export default function AiChat() {
         </div>
 
         <div className="border-t border-slate-700/50 bg-[#314157] p-5">
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <label className="text-sm font-semibold text-slate-300">Model:</label>
+            <select
+              value={selectedModel}
+              onChange={(event) => handleModelChange(event.target.value)}
+              className="rounded-lg border border-slate-600 bg-[#0F172A] px-3 py-2 text-sm text-slate-200 outline-none hover:border-slate-500 focus:border-blue-500"
+            >
+              {hfModels.map((model) => (
+                <option key={model.id} value={model.id}>
+                  {model.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
           <div className="mb-5 flex flex-wrap gap-3">
             {["High CPU devices", "Configure VLAN", "Security analysis"].map((prompt) => (
               <button key={prompt} onClick={() => setInput(prompt)} className="rounded-xl border border-slate-600 bg-slate-700/40 px-4 py-2 text-sm text-slate-200">
