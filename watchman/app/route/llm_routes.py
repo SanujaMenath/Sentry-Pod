@@ -12,6 +12,23 @@ router = APIRouter(tags=["LLM"], prefix="/llm")
 HF_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
 HF_API_URL = "https://router.huggingface.co/v1/chat/completions"
 
+SYSTEM_PROMPT = """You are SentryPod's network operations assistant.
+
+Response rules:
+- Be concise and practical.
+- Return plain text only. Do not use markdown (no **bold**, headings, lists, or code fences).
+- For configuration requests, provide only the requested action, not alternatives unless explicitly asked.
+- Prefer device-ready Cisco IOS style commands when applicable.
+- Keep responses short (typically 4-8 lines).
+- If a placeholder is required, use <interface> style placeholders.
+
+For command-style requests, use this structure:
+Action: <one short sentence>
+Commands:
+<one command per line>
+Notes: <single short caution or validation tip>
+"""
+
 
 class ChatRequest(BaseModel):
     prompt: str
@@ -53,6 +70,10 @@ async def chat(request: ChatRequest):
     }
     payload = {
         "messages": [
+            {
+                "role": "system",
+                "content": SYSTEM_PROMPT,
+            },
             {
                 "role": "user",
                 "content": request.prompt,

@@ -38,6 +38,21 @@ const classifyLine = (line) => {
   return { color: mocha.text };
 };
 
+const normalizeAssistantText = (rawText) => {
+  if (!rawText) return "";
+
+  return rawText
+    .replace(/\r\n/g, "\n")
+    .replace(/^```[a-zA-Z0-9_-]*\s*$/gm, "")
+    .replace(/^```\s*$/gm, "")
+    .replace(/\*\*(.*?)\*\*/g, "$1")
+    .replace(/`([^`]+)`/g, "$1")
+    .replace(/^#{1,6}\s*/gm, "")
+    .replace(/^[-*]\s+/gm, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+};
+
 const ExpandableOutput = ({ output }) => {
   const [expanded, setExpanded] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -322,6 +337,8 @@ export default function AiChat() {
 
     try {
       const response = await generateText(userText, selectedModel);
+      const cleanText = normalizeAssistantText(response.text);
+
       setMessages((prev) => {
         const updated = [...prev];
         // Replace the last AI placeholder message with the real reply
@@ -329,7 +346,7 @@ export default function AiChat() {
           if (updated[i].role === "ai" && updated[i].text === "Thinking...") {
             updated[i] = {
               role: "ai",
-              text: response.text,
+              text: cleanText,
               reasoning: response.reasoning,
               model: response.model,
               time: "Now",
@@ -414,7 +431,9 @@ export default function AiChat() {
                     <p className="text-xs text-purple-200/80">{message.reasoning}</p>
                   </div>
                 )}
-                {message.text}
+                <div className={message.role === "ai" ? "whitespace-pre-wrap break-words" : "break-words"}>
+                  {message.text}
+                </div>
                 {message.output && <ExpandableOutput output={message.output} />}
               </div>
             </div>
