@@ -7,6 +7,7 @@ import os
 from pathlib import Path
 import json
 import logging
+import yaml
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +43,7 @@ class PlaybookSuggestion(BaseModel):
     destructive: bool
     severity: str
     target_devices: list[str]
+    playbook_preview: str = ""
 
 # Get the directory where this script is located
 BASE_DIR = Path(__file__).parent.parent.parent
@@ -71,6 +73,60 @@ def load_catalog() -> list[PlaybookCatalogItem]:
     except Exception as e:
         logger.error(f"Error loading catalog: {str(e)}")
         return []
+
+def extract_playbook_preview(filename: str) -> str:
+    """
+    Read a playbook YAML file and extract key task information.
+    Returns a brief preview of what the playbook does.
+    """
+    try:
+        playbook_path = PLAYBOOKS_DIR / filename
+        if not playbook_path.exists():
+            return ""
+        
+        with open(playbook_path, 'r') as f:
+            content = yaml.safe_load(f)
+        
+        if not content or not isinstance(content, list):
+            return ""
+        
+        # Extract task names and modules from the first play
+        play = content[0]
+        if not isinstance(play, dict):
+            return ""
+        
+        tasks = play.get('tasks', [])
+        if not tasks:
+            return ""
+        
+        # Get first 3-4 task names
+        task_names = []
+        modules_used = set()
+        
+        for task in tasks[:4]:
+            if isinstance(task, dict):
+                task_name = task.get('name', 'unnamed task')
+                task_names.append(task_name)
+                
+                # Extract module name (e.g., 'cisco.ios.ios_command')
+                for key in task.keys():
+                    if key not in ['name', 'register', 'when', 'debug', 'copy', 'set_fact']:
+                        if '.' in key or key in ['command', 'shell', 'copy', 'debug']:
+                            modules_used.add(key)
+        
+        # Build preview string
+        preview_parts = []
+        if task_names:
+            preview_parts.append("Tasks: " + "; ".join(task_names[:3]))
+        if modules_used:
+            modules_list = "; ".join(sorted(list(modules_used))[:3])
+            preview_parts.append("Uses: " + modules_list)
+        
+        return " | ".join(preview_parts) if preview_parts else ""
+    
+    except Exception as e:
+        logger.warning(f"Could not extract preview from {filename}: {str(e)}")
+        return ""
 
 def score_playbook_match(catalog_item: PlaybookCatalogItem, prompt: str) -> tuple[float, str]:
     """
@@ -119,6 +175,7 @@ def find_playbook_suggestions(prompt: str, top_k: int = 3) -> list[PlaybookSugge
     """
     Find the best matching playbooks for a user prompt.
     Returns top_k suggestions ranked by relevance.
+    Includes dynamic playbook content preview from YAML files.
     """
     catalog = load_catalog()
     if not catalog:
@@ -128,6 +185,9 @@ def find_playbook_suggestions(prompt: str, top_k: int = 3) -> list[PlaybookSugge
     for item in catalog:
         score, reason = score_playbook_match(item, prompt)
         if score > 0:
+            # Extract playbook preview from YAML
+            preview = extract_playbook_preview(item.filename)
+            
             suggestions.append(
                 PlaybookSuggestion(
                     filename=item.filename,
@@ -139,6 +199,7 @@ def find_playbook_suggestions(prompt: str, top_k: int = 3) -> list[PlaybookSugge
                     destructive=item.destructive,
                     severity=getattr(item, "severity", "medium"),
                     target_devices=item.target_devices,
+                    playbook_preview=preview,
                 )
             )
     

@@ -92,6 +92,8 @@ async def chat(request: ChatRequest):
         for i, suggestion in enumerate(suggestions, 1):
             system_prompt += f"\n{i}. {suggestion.name} ({suggestion.filename})"
             system_prompt += f"\n   Description: {suggestion.description}"
+            if suggestion.playbook_preview:
+                system_prompt += f"\n   Details: {suggestion.playbook_preview}"
             system_prompt += f"\n   Match reason: {suggestion.reason} (score: {suggestion.match_score:.1%})"
     
     headers = {

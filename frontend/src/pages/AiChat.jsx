@@ -141,6 +141,9 @@ const PlaybookSuggestions = ({ suggestions, onExecute }) => {
             <div className="flex-1">
               <h4 className="mb-1 text-sm font-semibold text-[#cdd6f4]">{suggestion.name}</h4>
               <p className="mb-2 text-xs text-[#bac2de]">{suggestion.description}</p>
+              {suggestion.playbook_preview && (
+                <p className="mb-2 text-xs text-[#a6e3a1] italic">{suggestion.playbook_preview}</p>
+              )}
               <div className="flex flex-wrap gap-1">
                 {(suggestion.tags || []).slice(0, 3).map((tag) => (
                   <span key={tag} className="inline-block rounded bg-[#45475a]/50 px-2 py-0.5 text-xs text-[#89dceb]">
