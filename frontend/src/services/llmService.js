@@ -20,12 +20,13 @@ export async function generateText(prompt, model) {
 
   const data = await res.json();
 
-  // Backend returns { text: "...", reasoning: "..." or null, model: "..." }
+  // Backend returns { text: "...", reasoning: "..." or null, model: "...", playbook_suggestions: [...] }
   if (data.text) {
     return {
       text: data.text,
       reasoning: data.reasoning || null,
       model: data.model || null,
+      playbook_suggestions: data.playbook_suggestions || [],
     };
   }
 
