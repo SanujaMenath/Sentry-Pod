@@ -4,6 +4,7 @@ from pydantic import BaseModel
 import httpx  # type: ignore
 import os
 import logging
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -11,6 +12,9 @@ router = APIRouter(tags=["LLM"], prefix="/llm")
 
 HF_API_KEY = os.getenv("HUGGINGFACE_API_KEY")
 HF_API_URL = "https://router.huggingface.co/v1/chat/completions"
+RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
+MAX_HF_RETRIES = 3
+MAX_RETRY_DELAY_SECONDS = 10
 
 SYSTEM_PROMPT = """You are SentryPod's network operations assistant.
 
@@ -86,13 +90,61 @@ async def chat(request: ChatRequest):
 
     try:
         async with httpx.AsyncClient(timeout=120.0) as client:
-            response = await client.post(HF_API_URL, json=payload, headers=headers)
+            response = None
+            for attempt in range(MAX_HF_RETRIES + 1):
+                response = await client.post(HF_API_URL, json=payload, headers=headers)
+
+                if response.status_code == 200:
+                    break
+
+                error_text = response.text
+                error_text_lower = error_text.lower()
+                is_retryable_error = (
+                    response.status_code in RETRYABLE_STATUS_CODES
+                    or "server_overload" in error_text_lower
+                    or "overload" in error_text_lower
+                )
+
+                if is_retryable_error and attempt < MAX_HF_RETRIES:
+                    retry_after = response.headers.get("Retry-After")
+                    if retry_after and retry_after.isdigit():
+                        delay_seconds = min(int(retry_after), MAX_RETRY_DELAY_SECONDS)
+                    else:
+                        delay_seconds = min(2 ** attempt, MAX_RETRY_DELAY_SECONDS)
+
+                    logger.warning(
+                        "HF Router transient failure (status=%s), retry %s/%s in %ss",
+                        response.status_code,
+                        attempt + 1,
+                        MAX_HF_RETRIES,
+                        delay_seconds,
+                    )
+                    await asyncio.sleep(delay_seconds)
+
+        if response is None:
+            raise HTTPException(
+                status_code=status.HTTP_502_BAD_GATEWAY,
+                detail="No response received from Hugging Face Router",
+            )
 
         logger.info(f"HF Router API response status: {response.status_code}")
 
         if response.status_code != 200:
             error_text = response.text
             logger.error(f"HF Router API error: {error_text}")
+
+            is_overloaded = (
+                response.status_code in {429, 503}
+                or "server_overload" in error_text.lower()
+                or "overload" in error_text.lower()
+            )
+
+            if is_overloaded:
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="HF Router is temporarily overloaded. Please try again in a moment.",
+                )
+
             raise HTTPException(
                 status_code=response.status_code,
                 detail=f"HF Router API error: {error_text[:300]}",
@@ -125,6 +177,8 @@ async def chat(request: ChatRequest):
         # Fallback
         return {"text": str(data), "reasoning": None, "model": model}
 
+    except HTTPException:
+        raise
     except httpx.RequestError as e:
         logger.error(f"Request failed: {str(e)}")
         raise HTTPException(
