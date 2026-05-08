@@ -1,7 +1,7 @@
 # app/route/llm_routes.py
 from fastapi import APIRouter, HTTPException, status
 from pydantic import BaseModel
-import httpx
+import httpx  # type: ignore
 import os
 import logging
 
