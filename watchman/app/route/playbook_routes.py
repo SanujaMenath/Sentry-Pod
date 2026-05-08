@@ -6,6 +6,10 @@ import subprocess
 import os
 from pathlib import Path
 import json
+import logging
+import yaml
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/playbooks", tags=["Playbooks"])
 
@@ -19,10 +23,190 @@ class PlaybookResponse(BaseModel):
     message: str
     output: str = None
 
+class PlaybookCatalogItem(BaseModel):
+    filename: str
+    name: str
+    description: str
+    tags: list[str]
+    target_devices: list[str]
+    example_intents: list[str]
+    destructive: bool = False
+    severity: str = "medium"
+
+class PlaybookSuggestion(BaseModel):
+    filename: str
+    name: str
+    description: str
+    tags: list[str]
+    match_score: float
+    reason: str
+    destructive: bool
+    severity: str
+    target_devices: list[str]
+    playbook_preview: str = ""
+
 # Get the directory where this script is located
 BASE_DIR = Path(__file__).parent.parent.parent
 PLAYBOOKS_DIR = BASE_DIR / "playbooks"
 HOSTS_INI_PATH = PLAYBOOKS_DIR / "hosts.ini"
+CATALOG_PATH = PLAYBOOKS_DIR / "catalog.json"
+
+# Cache for catalog
+_catalog_cache = None
+
+def load_catalog() -> list[PlaybookCatalogItem]:
+    """Load playbook catalog from JSON file"""
+    global _catalog_cache
+    
+    if _catalog_cache is not None:
+        return _catalog_cache
+    
+    if not CATALOG_PATH.exists():
+        logger.warning(f"Catalog file not found at {CATALOG_PATH}")
+        return []
+    
+    try:
+        with open(CATALOG_PATH, 'r') as f:
+            data = json.load(f)
+        _catalog_cache = [PlaybookCatalogItem(**item) for item in data]
+        return _catalog_cache
+    except Exception as e:
+        logger.error(f"Error loading catalog: {str(e)}")
+        return []
+
+def extract_playbook_preview(filename: str) -> str:
+    """
+    Read a playbook YAML file and extract key task information.
+    Returns a brief preview of what the playbook does.
+    """
+    try:
+        playbook_path = PLAYBOOKS_DIR / filename
+        if not playbook_path.exists():
+            return ""
+        
+        with open(playbook_path, 'r') as f:
+            content = yaml.safe_load(f)
+        
+        if not content or not isinstance(content, list):
+            return ""
+        
+        # Extract task names and modules from the first play
+        play = content[0]
+        if not isinstance(play, dict):
+            return ""
+        
+        tasks = play.get('tasks', [])
+        if not tasks:
+            return ""
+        
+        # Get first 3-4 task names
+        task_names = []
+        modules_used = set()
+        
+        for task in tasks[:4]:
+            if isinstance(task, dict):
+                task_name = task.get('name', 'unnamed task')
+                task_names.append(task_name)
+                
+                # Extract module name (e.g., 'cisco.ios.ios_command')
+                for key in task.keys():
+                    if key not in ['name', 'register', 'when', 'debug', 'copy', 'set_fact']:
+                        if '.' in key or key in ['command', 'shell', 'copy', 'debug']:
+                            modules_used.add(key)
+        
+        # Build preview string
+        preview_parts = []
+        if task_names:
+            preview_parts.append("Tasks: " + "; ".join(task_names[:3]))
+        if modules_used:
+            modules_list = "; ".join(sorted(list(modules_used))[:3])
+            preview_parts.append("Uses: " + modules_list)
+        
+        return " | ".join(preview_parts) if preview_parts else ""
+    
+    except Exception as e:
+        logger.warning(f"Could not extract preview from {filename}: {str(e)}")
+        return ""
+
+def score_playbook_match(catalog_item: PlaybookCatalogItem, prompt: str) -> tuple[float, str]:
+    """
+    Score how well a playbook matches a user prompt.
+    Returns (score: float 0-1, reason: str)
+    """
+    prompt_lower = prompt.lower()
+    score = 0.0
+    reasons = []
+    
+    # Check filename match
+    if catalog_item.filename.lower() in prompt_lower:
+        score += 0.5
+        reasons.append(f"filename match: {catalog_item.filename}")
+    
+    # Check name match
+    if catalog_item.name.lower() in prompt_lower:
+        score += 0.3
+        reasons.append(f"name match: {catalog_item.name}")
+    
+    # Check tag matches
+    for tag in catalog_item.tags:
+        if tag.lower() in prompt_lower:
+            score += 0.1
+            reasons.append(f"tag match: {tag}")
+            if score > 1.0:
+                score = 1.0
+                break
+    
+    # Check example intents
+    for intent in catalog_item.example_intents:
+        if intent.lower() in prompt_lower:
+            score += 0.2
+            reasons.append(f"intent match: {intent}")
+            if score > 1.0:
+                score = 1.0
+                break
+    
+    # Normalize score to 0-1
+    score = min(score, 1.0)
+    
+    reason = "; ".join(reasons) if reasons else "partial keyword match"
+    return score, reason
+
+def find_playbook_suggestions(prompt: str, top_k: int = 3) -> list[PlaybookSuggestion]:
+    """
+    Find the best matching playbooks for a user prompt.
+    Returns top_k suggestions ranked by relevance.
+    Includes dynamic playbook content preview from YAML files.
+    """
+    catalog = load_catalog()
+    if not catalog:
+        return []
+    
+    suggestions = []
+    for item in catalog:
+        score, reason = score_playbook_match(item, prompt)
+        if score > 0:
+            # Extract playbook preview from YAML
+            preview = extract_playbook_preview(item.filename)
+            
+            suggestions.append(
+                PlaybookSuggestion(
+                    filename=item.filename,
+                    name=item.name,
+                    description=item.description,
+                    tags=item.tags,
+                    match_score=score,
+                    reason=reason,
+                    destructive=item.destructive,
+                    severity=getattr(item, "severity", "medium"),
+                    target_devices=item.target_devices,
+                    playbook_preview=preview,
+                )
+            )
+    
+    # Sort by score descending
+    suggestions.sort(key=lambda x: x.match_score, reverse=True)
+    
+    return suggestions[:top_k]
 
 
 def get_all_hosts_from_inventory() -> list[str]:
@@ -194,6 +378,47 @@ async def list_playbooks():
             "playbooks": sorted(playbooks),
             "count": len(playbooks)
         }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+@router.get("/catalog")
+async def get_playbook_catalog():
+    """Get the complete playbook catalog with metadata"""
+    try:
+        catalog = load_catalog()
+        return {
+            "status": "success",
+            "catalog": catalog,
+            "count": len(catalog)
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+@router.post("/suggest")
+async def suggest_playbooks(request: PlaybookRequest):
+    """Find playbook suggestions matching a user prompt"""
+    try:
+        if not request.playbook_name or not request.playbook_name.strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Prompt cannot be empty"
+            )
+        
+        suggestions = find_playbook_suggestions(request.playbook_name, top_k=3)
+        return {
+            "status": "success",
+            "prompt": request.playbook_name,
+            "suggestions": suggestions,
+            "count": len(suggestions)
+        }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,

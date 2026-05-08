@@ -12,7 +12,7 @@
 
       copy:
         content: "{{ running_config_output.stdout | join('\n') }}"
-        dest: "./runningConfigs/backup_{{ inventory_hostname }}_{{ now(fmt='%Y-%m-%d %H:%M:%S') }}.txt"
+        dest: "./runningConfigs/backup_{{ inventory_hostname }}_{{ now(fmt='%Y-%m-%d %H_%M_%S') }}.txt"
     - name: Copy running-config to startup-config
       cisco.ios.ios_command:
         commands:

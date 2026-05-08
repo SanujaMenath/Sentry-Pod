@@ -6,6 +6,9 @@ import os
 import logging
 import asyncio
 
+# Import playbook matching utilities
+from . import playbook_routes
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(tags=["LLM"], prefix="/llm")
@@ -16,7 +19,7 @@ RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
 MAX_HF_RETRIES = 3
 MAX_RETRY_DELAY_SECONDS = 10
 
-SYSTEM_PROMPT = """You are SentryPod's network operations assistant.
+SYSTEM_PROMPT_BASE = """You are SentryPod's network operations assistant.
 
 Response rules:
 - Be concise and practical.
@@ -30,8 +33,17 @@ For command-style requests, use this structure:
 Action: <one short sentence>
 Commands:
 <one command per line>
-Notes: <single short caution or validation tip>
-"""
+Notes: <single short caution or validation tip>"""
+
+PLAYBOOK_SUGGESTION_INSTRUCTION = """
+
+IMPORTANT - PLAYBOOK SUGGESTIONS:
+Before generating new commands or solutions, check the available playbooks listed below.
+If the user's request matches an existing playbook, recommend it first with a message like:
+"I found an existing playbook that matches your request: [Playbook Name] ([filename]). 
+It does [description]. Would you like me to help you execute it?"
+
+Only generate new commands if no suitable playbook exists or the user explicitly asks for something different."""
 
 
 class ChatRequest(BaseModel):
@@ -53,6 +65,7 @@ async def chat(request: ChatRequest):
     Proxy request to Hugging Face Router API with supported chat models.
     Uses chat completions endpoint for better conversational responses.
     Keeps API key safe on backend, avoids CORS issues.
+    Also searches for and suggests matching playbooks before generating new responses.
     """
     if not HF_API_KEY:
         raise HTTPException(
@@ -68,6 +81,21 @@ async def chat(request: ChatRequest):
 
     model = request.model if request.model in SUPPORTED_MODELS else "deepseek-ai/DeepSeek-R1:novita"
 
+    # Find playbook suggestions
+    suggestions = playbook_routes.find_playbook_suggestions(request.prompt, top_k=3)
+    
+    # Build system prompt with playbook suggestions
+    system_prompt = SYSTEM_PROMPT_BASE
+    if suggestions:
+        system_prompt += PLAYBOOK_SUGGESTION_INSTRUCTION
+        system_prompt += "\n\nAvailable playbooks for this request:"
+        for i, suggestion in enumerate(suggestions, 1):
+            system_prompt += f"\n{i}. {suggestion.name} ({suggestion.filename})"
+            system_prompt += f"\n   Description: {suggestion.description}"
+            if suggestion.playbook_preview:
+                system_prompt += f"\n   Details: {suggestion.playbook_preview}"
+            system_prompt += f"\n   Match reason: {suggestion.reason} (score: {suggestion.match_score:.1%})"
+    
     headers = {
         "Authorization": f"Bearer {HF_API_KEY}",
         "Content-Type": "application/json",
@@ -76,7 +104,7 @@ async def chat(request: ChatRequest):
         "messages": [
             {
                 "role": "system",
-                "content": SYSTEM_PROMPT,
+                "content": system_prompt,
             },
             {
                 "role": "user",
@@ -87,6 +115,8 @@ async def chat(request: ChatRequest):
     }
 
     logger.info(f"Calling HF Router API with model: {model}")
+    if suggestions:
+        logger.info(f"Found {len(suggestions)} playbook suggestions for prompt")
 
     try:
         async with httpx.AsyncClient(timeout=120.0) as client:
@@ -165,6 +195,7 @@ async def chat(request: ChatRequest):
                 "text": content,
                 "reasoning": reasoning,
                 "model": model,
+                "playbook_suggestions": suggestions,
             }
 
         # Handle error response from HF
@@ -175,7 +206,12 @@ async def chat(request: ChatRequest):
             )
 
         # Fallback
-        return {"text": str(data), "reasoning": None, "model": model}
+        return {
+            "text": str(data),
+            "reasoning": None,
+            "model": model,
+            "playbook_suggestions": suggestions,
+        }
 
     except HTTPException:
         raise
