@@ -4,6 +4,7 @@ import {
   LayoutDashboard, Network, MessageSquare, ShieldAlert, 
   Server, ClipboardList, Users, Settings, LogOut,UserCircle
 } from 'lucide-react';
+import { logout } from "../services/authService";
 import logo from '../images/logo.png'; 
 
 const navItems = [
@@ -23,8 +24,7 @@ export default function Sidebar() {
   const location = useLocation();
 
   const handleLogout = () => {
-    localStorage.removeItem('token'); 
-    navigate('/login');
+     logout();
   };
 
   return (
