@@ -1,0 +1,13 @@
+- name: configure ospf routes 
+  hosts: Distribution_Switches
+  gather_facts: false
+
+  tasks:
+    - name: distribute routes 
+      cisco.ios.ios_config:
+        parents: router ospf 1
+        lines:
+          - network {{ item.network }} 0.0.0.255 area 0
+      loop: "{{ vlans }}" 
+      when: vlans is defined
+

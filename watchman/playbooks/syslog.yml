@@ -1,0 +1,13 @@
+- name: configure syslog
+  hosts: allHosts
+  gather_facts: false
+
+  tasks:
+    - name: push syslog configuration
+      cisco.ios.ios_config:
+        lines:
+          - logging host 192.168.122.1 transport udp port 10514
+          - logging trap 5
+          - logging facility local7
+          - service timestamps log datetime msec  
+          

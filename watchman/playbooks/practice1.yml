@@ -1,0 +1,126 @@
+- name: Practice 1 - Execute show via ssh
+  hosts: allHosts
+  gather_facts: false
+
+  tasks:
+    - name: show ip interface brief
+      cisco.ios.ios_command:
+        commands:
+          - show ip interface brief
+      register: router_output 
+
+    - name: print report
+      copy:
+        dest: "./test1Reports/{{inventory_hostname}}_report.txt"
+        content:  |
+          =================================================================================================== 
+          Report for {{inventory_hostname}}
+          ===================================================================================================
+          
+          TASK: [Show ip interface brief]
+          ---------------------------------------------------------------------------------------------------
+          {{router_output.stdout_lines[0] | to_nice_json}}
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

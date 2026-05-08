@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -19,6 +19,7 @@ import {
 
 import logo from "../images/logo.png";
 import StatCard from "../components/StatCard";
+import { getAllHostsDeviceCount } from "../services/inventoryService";
 
 
 //  MAIN DASHBOARD
@@ -26,8 +27,23 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   const [status, setStatus] = useState("pending");
+  const [totalDevices, setTotalDevices] = useState("--");
 
   const [showNotifications, setShowNotifications] = useState(false);
+
+  useEffect(() => {
+    const fetchAllHostsCount = async () => {
+      try {
+        const data = await getAllHostsDeviceCount();
+        setTotalDevices(String(data.count ?? 0));
+      } catch (error) {
+        console.error("Failed to load allHosts device count:", error);
+        setTotalDevices("0");
+      }
+    };
+
+    fetchAllHostsCount();
+  }, []);
 
   const styles = {
     sidebar: {
@@ -74,8 +90,8 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard
               title="Total Devices"
-              value="247"
-              subValue="+12 this month"
+              value={totalDevices}
+              subValue="From allHosts inventory"
               icon={Server}
               iconBg="bg-blue-600/20"
               iconColor="text-blue-400"
