@@ -10,7 +10,7 @@ TASK: [Show ip interface brief]
     "FastEthernet0/1            unassigned      YES NVRAM  administratively down down    ",
     "FastEthernet1/0            unassigned      YES unset  up                    up      ",
     "FastEthernet1/1            unassigned      YES unset  up                    up      ",
-    "FastEthernet1/2            unassigned      YES unset  up                    down    ",
+    "FastEthernet1/2            unassigned      YES unset  up                    up      ",
     "FastEthernet1/3            unassigned      YES unset  up                    down    ",
     "FastEthernet1/4            unassigned      YES unset  up                    down    ",
     "FastEthernet1/5            unassigned      YES unset  up                    down    ",

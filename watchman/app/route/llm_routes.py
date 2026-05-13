@@ -28,23 +28,35 @@ Response rules:
 - Prefer device-ready Cisco IOS style commands when applicable.
 - Keep responses short (typically 4-8 lines).
 - If a placeholder is required, use <interface> style placeholders.
+- Be friendly and supportive for users of all skill levels, but do not include greetings or sign-offs in your response.
 
 For command-style requests, use this structure:
+I didn't find any existing playbooks that match your request, so I'll generate new commands for you.
 Action: <one short sentence>
 Commands:
 <one command per line>
-Notes: <single short caution or validation tip>"""
+Notes: <single short caution or validation tip>
+
+"""
 
 PLAYBOOK_SUGGESTION_INSTRUCTION = """
 
 IMPORTANT - PLAYBOOK SUGGESTIONS:
 Before generating new commands or solutions, check the available playbooks listed below.
-If the user's request matches an existing playbook, recommend it first with a message like:
+If the user's request matches only one existing playbook, recommend it first with a message like:
 "I found an existing playbook that matches your request: [Playbook Name] ([filename]). 
 It does [description]. Would you like me to help you execute it?"
+If multiple playbooks are relevant, change the mewssage to:
+"I found several existing playbooks that might match your request:
+1. [Playbook Name 1] ([filename]) - [description]
+2. [Playbook Name 2] ([filename]) - [description]
+Would you like me to help you execute one of these, or do you want me to generate new commands for you?"
+Only generate new commands if no suitable playbook exists or the user explicitly asks for something different.
+If the scrore is less than 5, first display this message to the user:
+"I didn't find any existing playbooks that match your request, so I'll generate new commands for you."
+Then proceed to generate the response as normal.
 
-Only generate new commands if no suitable playbook exists or the user explicitly asks for something different."""
-
+"""
 
 class ChatRequest(BaseModel):
     prompt: str
