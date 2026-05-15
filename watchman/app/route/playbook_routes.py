@@ -131,7 +131,7 @@ def extract_playbook_preview(filename: str) -> str:
 def score_playbook_match(catalog_item: PlaybookCatalogItem, prompt: str) -> tuple[float, str]:
     """
     Score how well a playbook matches a user prompt.
-    Returns (score: float 0-1, reason: str)
+    Returns (score: float 0-10, reason: str)
     """
     prompt_lower = prompt.lower()
     score = 0.0
@@ -139,34 +139,34 @@ def score_playbook_match(catalog_item: PlaybookCatalogItem, prompt: str) -> tupl
     
     # Check filename match
     if catalog_item.filename.lower() in prompt_lower:
-        score += 0.5
+        score += 5
         reasons.append(f"filename match: {catalog_item.filename}")
     
     # Check name match
     if catalog_item.name.lower() in prompt_lower:
-        score += 0.3
+        score += 3
         reasons.append(f"name match: {catalog_item.name}")
     
     # Check tag matches
     for tag in catalog_item.tags:
         if tag.lower() in prompt_lower:
-            score += 0.1
+            score += 1
             reasons.append(f"tag match: {tag}")
-            if score > 1.0:
-                score = 1.0
+            if score > 10:
+                score = 10
                 break
     
     # Check example intents
     for intent in catalog_item.example_intents:
         if intent.lower() in prompt_lower:
-            score += 0.2
+            score += 2
             reasons.append(f"intent match: {intent}")
-            if score > 1.0:
-                score = 1.0
+            if score > 10:
+                score = 10
                 break
     
-    # Normalize score to 0-1
-    score = min(score, 1.0)
+    # Normalize score to 0-10
+    score = min(score, 10.0)
     
     reason = "; ".join(reasons) if reasons else "partial keyword match"
     return score, reason
@@ -184,7 +184,7 @@ def find_playbook_suggestions(prompt: str, top_k: int = 3) -> list[PlaybookSugge
     suggestions = []
     for item in catalog:
         score, reason = score_playbook_match(item, prompt)
-        if score > 0:
+        if score > 5:
             # Extract playbook preview from YAML
             preview = extract_playbook_preview(item.filename)
             

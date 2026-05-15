@@ -1,3 +1,14 @@
-name: SNMP configuration
-hosts: allHosts
-gather_facts: false
+- name: SNMP configuration
+  hosts: Edge_routers
+  gather_facts: false
+
+  tasks:
+    - name : snmp v2c configuration
+      cisco.ios.ios_config:
+        lines:
+          - snmp-server community sentryPod ro 
+          - snmp-server enable traps
+          - snmp-server host 192.168.122.1 version 2c sentryPod
+
+
+

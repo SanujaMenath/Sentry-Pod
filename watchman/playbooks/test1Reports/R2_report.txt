@@ -8,7 +8,7 @@ TASK: [Show ip interface brief]
     "Interface              IP-Address      OK? Method Status                Protocol",
     "FastEthernet0/0        10.2.0.1        YES NVRAM  up                    up      ",
     "FastEthernet0/1        10.0.0.14       YES NVRAM  up                    up      ",
-    "FastEthernet1/0        unassigned      YES NVRAM  administratively down down    ",
+    "FastEthernet1/0        unassigned      YES DHCP   up                    up      ",
     "FastEthernet1/1        unassigned      YES NVRAM  administratively down down    ",
     "GigabitEthernet2/0     192.168.122.253 YES NVRAM  up                    up      ",
     "Loopback0              10.0.0.2        YES NVRAM  up                    up"
