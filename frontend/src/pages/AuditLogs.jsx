@@ -1,27 +1,65 @@
- import { useState } from 'react';
+ import { useState, useEffect } from 'react';
 import { Download, FileText, CheckCircle, AlertTriangle, XCircle, ChevronDown, Calendar } from 'lucide-react';
 import ExportLogsModal from '../components/ExportLogsModal';
+import AuditLogDetailModal from '../components/AuditLogDetailModal';
+import { getAllAuditLogs } from '../services/auditService';
 
-const logs = [
-  { id: 'LOG-893import4', timestamp: '2026-03-05 14:23:45', user: 'Admin User', action: 'Configuration Change', target: 'access-sw-02', status: 'success', details: 'Applied...' },
-  { id: 'LOG-8933', timestamp: '2026-03-05 14:15:22', user: 'John Network', action: 'Device Login', target: 'core-sw-01', status: 'success', details: 'SSH log...' },
-  { id: 'LOG-8932', timestamp: '2026-03-05 13:58:10', user: 'System', action: 'Port Security Violation', target: 'access-sw-02 G11/0/24', status: 'blocked', details: 'MAC ac...' },
-  { id: 'LOG-8931', timestamp: '2026-03-05 13:45:33', user: 'Sarah Security', action: 'User Role Modified', target: 'Mike Monitor', status: 'success', details: 'Change...' },
-  { id: 'LOG-8930', timestamp: '2026-03-05 13:30:18', user: 'Admin User', action: 'Backup Created', target: 'All Devices', status: 'success', details: 'Autom...' },
-  { id: 'LOG-8929', timestamp: '2026-03-05 13:12:05', user: 'System', action: 'Configuration Drift', target: 'core-sw-01 G11/0/1', status: 'detected', details: 'VLAN a...' },
-  { id: 'LOG-8928', timestamp: '2026-03-05 12:55:42', user: 'John Network', action: 'Device Reboot', target: 'dist-sw-03', status: 'success', details: 'Manual...' },
-  { id: 'LOG-8927', timestamp: '2026-03-05 12:20:15', user: 'System', action: 'Failed Login Attempt', target: 'router-edge-01', status: 'failed', details: '3 cons...' },
-];
- 
 const statusConfig = {
   success: 'bg-green-900/60 text-green-400 border border-green-700',
   blocked: 'bg-red-900/60 text-red-400 border border-red-700',
   detected: 'bg-yellow-900/60 text-yellow-400 border border-yellow-700',
   failed: 'bg-red-900/60 text-red-400 border border-red-700',
+  error: 'bg-red-900/60 text-red-400 border border-red-700',
+};
+
+const mapAuditStatus = (status) => {
+  if (status === 'success') return 'success';
+  if (status === 'failed' || status === 'error') return 'failed';
+  return 'detected';
+};
+
+const formatLogForDisplay = (log) => {
+  const mappedStatus = mapAuditStatus(log.status);
+  return {
+    id: log._id || `LOG-${Math.random()}`,
+    timestamp: new Date(log.timestamp).toLocaleString(),
+    user: log.username,
+    action: log.action_name,
+    target: log.playbook_name,
+    status: mappedStatus,
+    details: log.output ? log.output.substring(0, 50) + '...' : 'No details',
+    output: log.output || '', // Keep full output for modal
+  };
 };
 
 export default function AuditLogs() {
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showExport, setShowExport] = useState(false);
+  const [selectedLog, setSelectedLog] = useState(null);
+
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        setLoading(true);
+        const response = await getAllAuditLogs(100);
+        if (response.logs) {
+          const formattedLogs = response.logs.map(formatLogForDisplay);
+          setLogs(formattedLogs);
+        }
+        setError(null);
+      } catch (err) {
+        console.error('Failed to fetch audit logs:', err);
+        setError('Failed to load audit logs. Showing no logs.');
+        setLogs([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLogs();
+  }, []);
 
    const styles = {
     main: { 
@@ -60,7 +98,7 @@ export default function AuditLogs() {
         <div className="bg-[#1D293DED] border border-[#1e2530] rounded-xl p-4 flex items-center justify-between">
           <div>
             <p className="text-xs text-gray-500 mb-1">Total Events</p>
-            <p className="text-2xl font-bold text-white">8,934</p>
+            <p className="text-2xl font-bold text-white">{logs.length}</p>
           </div>
           <div className="w-10 h-10 bg-blue-900/40 rounded-lg flex items-center justify-center">
             <FileText size={20} className="text-blue-400" />
@@ -69,7 +107,7 @@ export default function AuditLogs() {
         <div className="bg-[#1D293DED] border border-[#1e2530] rounded-xl p-4 flex items-center justify-between">
           <div>
             <p className="text-xs text-gray-500 mb-1">Success</p>
-            <p className="text-2xl font-bold text-green-400">7,821</p>
+            <p className="text-2xl font-bold text-green-400">{logs.filter(l => l.status === 'success').length}</p>
           </div>
           <div className="w-10 h-10 bg-green-900/40 rounded-lg flex items-center justify-center">
             <CheckCircle size={20} className="text-green-400" />
@@ -78,7 +116,7 @@ export default function AuditLogs() {
         <div className="bg-[#1D293DED] border border-[#1e2530] rounded-xl p-4 flex items-center justify-between">
           <div>
             <p className="text-xs text-gray-500 mb-1">Warnings</p>
-            <p className="text-2xl font-bold text-yellow-400">892</p>
+            <p className="text-2xl font-bold text-yellow-400">{logs.filter(l => l.status === 'detected').length}</p>
           </div>
           <div className="w-10 h-10 bg-yellow-900/40 rounded-lg flex items-center justify-center">
             <AlertTriangle size={20} className="text-yellow-400" />
@@ -87,7 +125,7 @@ export default function AuditLogs() {
         <div className="bg-[#1D293DED] border border-[#1e2530] rounded-xl p-4 flex items-center justify-between">
           <div>
             <p className="text-xs text-gray-500 mb-1">Critical</p>
-            <p className="text-2xl font-bold text-red-400">221</p>
+            <p className="text-2xl font-bold text-red-400">{logs.filter(l => l.status === 'failed').length}</p>
           </div>
           <div className="w-10 h-10 bg-red-900/40 rounded-lg flex items-center justify-center">
             <XCircle size={20} className="text-red-400" />
@@ -118,38 +156,57 @@ export default function AuditLogs() {
         <div className="px-5 py-4 border-b border-[#1e2530]">
           <h2 className="text-sm font-semibold text-white">Recent Activity</h2>
         </div>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-[#1e2530]">
-              {['Log ID', 'Timestamp', 'User', 'Action', 'Target', 'Status', 'Details'].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs text-gray-500 font-medium">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {logs.map((log, i) => (
-              <tr key={log.id} className={`border-b border-[#1e2530] hover:bg-[#1e2530]/50 transition-colors ${i % 2 === 0 ? '' : ''}`}>
-                <td className="px-4 py-3 text-blue-400 font-mono text-xs">{log.id}</td>
-                <td className="px-4 py-3 text-gray-400 font-mono text-xs whitespace-nowrap">{log.timestamp}</td>
-                <td className="px-4 py-3 text-gray-300 text-xs">{log.user}</td>
-                <td className="px-4 py-3 text-white text-xs font-medium">{log.action}</td>
-                <td className="px-4 py-3 text-gray-400 font-mono text-xs">{log.target}</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusConfig[log.status]}`}>
-                    {log.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-gray-500 text-xs">{log.details}</td>
+        {loading ? (
+          <div className="px-4 py-8 text-center text-gray-400">
+            <p>Loading audit logs...</p>
+          </div>
+        ) : error ? (
+          <div className="px-4 py-8 text-center text-red-400">
+            <p>{error}</p>
+          </div>
+        ) : logs.length === 0 ? (
+          <div className="px-4 py-8 text-center text-gray-400">
+            <p>No audit logs found. Run a playbook to start logging events.</p>
+          </div>
+        ) : (
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-[#1e2530]">
+                {['Log ID', 'Timestamp', 'User', 'Action', 'Target', 'Status', 'Details'].map(h => (
+                  <th key={h} className="px-4 py-3 text-left text-xs text-gray-500 font-medium">{h}</th>
+                ))}
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {logs.map((log, i) => (
+                <tr
+                  key={log.id}
+                  onClick={() => setSelectedLog(log)}
+                  className={`border-b border-[#1e2530] hover:bg-[#1e2530]/50 transition-colors cursor-pointer ${i % 2 === 0 ? '' : ''}`}
+                >
+                  <td className="px-4 py-3 text-blue-400 font-mono text-xs">{log.id}</td>
+                  <td className="px-4 py-3 text-gray-400 font-mono text-xs whitespace-nowrap">{log.timestamp}</td>
+                  <td className="px-4 py-3 text-gray-300 text-xs">{log.user}</td>
+                  <td className="px-4 py-3 text-white text-xs font-medium">{log.action}</td>
+                  <td className="px-4 py-3 text-gray-400 font-mono text-xs">{log.target}</td>
+                  <td className="px-4 py-3">
+                    <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusConfig[log.status]}`}>
+                      {log.status}
+                    </span>
+                  </td>
+                  <td className="px-4 py-3 text-gray-500 text-xs">{log.details}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
       </div>
 
       </div> 
   </main> 
 
   {showExport && <ExportLogsModal onClose={() => setShowExport(false)} />}
+  {selectedLog && <AuditLogDetailModal log={selectedLog} onClose={() => setSelectedLog(null)} />}
 </div>
 );
 }

@@ -1,0 +1,14 @@
+- name: Configure End device port
+  hosts: Access_Switches
+  gather_facts: false
+
+  tasks:
+    - name: Configure ports
+      cisco.ios.ios_config:
+        lines:
+          - interface f1/2
+          - shut
+          - switchport mode access
+          - switchport access vlan {{ vlan_id }}
+          - no shut
+    
