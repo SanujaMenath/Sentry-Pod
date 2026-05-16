@@ -1,11 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from app.core.config import settings
-from app.route import user_routes
-from app.route import auth_routes
-from app.route import playbook_routes
-from app.route import audit_routes
-from app.route import llm_routes
+from app.routes import user_routes
+from app.routes import auth_routes
+from app.routes import playbook_routes
+from app.routes import audit_routes
+from app.routes import llm_routes
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION)
 

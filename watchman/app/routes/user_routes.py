@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status
 from ..models.user import UserCreate, UserResponse
-from ..service.user_service import create_new_user
+from ..services.user_service import create_new_user
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
