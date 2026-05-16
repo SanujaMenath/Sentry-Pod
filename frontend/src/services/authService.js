@@ -24,3 +24,15 @@ export const logout = () => {
 
   window.location.href = "/login";
 };
+
+export const register = async (username, password) => {
+  try {
+    const response = await api.post("/register", {
+      username,
+      password,
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.detail || "Registration failed";
+  }
+};

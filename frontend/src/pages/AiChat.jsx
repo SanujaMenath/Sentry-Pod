@@ -406,6 +406,10 @@ export default function AiChat() {
       });
     }
   };
+  const handleModelChange = (modelId) => {
+  setSelectedModel(modelId);
+  localStorage.setItem("hf_model", modelId);
+  };
 
   return (
     <div className="min-h-full bg-gradient-to-br from-[#F8FAFC] to-[#D1D5DB] p-8 font-sans">

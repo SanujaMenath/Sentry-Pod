@@ -168,5 +168,15 @@
     "example_intents": [],
     "destructive": true,
     "severity": "medium"
+  },
+  {
+    "filename": "goldenState.yml",
+    "name": "Save golden state config",
+    "description": "A playbook for saving the golden state configuration file for drift detection",
+    "tags": ["save","backup"],
+    "target_devices":["allHosts"],
+    "example_intents":[],
+    "destructive": true,
+    "severity":"critical"
   }
 ]
