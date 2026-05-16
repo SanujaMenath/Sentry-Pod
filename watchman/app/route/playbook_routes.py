@@ -11,6 +11,7 @@ import yaml
 
 logger = logging.getLogger(__name__)
 
+
 router = APIRouter(prefix="/playbooks", tags=["Playbooks"])
 
 class PlaybookRequest(BaseModel):
@@ -83,7 +84,7 @@ def extract_playbook_preview(filename: str) -> str:
         playbook_path = PLAYBOOKS_DIR / filename
         if not playbook_path.exists():
             return ""
-        
+        #OPEN A PLAYBOOK
         with open(playbook_path, 'r') as f:
             content = yaml.safe_load(f)
         
@@ -130,45 +131,49 @@ def extract_playbook_preview(filename: str) -> str:
 
 def score_playbook_match(catalog_item: PlaybookCatalogItem, prompt: str) -> tuple[float, str]:
     """
-    Score how well a playbook matches a user prompt.
+    Score how well a playbook matches a user prompt using multiple matching strategies.
     Returns (score: float 0-10, reason: str)
+    
+    Scoring strategy (lower threshold allows more suggestions):
+    - Filename exact match: +5 points
+    - Name exact match: +4 points
+    - Tag matches: +2 points each (increased from +1)
+    - Example intent match: +3 points each (increased from +2)
+    - Threshold: score > 2 (lowered from 5 to catch more relevant playbooks)
     """
     prompt_lower = prompt.lower()
+    prompt_words = set(prompt_lower.split())
     score = 0.0
     reasons = []
     
-    # Check filename match
+    # Check filename exact match (highest priority)
     if catalog_item.filename.lower() in prompt_lower:
         score += 5
         reasons.append(f"filename match: {catalog_item.filename}")
     
-    # Check name match
+    # Check name exact match (high priority)
     if catalog_item.name.lower() in prompt_lower:
-        score += 3
+        score += 4
         reasons.append(f"name match: {catalog_item.name}")
     
-    # Check tag matches
+    # Check tag matches (increased weight from 1 to 2)
+    tag_matches = 0
     for tag in catalog_item.tags:
-        if tag.lower() in prompt_lower:
-            score += 1
+        if tag.lower() in prompt_lower or tag.lower() in prompt_words:
+            score += 2
+            tag_matches += 1
             reasons.append(f"tag match: {tag}")
-            if score > 10:
-                score = 10
-                break
     
-    # Check example intents
+    # Check example intents (increased weight from 2 to 3)
     for intent in catalog_item.example_intents:
         if intent.lower() in prompt_lower:
-            score += 2
+            score += 3
             reasons.append(f"intent match: {intent}")
-            if score > 10:
-                score = 10
-                break
     
     # Normalize score to 0-10
     score = min(score, 10.0)
     
-    reason = "; ".join(reasons) if reasons else "partial keyword match"
+    reason = "; ".join(reasons) if reasons else "no keyword match"
     return score, reason
 
 def find_playbook_suggestions(prompt: str, top_k: int = 3) -> list[PlaybookSuggestion]:
@@ -176,6 +181,8 @@ def find_playbook_suggestions(prompt: str, top_k: int = 3) -> list[PlaybookSugge
     Find the best matching playbooks for a user prompt.
     Returns top_k suggestions ranked by relevance.
     Includes dynamic playbook content preview from YAML files.
+    
+    Threshold: score >= 2 (catches keyword matches while filtering out spurious matches)
     """
     catalog = load_catalog()
     if not catalog:
@@ -184,7 +191,7 @@ def find_playbook_suggestions(prompt: str, top_k: int = 3) -> list[PlaybookSugge
     suggestions = []
     for item in catalog:
         score, reason = score_playbook_match(item, prompt)
-        if score > 5:
+        if score >= 2:  # Changed from > 5 to >= 2 to catch more relevant matches
             # Extract playbook preview from YAML
             preview = extract_playbook_preview(item.filename)
             
