@@ -1,9 +1,9 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import RootLayout from "./layouts/RootLayout";
 
-import HomePage from "./pages/Home"; 
+import HomePage from "./pages/Home";
 import Login from "./pages/Login";
-import Dashboard from "./pages/Dashboard"; 
+import Dashboard from "./pages/Dashboard";
 import AuditLogs from "./pages/AuditLogs";
 import RBACUsers from "./pages/RBACUsers";
 import SettingsPage from "./pages/Settings";
@@ -13,15 +13,30 @@ import AiChat from "./pages/AiChat";
 import StagingGate from "./pages/StagingGate";
 import Profile from "./pages/Profile";
 import { Network } from "lucide-react";
+import ProtectedRoute from "./routes/ProtectedRoute";
+import PublicRoute from "./routes/PublicRoute";
 
 function App() {
   return (
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<HomePage />} />
-        <Route path="/login" element={<Login />} />
+        <Route
+          path="/login"
+          element={
+            <PublicRoute>
+              <Login />
+            </PublicRoute>
+          }
+        />
 
-        <Route element={<RootLayout />}>
+        <Route
+          element={
+            <ProtectedRoute>
+              <RootLayout />
+            </ProtectedRoute>
+          }
+        >
           <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/ai-chat" element={<AiChat />} />
           <Route path="/topology" element={<TopologyMap />} />
