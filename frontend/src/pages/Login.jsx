@@ -2,8 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../images/logo.png'; 
 import { Eye, EyeOff, ShieldCheck, Loader2 } from 'lucide-react';
-import {login, register} from  '../services/authService';
-
+import { login, register } from '../services/authService';
 
 const Login = () => {
   const [isSignUp, setIsSignUp] = useState(false);
@@ -13,7 +12,10 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   
+  // ✅ QA Fix 1: Added fullName and email to the state tracker
   const [credentials, setCredentials] = useState({
+    fullName: '',
+    email: '',
     username: '',
     password: '',
     confirmPassword: ''
@@ -43,27 +45,33 @@ const Login = () => {
 
     try {
       if (isSignUp) {
-        await register(credentials.username, credentials.password);
-        setSuccessMessage("Account created successfully! Please sign in.");
+        // ✅ QA Fix 2: Passing all 4 required arguments to the updated register service
+        await register(
+          credentials.fullName, 
+          credentials.email, 
+          credentials.username, 
+          credentials.password
+        );
+        setSuccessMessage("Account created successfully! Please wait for Admin approval.");
         setIsSignUp(false); 
-        setCredentials({ username: '', password: '', confirmPassword: '' });
-        } else {
-      await login(credentials.username, credentials.password);
-      navigate('/dashboard'); 
-        }
-
+        setCredentials({ fullName: '', email: '', username: '', password: '', confirmPassword: '' });
+      } else {
+        await login(credentials.username, credentials.password);
+        navigate('/dashboard'); 
+      }
     } catch (err) {
-        setError(err?.response?.data?.message || err?.message || "Authentication failed.");
+      setError(err?.response?.data?.detail || err?.message || "Authentication failed.");
     } finally {
       setIsLoading(false);
     }
   };
     
-    const toggleMode = () => {
+  const toggleMode = () => {
     setIsSignUp(!isSignUp);
     setError(null);
     setSuccessMessage(null);
-    setCredentials({ username: '', password: '', confirmPassword: '' });
+    // ✅ QA Fix 3: Resetting all form elements upon switching modes
+    setCredentials({ fullName: '', email: '', username: '', password: '', confirmPassword: '' });
   };
 
   return (
@@ -80,11 +88,10 @@ const Login = () => {
        
         <h2 className="text-xl font-bold text-white mb-6 text-center">
           {isSignUp ? "Create Your Account" : "Sign In to SentryPod"}
-        </h2>
+        </h2> 
 
         <form className="space-y-6" onSubmit={handleSignIn}>
           
-          {/* 7. Error Display */}
           {error && (
             <div className="p-3 text-sm bg-red-500/10 border border-red-500/50 text-red-500 rounded-lg animate-in fade-in zoom-in-95">
               {error}
@@ -94,6 +101,37 @@ const Login = () => {
           {successMessage && (
             <div className="p-3 text-sm bg-emerald-500/10 border border-emerald-500/50 text-emerald-400 rounded-lg animate-in fade-in zoom-in-95">
               {successMessage}
+            </div>
+          )}
+
+          {/* ✅ QA Fix 4: Conditional registration input fields (Full Name & Email) */}
+          {isSignUp && (
+            <div className="space-y-6 animate-in fade-in slide-in-from-top-2 duration-200">
+              <div>
+                <label className="block text-sm font-semibold text-slate-300 mb-2">Full Name</label>
+                <input 
+                  name="fullName" 
+                  type="text" 
+                  required={isSignUp}
+                  value={credentials.fullName}
+                  onChange={handleChange}
+                  placeholder="John Doe"
+                  className="w-full bg-[#0D121F] border border-slate-700 rounded-lg px-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-semibold text-slate-300 mb-2">Email Address</label>
+                <input 
+                  name="email" 
+                  type="email" 
+                  required={isSignUp}
+                  value={credentials.email}
+                  onChange={handleChange}
+                  placeholder="john.doe@sentrypod.io"
+                  className="w-full bg-[#0D121F] border border-slate-700 rounded-lg px-4 py-3 text-white placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-blue-500/50 transition-all"
+                />
+              </div>
             </div>
           )}
 
@@ -116,7 +154,7 @@ const Login = () => {
             <label className="block text-sm font-semibold text-slate-300 mb-2">Password</label>
             <div className="relative">
               <input 
-                name="password" // Important: matches credentials state key
+                name="password" 
                 type={showPassword ? "text" : "password"} 
                 required
                 value={credentials.password}
@@ -134,6 +172,7 @@ const Login = () => {
             </div>
           </div>
 
+          {/* Confirm Password Field */}
           {isSignUp && (
             <div className="animate-in fade-in slide-in-from-top-2 duration-200">
               <label className="block text-sm font-semibold text-slate-300 mb-2">Confirm Password</label>
@@ -158,7 +197,7 @@ const Login = () => {
             </div>
           )}
 
-          {/* Sign In Button */}
+          {/* Submit Button */}
           <button 
             type="submit"
             disabled={isLoading} 
@@ -166,16 +205,15 @@ const Login = () => {
           >
             {isLoading ? (
               <>
-             <Loader2 size={20} className="mr-2 animate-spin" />
-            {isSignUp ? "Creating Account..." : "Authenticating..."}
-             </>
-          ) : (
-            isSignUp ? "Create Account" : "Sign In"
-    )}   
+                <Loader2 size={20} className="mr-2 animate-spin" />
+                {isSignUp ? "Creating Account..." : "Authenticating..."}
+              </>
+            ) : (
+              isSignUp ? "Create Account" : "Sign In"
+            )}   
           </button>
         </form>
 
-  
         <div className="mt-6 text-center text-sm">
           <p className="text-slate-400">
             {isSignUp ? "Already have an account?" : "Don't have an account yet?"}{' '}

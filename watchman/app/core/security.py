@@ -33,9 +33,9 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
         to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
 
-    print("Expire minutes:", settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    print("Now:", now_utc)
-    print("Expire:", expire)
+    # print("Expire minutes:", settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    # print("Now:", now_utc)
+    # print("Expire:", expire)
 
     return encoded_jwt
 

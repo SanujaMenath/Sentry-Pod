@@ -25,11 +25,13 @@ export const logout = () => {
   window.location.href = "/login";
 };
 
-export const register = async (username, password) => {
+export const register = async (fullName, email, username, password) => {
   try {
-    const response = await api.post("/register", {
+    const response = await api.post("/users/", { 
+      full_name: fullName,
+      email,
       username,
-      password,
+      password
     });
     return response.data;
   } catch (error) {

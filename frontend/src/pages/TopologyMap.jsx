@@ -15,7 +15,7 @@ const nodes = [
 
 export default function TopologyMap() {
   return (
-    <div className="min-h-full bg-gradient-to-br from-[#F8FAFC] to-[#D1D5DB] p-8 font-sans">
+    <div className="min-h-full bg-linear-to-br from-[#F8FAFC] to-[#D1D5DB] p-8 font-sans">
       <div className="flex items-start justify-between mb-5">
         <div>
           <h1 className="text-[#0F172A] text-[30px] font-extrabold tracking-tight drop-shadow-sm">
@@ -36,7 +36,7 @@ export default function TopologyMap() {
 
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_240px] gap-7">
         <div className="rounded-2xl bg-slate-500/55 border border-slate-500 p-6 shadow-lg">
-          <div className="relative h-[460px] overflow-hidden rounded-2xl bg-[#223148]">
+          <div className="relative h-115 overflow-hidden rounded-2xl bg-[#223148]">
             <svg className="absolute inset-0 h-full w-full" viewBox="0 0 900 460" preserveAspectRatio="none">
               <g stroke="#64748B" strokeOpacity="0.38" strokeWidth="2">
                 <line x1="450" y1="74" x2="450" y2="180" />
