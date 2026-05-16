@@ -1,0 +1,125 @@
+Building configuration...
+
+Current configuration : 1752 bytes
+!
+! Last configuration change at 06:31:27 UTC Thu Apr 30 2026 by admin
+!
+version 15.2
+service timestamps debug datetime msec
+service timestamps log datetime msec
+!
+hostname R2
+!
+boot-start-marker
+boot-end-marker
+!
+!
+!
+no aaa new-model
+no ip icmp rate-limit unreachable
+ip cef
+!
+!
+!
+!
+!
+!
+no ip domain lookup
+ip domain name lab.local
+no ipv6 cef
+!
+!
+multilink bundle-name authenticated
+!
+!
+!
+!
+!
+!
+!
+username admin privilege 15 secret 5 $1$2QpL$/pgLPzDpc/Zs1Xnlp42b0.
+!
+!
+ip tcp synwait-time 5
+ip ssh version 2
+! 
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+!
+interface Loopback0
+ ip address 10.0.0.2 255.255.255.255
+!
+interface FastEthernet0/0
+ ip address 10.2.0.1 255.255.255.252
+ speed auto
+ duplex auto
+!
+interface FastEthernet0/1
+ ip address 10.0.0.14 255.255.255.252
+ ip ospf network point-to-point
+ speed auto
+ duplex auto
+!
+interface FastEthernet1/0
+ ip address dhcp
+ speed auto
+ duplex auto
+!
+interface FastEthernet1/1
+ no ip address
+ shutdown
+ speed auto
+ duplex auto
+!
+interface GigabitEthernet2/0
+ ip address 192.168.122.253 255.255.255.0
+ ip ospf network point-to-point
+ negotiation auto
+!
+router ospf 1
+ router-id 10.0.0.2
+ network 10.0.0.2 0.0.0.0 area 0
+ network 10.0.0.0 0.0.0.255 area 0
+ network 10.2.0.0 0.0.0.3 area 0
+ network 192.168.8.0 0.0.0.255 area 0
+!
+ip forward-protocol nd
+!
+!
+no ip http server
+no ip http secure-server
+ip route 192.168.8.0 255.255.255.0 192.168.122.1
+ip route 192.168.8.101 255.255.255.255 FastEthernet1/0
+!
+logging trap notifications
+logging host 192.168.122.1 transport udp port 10514
+!
+!
+!
+control-plane
+!
+!
+line con 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+line aux 0
+ exec-timeout 0 0
+ privilege level 15
+ logging synchronous
+ stopbits 1
+line vty 0 4
+ login local
+ transport input ssh
+!
+!
+end
