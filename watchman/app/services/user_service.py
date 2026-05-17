@@ -39,6 +39,12 @@ async def assign_user_role(user_id: str, new_role: str):
     updated_user = await users_collection.find_one({"_id": ObjectId(user_id)})
     return format_user_response(updated_user)
 
+async def get_all_users():
+    cursor = users_collection.find()
+    # Pulls the most current 100 entries out of the database collection
+    users_list = await cursor.to_list(length=100)
+    return [format_user_response(user) for user in users_list]
+
 async def get_user_by_id(user_id: str):
     user = await users_collection.find_one({"_id": ObjectId(user_id)})
     if not user:
