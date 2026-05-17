@@ -107,7 +107,7 @@ const ExpandableOutput = ({ output }) => {
             <div
               key={`${index}-${line}`}
               style={{ color: style.color, fontWeight: style.weight || 400 }}
-              className="whitespace-pre-wrap break-words"
+              className="whitespace-pre-wrap-break-words"
             >
               {line}
             </div>
@@ -412,7 +412,7 @@ export default function AiChat() {
   };
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-[#F8FAFC] to-[#D1D5DB] p-8 font-sans">
+    <div className="min-h-full bg-linear-to-br from-[#F8FAFC] to-[#D1D5DB] p-8 font-sans">
       <PlaybookStagingGate playbook={pendingPlaybook} onApprove={handleStagingGateApprove} onReject={handleStagingGateReject} isOpen={!!pendingPlaybook} />
 
       <h1 className="text-[30px] font-extrabold tracking-tight text-[#0F172A] drop-shadow-sm">AI Chat Console</h1>
@@ -441,7 +441,7 @@ export default function AiChat() {
         </div>
       </div>
 
-      <div className="flex min-h-[525px] flex-col overflow-hidden rounded-3xl border border-slate-700/50 bg-[#1D293DED] shadow-lg">
+      <div className="flex min-h-131.25 flex-col overflow-hidden rounded-3xl border border-slate-700/50 bg-[#1D293DED] shadow-lg">
         <div className="flex-1 space-y-5 p-6">
           {messages.map((message, index) => (
             <div key={index} className={`flex gap-4 ${message.role === "user" ? "justify-end" : ""}`}>
@@ -468,7 +468,7 @@ export default function AiChat() {
                   </div>
                 )}
 
-                <div className={message.role === "ai" ? "whitespace-pre-wrap break-words" : "break-words"}>
+                <div className={message.role === "ai" ? "whitespace-pre-wrap wrap-break-words" : "wrap-break-words"}>
                   {message.text}
                 </div>
 

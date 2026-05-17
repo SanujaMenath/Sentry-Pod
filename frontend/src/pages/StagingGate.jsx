@@ -52,7 +52,7 @@ export default function StagingGate() {
   };
 
   return (
-    <div className="min-h-full bg-gradient-to-br from-[#F8FAFC] to-[#D1D5DB] p-8 font-sans">
+    <div className="min-h-full bg-linear-to-br from-[#F8FAFC] to-[#D1D5DB] p-8 font-sans">
       <h1 className="text-[#0F172A] text-[30px] font-extrabold tracking-tight drop-shadow-sm">
         Staging Gate
       </h1>
