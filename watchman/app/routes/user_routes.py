@@ -1,13 +1,15 @@
 from fastapi import APIRouter, HTTPException, status, Depends 
+from typing import List
 from ..models.user import UserCreate, UserResponse, UserRoleUpdate, UserProfileUpdate, UserPasswordUpdate
 from ..services.user_service import (
     create_new_user, 
     assign_user_role, 
     get_user_by_id, 
     update_user_profile, 
-    update_user_password
+    update_user_password,
+    get_all_users
 )
-from ..core.dependencies import get_current_user 
+from ..core.dependencies import get_current_user, require_super_admin 
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -43,3 +45,21 @@ async def change_password(
     current_user: dict = Depends(get_current_user)
 ):
     return await update_user_password(str(current_user["_id"]), password_data)
+
+@router.get("/", response_model=List[UserResponse])
+async def list_users(current_user: dict = Depends(get_current_user)):
+    try:
+        return await get_all_users()
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@router.put("/{user_id}/role", response_model=UserResponse)
+async def update_role(
+    user_id: str, 
+    role_data: UserRoleUpdate, 
+    admin_user: dict = Depends(require_super_admin)
+):
+    try:
+        return await assign_user_role(user_id, role_data.role)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
