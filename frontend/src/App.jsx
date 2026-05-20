@@ -16,6 +16,7 @@ import { Network } from "lucide-react";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicRoute from "./routes/PublicRoute";
 
+
 function App() {
   return (
     <BrowserRouter>
@@ -46,6 +47,7 @@ function App() {
           <Route path="/users" element={<RBACUsers />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<SettingsPage />} />
+          
         </Route>
       </Routes>
     </BrowserRouter>
