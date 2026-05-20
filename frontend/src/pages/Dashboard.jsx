@@ -15,6 +15,7 @@ import {
   LogOut,
   AlertTriangle,
   X,
+  Loader2,
 } from "lucide-react";
 
 import logo from "../images/logo.png";
@@ -31,6 +32,20 @@ const Dashboard = () => {
   const [totalDevices, setTotalDevices] = useState("--");
 
   const [showNotifications, setShowNotifications] = useState(false);
+
+
+  const handleApprove = (e) => {
+    e.stopPropagation(); // Stops the card container click from running
+    setStatus("deploying");
+    setTimeout(() => {
+      setStatus("deployed");
+    }, 1500);
+  };
+
+  const handleReject = (e) => {
+    e.stopPropagation(); // Stops the card container click from running
+    setStatus("rejected");
+  };
 
   useEffect(() => {
     const fetchAllHostsCount = async () => {
@@ -131,13 +146,20 @@ const Dashboard = () => {
 
             {/* AI Console Section */}
             <div
+              onClick={() => navigate("/ai-chat")}
               className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] relative overflow-hidden"
               style={styles.card}
             >
-              <div className="flex items-center gap-2 mb-8 text-slate-300">
-                <MessageSquare size={18} className="text-blue-400" />
-                <h4 className="text-sm font-bold">AI Intent Console Preview</h4>
+              <div className="flex items-center justify-between mb-8 text-slate-300">
+                <div className="flex items-center gap-2">
+                  <MessageSquare size={18} className="text-blue-400" />
+                  <h4 className="text-sm font-bold">AI Intent Console Preview</h4>
+                </div>
+              <span className="text-xs text-blue-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                Open Console &rarr;
+              </span>
               </div>
+
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
                   <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0 shadow-lg shadow-blue-600/20">
@@ -170,22 +192,35 @@ const Dashboard = () => {
                 </div>
               </div>
               <div className="flex justify-end mt-8 h-10.5">
+                {/* 1. PENDING STATE */}
                 {status === "pending" && (
                   <div className="flex gap-3">
                     <button
-                      onClick={() => setStatus("deployed")}
-                      className="bg-[#10B981]/10 border border-[#10B981]/40 text-[#10B981] px-6 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all active:scale-95"
+                      onClick={handleApprove}
+                      className="bg-[#10B981]/10 border border-[#10B981]/40 text-[#10B981] px-6 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all active:scale-95 hover:bg-[#10B981]/20"
                     >
                       <CheckCircle2 size={16} /> Approve & Deploy
                     </button>
                     <button
-                      onClick={() => setStatus("rejected")}
-                      className="bg-white text-rose-500 px-6 py-2 rounded-xl text-xs font-bold flex items-center gap-2 border border-slate-200 transition-all active:scale-95 shadow-sm"
+                      onClick={handleReject}
+                      className="bg-white text-rose-500 px-6 py-2 rounded-xl text-xs font-bold flex items-center gap-2 border border-slate-200 transition-all active:scale-95 shadow-sm hover:bg-slate-50"
                     >
                       <X size={16} /> Reject
                     </button>
                   </div>
                 )}
+
+                {/* 2. DEPLOYING STATE (The Loading Spinner) */}
+                {status === "deploying" && (
+                  <div className="w-full flex justify-center items-center py-2 bg-blue-500/10 border border-blue-500/40 rounded-xl animate-pulse">
+                    <div className="flex items-center gap-2 text-blue-400 font-medium text-sm">
+                      <Loader2 size={18} className="animate-spin" />
+                      <span>Deploying configuration to hardware...</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. DEPLOYED STATE (The Green Success Badge) */}
                 {status === "deployed" && (
                   <div className="w-full flex justify-center items-center py-2 bg-[#10B981]/10 border border-[#10B981]/40 rounded-xl animate-in zoom-in duration-300">
                     <div className="flex items-center gap-2 text-[#10B981] font-medium text-sm">
@@ -194,6 +229,8 @@ const Dashboard = () => {
                     </div>
                   </div>
                 )}
+
+                {/* 4. REJECTED STATE */}
                 {status === "rejected" && (
                   <div className="w-full flex justify-center items-center py-2 bg-[#F43F5E]/10 border border-[#F43F5E]/40 rounded-xl animate-in zoom-in duration-300">
                     <div className="flex items-center gap-2 text-white font-medium text-sm">
