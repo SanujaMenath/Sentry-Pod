@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useOutletContext } from "react-router-dom";
 import { UserPlus, Shield, Loader2 } from "lucide-react";
 import AddUserModal from "../components/AddUserModal";
 import { fetchSystemUsers, modifyUserRole } from "../services/adminService";
@@ -62,16 +63,20 @@ export default function RBACUsers() {
   const [currentUserRole, setCurrentUserRole] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [systemAlert, setSystemAlert] = useState(null);
+  const { search } = useOutletContext();
 
   // Load backend data profiles
   useEffect(() => {
     const initializeDashboard = async () => {
       try {
         setIsLoading(true);
-        const profile = await getUserProfile();
-        setCurrentUserRole(profile.role);
 
-        const users = await fetchSystemUsers();
+        const [profile, users] = await Promise.all([
+          getUserProfile(),
+          fetchSystemUsers(),
+        ]);
+
+        setCurrentUserRole(profile.role);
         setUsersList(users);
       } catch (err) {
         setSystemAlert({ type: "error", text: err });
@@ -79,6 +84,7 @@ export default function RBACUsers() {
         setIsLoading(false);
       }
     };
+
     initializeDashboard();
   }, []);
 
@@ -115,6 +121,16 @@ export default function RBACUsers() {
       </div>
     );
   }
+  const filteredUsers = usersList.filter((user) => {
+    const query = search.toLowerCase();
+
+    return (
+      user.full_name?.toLowerCase().includes(query) ||
+      user.username?.toLowerCase().includes(query) ||
+      user.email?.toLowerCase().includes(query) ||
+      user.role?.toLowerCase().includes(query)
+    );
+  });
 
   return (
     <div className="flex-1 min-h-screen bg-[#f0f2f5] p-6 overflow-auto">
@@ -184,7 +200,7 @@ export default function RBACUsers() {
                 "Email",
                 "Access Group Privileges",
                 "Status",
-                "Last Login", 
+                "Last Login",
                 "Actions",
               ].map((h) => (
                 <th
@@ -197,7 +213,7 @@ export default function RBACUsers() {
             </tr>
           </thead>
           <tbody>
-            {usersList.map((user) => (
+            {filteredUsers.map((user) => (
               <tr
                 key={user.id}
                 className="border-b border-[#1e2530] hover:bg-[#1e2530]/50 transition-colors"
