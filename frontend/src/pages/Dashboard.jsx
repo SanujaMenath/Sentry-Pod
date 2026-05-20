@@ -20,6 +20,7 @@ import {
 import logo from "../images/logo.png";
 import StatCard from "../components/StatCard";
 import { getAllHostsDeviceCount } from "../services/inventoryService";
+import NetworkTrafficChart from "../components/NetworkTrafficChart";
 
 
 //  MAIN DASHBOARD
@@ -124,61 +125,9 @@ const Dashboard = () => {
 
           {/* ROW TRAFFIC & AI  */}
           <div className="grid lg:grid-cols-2 gap-6">
-            {/* Traffic Section */}
-            <div
-              className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]"
-              style={styles.card}
-            >
-              <h4 className="text-sm font-medium text-slate-300 mb-8">
-                Network Traffic (24h)
-              </h4>
-              <div className="h-56 relative px-2">
-                <div className="absolute inset-0 flex flex-col justify-between border-l border-b border-slate-700/50 text-[10px] text-slate-600 pb-1">
-                  <span>100</span>
-                  <span>75</span>
-                  <span>50</span>
-                  <span>25</span>
-                  <span className="pl-1">0</span>
-                </div>
-                <svg
-                  className="w-full h-full pt-2"
-                  viewBox="0 0 100 40"
-                  preserveAspectRatio="none"
-                >
-                  <defs>
-                    <linearGradient
-                      id="trafficGrad"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.3" />
-                      <stop offset="100%" stopColor="#3B82F6" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  <path
-                    d="M0 22 Q 15 32, 25 18 T 45 8 T 70 12 T 100 18"
-                    fill="none"
-                    stroke="#3B82F6"
-                    strokeWidth="1.2"
-                  />
-                  <path
-                    d="M0 22 Q 15 32, 25 18 T 45 8 T 70 12 T 100 18 V 40 H 0 Z"
-                    fill="url(#trafficGrad)"
-                  />
-                </svg>
-                <div className="flex justify-between mt-2 text-[9px] text-slate-600 font-medium px-1">
-                  <span>00:00</span>
-                  <span>04:00</span>
-                  <span>08:00</span>
-                  <span>12:00</span>
-                  <span>16:00</span>
-                  <span>20:00</span>
-                  <span>23:59</span>
-                </div>
-              </div>
-            </div>
+         
+          {/* Traffic Section */}
+            <NetworkTrafficChart />
 
             {/* AI Console Section */}
             <div
