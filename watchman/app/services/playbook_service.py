@@ -1,0 +1,238 @@
+import os
+import json
+import yaml
+import logging
+import subprocess
+from pathlib import Path
+from typing import List, Tuple, Generator
+from fastapi import HTTPException, status
+
+from app.models.playbook import PlaybookCatalogItem, PlaybookSuggestion
+
+logger = logging.getLogger(__name__)
+
+BASE_DIR = Path(__file__).parent.parent.parent
+PLAYBOOKS_DIR = BASE_DIR / "playbooks"
+HOSTS_INI_PATH = PLAYBOOKS_DIR / "hosts.ini"
+CATALOG_PATH = PLAYBOOKS_DIR / "catalog.json"
+
+_catalog_cache = None
+
+def load_catalog() -> List[PlaybookCatalogItem]:
+    """Load playbook catalog from JSON file with caching."""
+    global _catalog_cache
+    
+    if _catalog_cache is not None:
+        return _catalog_cache
+    
+    if not CATALOG_PATH.exists():
+        logger.warning(f"Catalog file not found at {CATALOG_PATH}")
+        return []
+    
+    try:
+        with open(CATALOG_PATH, 'r') as f:
+            data = json.load(f)
+        _catalog_cache = [PlaybookCatalogItem(**item) for item in data]
+        return _catalog_cache
+    except Exception as e:
+        logger.error(f"Error loading catalog: {str(e)}")
+        return []
+
+def extract_playbook_preview(filename: str) -> str:
+    """Read a playbook YAML file and extract key task information."""
+    try:
+        playbook_path = PLAYBOOKS_DIR / filename
+        if not playbook_path.exists():
+            return ""
+            
+        with open(playbook_path, 'r') as f:
+            content = yaml.safe_load(f)
+        
+        if not content or not isinstance(content, list):
+            return ""
+        
+        play = content[0]
+        if not isinstance(play, dict):
+            return ""
+        
+        tasks = play.get('tasks', [])
+        if not tasks:
+            return ""
+        
+        task_names = []
+        modules_used = set()
+        
+        for task in tasks[:4]:
+            if isinstance(task, dict):
+                task_name = task.get('name', 'unnamed task')
+                task_names.append(task_name)
+                
+                for key in task.keys():
+                    if key not in ['name', 'register', 'when', 'debug', 'copy', 'set_fact']:
+                        if '.' in key or key in ['command', 'shell', 'copy', 'debug']:
+                            modules_used.add(key)
+        
+        preview_parts = []
+        if task_names:
+            preview_parts.append("Tasks: " + "; ".join(task_names[:3]))
+        if modules_used:
+            modules_list = "; ".join(sorted(list(modules_used))[:3])
+            preview_parts.append("Uses: " + modules_list)
+        
+        return " | ".join(preview_parts) if preview_parts else ""
+    except Exception as e:
+        logger.warning(f"Could not extract preview from {filename}: {str(e)}")
+        return ""
+
+def score_playbook_match(catalog_item: PlaybookCatalogItem, prompt: str) -> Tuple[float, str]:
+    """Score how well a playbook matches a user prompt using multiple matching strategies."""
+    prompt_lower = prompt.lower()
+    prompt_words = set(prompt_lower.split())
+    score = 0.0
+    reasons = []
+    
+    if catalog_item.filename.lower() in prompt_lower:
+        score += 5
+        reasons.append(f"filename match: {catalog_item.filename}")
+    
+    if catalog_item.name.lower() in prompt_lower:
+        score += 4
+        reasons.append(f"name match: {catalog_item.name}")
+    
+    for tag in catalog_item.tags:
+        if tag.lower() in prompt_lower or tag.lower() in prompt_words:
+            score += 2
+            reasons.append(f"tag match: {tag}")
+    
+    for intent in catalog_item.example_intents:
+        if intent.lower() in prompt_lower:
+            score += 3
+            reasons.append(f"intent match: {intent}")
+    
+    score = min(score, 10.0)
+    reason = "; ".join(reasons) if reasons else "no keyword match"
+    return score, reason
+
+def find_playbook_suggestions(prompt: str, top_k: int = 3) -> List[PlaybookSuggestion]:
+    """Find the best matching playbooks for a user prompt ranked by relevance."""
+    catalog = load_catalog()
+    if not catalog:
+        return []
+    
+    suggestions = []
+    for item in catalog:
+        score, reason = score_playbook_match(item, prompt)
+        if score >= 2:
+            preview = extract_playbook_preview(item.filename)
+            suggestions.append(
+                PlaybookSuggestion(
+                    filename=item.filename,
+                    name=item.name,
+                    description=item.description,
+                    tags=item.tags,
+                    match_score=score,
+                    reason=reason,
+                    destructive=item.destructive,
+                    severity=getattr(item, "severity", "medium"),
+                    target_devices=item.target_devices,
+                    playbook_preview=preview,
+                )
+            )
+    
+    suggestions.sort(key=lambda x: x.match_score, reverse=True)
+    return suggestions[:top_k]
+
+def get_all_hosts_from_inventory() -> List[str]:
+    """Return all hostnames listed under [allHosts] in hosts.ini."""
+    if not HOSTS_INI_PATH.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Inventory file 'hosts.ini' not found"
+        )
+
+    hostnames: List[str] = []
+    in_all_hosts = False
+
+    with HOSTS_INI_PATH.open("r", encoding="utf-8") as inventory_file:
+        for raw_line in inventory_file:
+            line = raw_line.strip()
+            if not line or line.startswith("#") or line.startswith(";"):
+                continue
+            if line.startswith("[") and line.endswith("]"):
+                in_all_hosts = line.lower() == "[allhosts]"
+                continue
+            if not in_all_hosts:
+                continue
+
+            hostname = line.split()[0]
+            hostnames.append(hostname)
+
+    return hostnames
+
+def validate_playbook_path(playbook_name: str) -> Path:
+    """Helper to validate playbook file presence and extension constraints."""
+    playbook_path = PLAYBOOKS_DIR / playbook_name
+    if not playbook_path.exists():
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Playbook '{playbook_name}' not found"
+        )
+    if not playbook_name.endswith(('.yml', '.yaml')):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Only .yml and .yaml files are allowed"
+        )
+    return playbook_path
+
+def run_playbook(playbook_name: str) -> Tuple[int, str]:
+    """Executes an Ansible playbook blocking system process call."""
+    playbook_path = validate_playbook_path(playbook_name)
+    try:
+        result = subprocess.run(
+            ['ansible-playbook', str(playbook_path), '-i', str(PLAYBOOKS_DIR / 'hosts.ini')],
+            cwd=str(PLAYBOOKS_DIR),
+            capture_output=True,
+            text=True,
+            timeout=300
+        )
+        return result.returncode, result.stdout + result.stderr
+    except subprocess.TimeoutExpired:
+        raise HTTPException(
+            status_code=status.HTTP_408_REQUEST_TIMEOUT,
+            detail="Playbook execution timeout"
+        )
+
+def run_playbook_stream_generator(playbook_name: str) -> Generator[str, None, None]:
+    """Starts the subprocess and yields SSE formatted event payloads data."""
+    playbook_path = validate_playbook_path(playbook_name)
+    try:
+        process = subprocess.Popen(
+            ['ansible-playbook', str(playbook_path), '-i', str(PLAYBOOKS_DIR / 'hosts.ini')],
+            cwd=str(PLAYBOOKS_DIR),
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            text=True,
+            bufsize=1,
+        )
+        
+        for line in iter(process.stdout.readline, ''):
+            if line:
+                event_data = json.dumps({"type": "output", "line": line.rstrip('\n')})
+                yield f"data: {event_data}\n\n"
+        
+        returncode = process.wait()
+        completion_data = json.dumps({
+            "type": "complete",
+            "status": "success" if returncode == 0 else "failed",
+            "returncode": returncode
+        })
+        yield f"data: {completion_data}\n\n"
+        
+    except Exception as e:
+        error_data = json.dumps({"type": "error", "message": str(e)})
+        yield f"data: {error_data}\n\n"
+
+def get_playbook_files() -> List[str]:
+    """Gather physical playbook files inside directory paths."""
+    playbooks = [f.name for f in PLAYBOOKS_DIR.glob('*.yml')] + [f.name for f in PLAYBOOKS_DIR.glob('*.yaml')]
+    return sorted([p for p in playbooks if not p.startswith('.')])
