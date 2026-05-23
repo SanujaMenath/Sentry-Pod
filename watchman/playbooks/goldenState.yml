@@ -1,0 +1,16 @@
+- name: Save the golden state config files
+  hosts: allHosts
+  gather_facts: false
+
+  tasks:
+    - name: Copy config files
+      cisco.ios.ios_command:
+        commands:
+          - command: 'sh run'
+      register: golden_state
+    - name: Save golden state config files(format inventory_hostname.txt)
+      copy:
+        content: "{{golden_state.stdout | join ('\n') }}" 
+        dest: "./goldenState/GS_{{inventory_hostname}}.txt"
+
+            

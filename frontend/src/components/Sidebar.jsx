@@ -2,28 +2,28 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Network, MessageSquare, ShieldAlert, 
-  Server, ClipboardList, Users, Settings, LogOut 
+  Server, ClipboardList, Users, Settings, LogOut,UserCircle
 } from 'lucide-react';
+import { logout } from "../services/authService";
 import logo from '../images/logo.png'; 
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', id: 'dashboard', path: '/dashboard' },
   { icon: Network, label: 'Topology Map', id: 'topology', path: '/topology' },
   { icon: MessageSquare, label: 'AI Chat Console', id: 'ai-chat', path: '/ai-chat' },
-  { icon: ShieldAlert, label: 'Staging Gate', id: 'staging', path: '/staging' },
+  // { icon: ShieldAlert, label: 'Staging Gate', id: 'staging', path: '/staging' },
   { icon: Server, label: 'Network Devices', id: 'network', path: '/network-devices' },
   { icon: ClipboardList, label: 'Audit Logs', id: 'audit', path: '/audit-logs' }, 
   { icon: Users, label: 'Users', id: 'users', path: '/users' },
+  { icon: UserCircle, label: 'Profile', id: 'profile', path: '/profile' },
   { icon: Settings, label: 'Settings', id: 'settings', path: '/settings' },
 ];
 
 export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
-
   const handleLogout = () => {
-    localStorage.removeItem('token'); 
-    navigate('/login');
+     logout();
   };
 
   return (

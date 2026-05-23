@@ -1,0 +1,14 @@
+---
+- name: Gather Info from Cisco IOS
+  hosts: allHosts
+  gather_facts: false
+  
+  tasks:
+    - name: Collect all available facts
+      cisco.ios.ios_facts:
+        gather_subset: all
+      register: device_details
+
+    - name: Print the OS version
+      debug:
+        msg: "The OS version of {{ inventory_hostname }} is {{ ansible_net_version }}"

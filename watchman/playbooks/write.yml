@@ -1,0 +1,37 @@
+- name: Write to NVRAM
+  hosts: allHosts
+  gather_facts: false
+
+  tasks:
+    - name: Create a backup of the running-config
+      cisco.ios.ios_command:
+        commands:
+          - command: 'show running-config'
+      register: running_config_output
+
+    - name: Create directories for backups by date
+      file:
+        path: "./runningConfigs/{{ now(fmt='%Y-%m-%d') }}"
+        state: directory
+
+    - name: Create subdirectories for backups by time
+      file:
+        path: "./runningConfigs/{{ now(fmt='%Y-%m-%d') }}/{{ now(fmt='%H') }}_00"
+        state: directory
+
+    - name: Save the running-config to a file
+      copy:
+        content: "{{ running_config_output.stdout | join('\n') }}"
+        dest: "./runningConfigs/{{ now(fmt='%Y-%m-%d') }}/{{ now(fmt='%H') }}_00/backup_{{ inventory_hostname }}_{{ now(fmt='%M_%S') }}.txt"
+
+    - name: Copy running-config to startup-config
+      cisco.ios.ios_command:
+        commands:
+          - command: 'write'
+            prompt: '[confirm]'
+            answer: "\r"
+      register: write_output
+
+    - name: print output
+      debug:
+        msg: "{{ inventory_hostname }}: {{ write_output.stdout_lines }}"

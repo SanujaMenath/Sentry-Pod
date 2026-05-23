@@ -1,0 +1,25 @@
+vlans: 
+  - id: 7
+    name: Computing
+    ip: 10.1.7.1
+    standby: 10.1.7.3
+    network: 10.1.7.0
+
+  - id: 8
+    name: Technology
+    ip: 10.1.8.1
+    standby: 10.1.8.3
+    network: 10.1.8.0
+
+  - id: 9
+    name: Agriculture
+    ip: 10.1.9.1
+    standby: 10.1.9.3
+    network: 10.1.9.0
+    
+  - id: 10
+    name: Engineering 
+    ip: 10.1.10.1
+    standby: 10.1.10.3
+    network: 10.1.10.0
+    

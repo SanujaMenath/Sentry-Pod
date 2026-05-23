@@ -154,4 +154,4 @@ function DeviceCard({ device }) {
     </div>
   );
 }
-}
+

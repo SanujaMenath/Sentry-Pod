@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -15,10 +15,13 @@ import {
   LogOut,
   AlertTriangle,
   X,
+  Loader2,
 } from "lucide-react";
 
 import logo from "../images/logo.png";
 import StatCard from "../components/StatCard";
+import { getAllHostsDeviceCount } from "../services/inventoryService";
+import NetworkTrafficChart from "../components/NetworkTrafficChart";
 
 
 //  MAIN DASHBOARD
@@ -26,8 +29,37 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   const [status, setStatus] = useState("pending");
+  const [totalDevices, setTotalDevices] = useState("--");
 
   const [showNotifications, setShowNotifications] = useState(false);
+
+
+  const handleApprove = (e) => {
+    e.stopPropagation(); // Stops the card container click from running
+    setStatus("deploying");
+    setTimeout(() => {
+      setStatus("deployed");
+    }, 1500);
+  };
+
+  const handleReject = (e) => {
+    e.stopPropagation(); // Stops the card container click from running
+    setStatus("rejected");
+  };
+
+  useEffect(() => {
+    const fetchAllHostsCount = async () => {
+      try {
+        const data = await getAllHostsDeviceCount();
+        setTotalDevices(String(data.count ?? 0));
+      } catch (error) {
+        console.error("Failed to load allHosts device count:", error);
+        setTotalDevices("0");
+      }
+    };
+
+    fetchAllHostsCount();
+  }, []);
 
   const styles = {
     sidebar: {
@@ -74,8 +106,8 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard
               title="Total Devices"
-              value="247"
-              subValue="+12 this month"
+              value={totalDevices}
+              subValue="From allHosts inventory"
               icon={Server}
               iconBg="bg-blue-600/20"
               iconColor="text-blue-400"
@@ -108,71 +140,26 @@ const Dashboard = () => {
 
           {/* ROW TRAFFIC & AI  */}
           <div className="grid lg:grid-cols-2 gap-6">
-            {/* Traffic Section */}
-            <div
-              className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]"
-              style={styles.card}
-            >
-              <h4 className="text-sm font-medium text-slate-300 mb-8">
-                Network Traffic (24h)
-              </h4>
-              <div className="h-56 relative px-2">
-                <div className="absolute inset-0 flex flex-col justify-between border-l border-b border-slate-700/50 text-[10px] text-slate-600 pb-1">
-                  <span>100</span>
-                  <span>75</span>
-                  <span>50</span>
-                  <span>25</span>
-                  <span className="pl-1">0</span>
-                </div>
-                <svg
-                  className="w-full h-full pt-2"
-                  viewBox="0 0 100 40"
-                  preserveAspectRatio="none"
-                >
-                  <defs>
-                    <linearGradient
-                      id="trafficGrad"
-                      x1="0"
-                      y1="0"
-                      x2="0"
-                      y2="1"
-                    >
-                      <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.3" />
-                      <stop offset="100%" stopColor="#3B82F6" stopOpacity="0" />
-                    </linearGradient>
-                  </defs>
-                  <path
-                    d="M0 22 Q 15 32, 25 18 T 45 8 T 70 12 T 100 18"
-                    fill="none"
-                    stroke="#3B82F6"
-                    strokeWidth="1.2"
-                  />
-                  <path
-                    d="M0 22 Q 15 32, 25 18 T 45 8 T 70 12 T 100 18 V 40 H 0 Z"
-                    fill="url(#trafficGrad)"
-                  />
-                </svg>
-                <div className="flex justify-between mt-2 text-[9px] text-slate-600 font-medium px-1">
-                  <span>00:00</span>
-                  <span>04:00</span>
-                  <span>08:00</span>
-                  <span>12:00</span>
-                  <span>16:00</span>
-                  <span>20:00</span>
-                  <span>23:59</span>
-                </div>
-              </div>
-            </div>
+         
+          {/* Traffic Section */}
+            <NetworkTrafficChart />
 
             {/* AI Console Section */}
             <div
+              onClick={() => navigate("/ai-chat")}
               className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] relative overflow-hidden"
               style={styles.card}
             >
-              <div className="flex items-center gap-2 mb-8 text-slate-300">
-                <MessageSquare size={18} className="text-blue-400" />
-                <h4 className="text-sm font-bold">AI Intent Console Preview</h4>
+              <div className="flex items-center justify-between mb-8 text-slate-300">
+                <div className="flex items-center gap-2">
+                  <MessageSquare size={18} className="text-blue-400" />
+                  <h4 className="text-sm font-bold">AI Intent Console Preview</h4>
+                </div>
+              <span className="text-xs text-blue-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                Open Console &rarr;
+              </span>
               </div>
+
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
                   <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0 shadow-lg shadow-blue-600/20">
@@ -205,22 +192,35 @@ const Dashboard = () => {
                 </div>
               </div>
               <div className="flex justify-end mt-8 h-10.5">
+                {/* 1. PENDING STATE */}
                 {status === "pending" && (
                   <div className="flex gap-3">
                     <button
-                      onClick={() => setStatus("deployed")}
-                      className="bg-[#10B981]/10 border border-[#10B981]/40 text-[#10B981] px-6 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all active:scale-95"
+                      onClick={handleApprove}
+                      className="bg-[#10B981]/10 border border-[#10B981]/40 text-[#10B981] px-6 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all active:scale-95 hover:bg-[#10B981]/20"
                     >
                       <CheckCircle2 size={16} /> Approve & Deploy
                     </button>
                     <button
-                      onClick={() => setStatus("rejected")}
-                      className="bg-white text-rose-500 px-6 py-2 rounded-xl text-xs font-bold flex items-center gap-2 border border-slate-200 transition-all active:scale-95 shadow-sm"
+                      onClick={handleReject}
+                      className="bg-white text-rose-500 px-6 py-2 rounded-xl text-xs font-bold flex items-center gap-2 border border-slate-200 transition-all active:scale-95 shadow-sm hover:bg-slate-50"
                     >
                       <X size={16} /> Reject
                     </button>
                   </div>
                 )}
+
+                {/* 2. DEPLOYING STATE (The Loading Spinner) */}
+                {status === "deploying" && (
+                  <div className="w-full flex justify-center items-center py-2 bg-blue-500/10 border border-blue-500/40 rounded-xl animate-pulse">
+                    <div className="flex items-center gap-2 text-blue-400 font-medium text-sm">
+                      <Loader2 size={18} className="animate-spin" />
+                      <span>Deploying configuration to hardware...</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* 3. DEPLOYED STATE (The Green Success Badge) */}
                 {status === "deployed" && (
                   <div className="w-full flex justify-center items-center py-2 bg-[#10B981]/10 border border-[#10B981]/40 rounded-xl animate-in zoom-in duration-300">
                     <div className="flex items-center gap-2 text-[#10B981] font-medium text-sm">
@@ -229,6 +229,8 @@ const Dashboard = () => {
                     </div>
                   </div>
                 )}
+
+                {/* 4. REJECTED STATE */}
                 {status === "rejected" && (
                   <div className="w-full flex justify-center items-center py-2 bg-[#F43F5E]/10 border border-[#F43F5E]/40 rounded-xl animate-in zoom-in duration-300">
                     <div className="flex items-center gap-2 text-white font-medium text-sm">

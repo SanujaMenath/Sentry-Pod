@@ -1,0 +1,12 @@
+- name: Configure NTP
+  hosts: allHosts
+  gather_facts: false
+
+  tasks:
+    - name: configure NTP clients
+      cisco.ios.ios_config:
+        lines:
+          - no ntp server 192.168.122.1
+          - ntp server 192.168.122.1 version 3
+          - clock timezone SLST 5 30
+          - ntp max-associations 1

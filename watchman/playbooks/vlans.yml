@@ -1,0 +1,30 @@
+- name: Configure unique VLANs
+  hosts: Access_Switches
+  gather_facts: false
+
+  tasks:
+    - name: Configure Vlans if not already configured
+      cisco.ios.ios_command:
+        commands:
+          - command: 'vlan database'
+          - command: 'vlan {{ vlan_id }} name {{ vlan_name }}'
+          - command: 'exit'
+          - command: 'show vlan-switch'
+      register: vlan_output
+    - name: configure trunk links
+      cisco.ios.ios_config:
+        lines:
+          - interface r f1/0 - 1
+          - switchport mode trunk
+          - switchport trunk allowed vlan add {{ vlan_id }}
+    - name: confirmation of vlan configuration
+      copy:
+        dest: "./test1Reports/{{inventory_hostname}}_vlan_report.txt"
+        content:  |
+          =================================================================================================== 
+          Report for {{inventory_hostname}}
+          ===================================================================================================
+          
+          TASK: [Vlan configuration]
+          ---------------------------------------------------------------------------------------------------
+          {{vlan_output.stdout_lines | to_nice_json}}
