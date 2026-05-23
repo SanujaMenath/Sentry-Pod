@@ -65,7 +65,6 @@ export default function RBACUsers() {
   const [systemAlert, setSystemAlert] = useState(null);
   const { search } = useOutletContext();
 
-  // Load backend data profiles
   useEffect(() => {
     const initializeDashboard = async () => {
       try {
@@ -88,13 +87,11 @@ export default function RBACUsers() {
     initializeDashboard();
   }, []);
 
-  // Handle live role updates triggered from selection boxes
   const handleRoleChange = async (userId, targetRole) => {
     try {
       setSystemAlert(null);
       await modifyUserRole(userId, targetRole);
 
-      // Update UI state immediately after a successful server confirmation
       setUsersList((prev) =>
         prev.map((u) => (u.id === userId ? { ...u, role: targetRole } : u)),
       );
