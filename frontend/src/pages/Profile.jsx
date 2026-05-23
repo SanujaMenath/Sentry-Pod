@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { User, Lock, ShieldCheck, CheckCircle2, Loader2 } from 'lucide-react';
 import { getUserProfile, updateProfile, updatePassword } from '../services/profileService';
+import PageHeader from "../components/PageHeader";
 
 export default function Profile() {
   const [name, setName] = useState('');
@@ -110,12 +111,13 @@ export default function Profile() {
     <div className="flex min-h-screen" style={styles.main}>
       <main className="flex-1 overflow-y-auto p-8 space-y-8">
 
-        {/* HEADER */}
-        <div>
-          <h1 className="text-3xl" style={styles.headline}>User Settings</h1>
-          <p className="text-base" style={styles.subtext}>
-            Manage your profile information and security preferences
-          </p>
+        {/* Header */}
+        <div className="flex items-start justify-between">
+           <PageHeader 
+            title="Playbook Management" 
+             description="Network automated configurations and core code blueprints" 
+             isSmallSubtext={true}
+        />
         </div>
 
         {/* Notification Status Banners */}

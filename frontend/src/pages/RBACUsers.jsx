@@ -4,6 +4,7 @@ import { UserPlus, Shield, Loader2 } from "lucide-react";
 import AddUserModal from "../components/AddUserModal";
 import { fetchSystemUsers, modifyUserRole } from "../services/adminService";
 import { getUserProfile } from "../services/profileService";
+import PageHeader from "../components/PageHeader";
 
 const staticRoleMetadata = [
   { name: "Super Admin", desc: "Full system access", color: "text-purple-400" },
@@ -137,12 +138,11 @@ export default function RBACUsers() {
       {/* Header */}
       <div className="flex items-start justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-1">
-            User Management
-          </h1>
-          <p className="text-sm text-gray-500">
-            Manage users and role-based access control (RBAC)
-          </p>
+          <PageHeader 
+            title="User Management" 
+            description="Manage users and role-based access control (RBAC)" 
+            isSmallSubtext={true}
+          />
         </div>
         <button
           onClick={() => setShowAddUser(true)}
@@ -171,7 +171,7 @@ export default function RBACUsers() {
         {activeRolesMetric.map((role) => (
           <div
             key={role.name}
-            className="bg-[#1D293DED] border border-slate-700/30 rounded-xl p-4 relative"
+            className="bg-[#1D293DED] border border-slate-700/30 rounded-2xl p-5 relative shadow-[0_5px_15px_rgba(0,0,0,0.6)]"
           >
             <div className="absolute top-3 right-3">
               <span className="w-5 h-5 rounded-full bg-orange-500 text-white text-xs flex items-center justify-center font-bold">
@@ -186,15 +186,15 @@ export default function RBACUsers() {
       </div>
 
       {/* Users Table Grid */}
-      <div className="bg-[#1D293DED] border border-[#1e2530] rounded-xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-[#1e2530]">
+      <div className="bg-[#1D293DED] border border-slate-700/30 rounded-3xl overflow-hidden shadow-[0_5px_15px_rgba(0,0,0,0.6)]">
+        <div className="p-6 border-b border-slate-800/50">
           <h2 className="text-sm font-semibold text-white">
             All Active System Registries
           </h2>
         </div>
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b border-[#1e2530]">
+            <tr className="border-b border-slate-800/50">
               {[
                 "User",
                 "Email",
