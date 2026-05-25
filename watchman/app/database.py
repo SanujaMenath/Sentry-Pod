@@ -18,3 +18,4 @@ db = client.sentry_pod_db
 # Access collections for your features
 devices_collection = db.get_collection("devices")
 logs_collection = db.get_collection("logs")
+device_configurations_collection = db.get_collection("device_configurations")
