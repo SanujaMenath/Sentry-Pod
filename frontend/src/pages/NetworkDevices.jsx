@@ -8,6 +8,7 @@ import {
   Info,
 } from "lucide-react";
 import AddDeviceModal from "../components/AddDeviceModal";
+import PageHeader from "../components/PageHeader";
 
 const startingDevices = [
   { id: 1, name: "core-sw-01", ip: "192.168.1.1", status: "online", model: "Cisco Catalyst 9300", version: "17.6.3", uptime: "45d", cpu: 35, memory: 62, type: "switch" },
@@ -40,14 +41,11 @@ export default function NetworkDevices() {
   return (
     <div className="min-h-full bg-gradient-to-br from-[#F8FAFC] to-[#D1D5DB] p-8 font-sans">
       <div className="mb-8 flex items-start justify-between">
-        <div>
-          <h1 className="text-[#0F172A] text-[30px] font-extrabold tracking-tight">
-            Network Devices
-          </h1>
-          <p className="text-[#475569] text-base font-medium">
-            Monitor and manage all network devices
-          </p>
-        </div>
+  <PageHeader 
+    title="Network Devices" 
+    description="Monitor and manage all network devices" 
+    isSmallSubtext={true}
+  />
 
         <button
           onClick={() => setShowAddModal(true)}

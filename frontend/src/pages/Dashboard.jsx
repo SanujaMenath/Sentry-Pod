@@ -22,7 +22,7 @@ import logo from "../images/logo.png";
 import StatCard from "../components/StatCard";
 import { getAllHostsDeviceCount } from "../services/inventoryService";
 import NetworkTrafficChart from "../components/NetworkTrafficChart";
-
+import PageHeader from "../components/PageHeader";
 
 //  MAIN DASHBOARD
 const Dashboard = () => {
@@ -95,12 +95,10 @@ const Dashboard = () => {
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* DASHBOARD CONTENT */}
         <div className="flex-1 overflow-y-auto p-8 space-y-8">
-          <div>
-            <h1 style={styles.headline}>Command Center</h1>
-            <p style={styles.subtext}>
-              Network overview and real-time monitoring
-            </p>
-          </div>
+          <PageHeader 
+           title="Command Center" 
+           description="Network overview and real-time monitoring" 
+           />
 
           {/* ROW STAT CARDS */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
