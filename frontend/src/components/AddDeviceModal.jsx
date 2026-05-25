@@ -34,7 +34,7 @@ export default function AddDeviceModal({ onClose, onSave }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="w-[360px] rounded-2xl bg-[#0F172A] border border-slate-700 shadow-2xl">
+      <div className="w-90 rounded-2xl bg-[#0F172A] border border-slate-700 shadow-2xl">
         <div className="flex items-center justify-between p-5 border-b border-slate-800">
           <h2 className="text-white text-base font-bold">Add Network Device</h2>
           <button onClick={onClose} className="text-slate-500 hover:text-white">

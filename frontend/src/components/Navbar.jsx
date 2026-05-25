@@ -15,6 +15,7 @@ export default function Navbar({ search, setSearch }) {
     "/topology": "Search topology nodes...",
     "/ai-chat": "Search AI chats...",
     "/dashboard": "Search dashboard data...",
+    "/playbooks": "Search playbooks...",
   };
 
   const placeholder =

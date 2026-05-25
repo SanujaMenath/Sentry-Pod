@@ -15,6 +15,7 @@ const navItems = [
   { icon: Server, label: 'Network Devices', id: 'network', path: '/network-devices' },
   { icon: ClipboardList, label: 'Audit Logs', id: 'audit', path: '/audit-logs' }, 
   { icon: Users, label: 'Users', id: 'users', path: '/users' },
+  { icon: ShieldAlert, label: 'Playbook Manage', id: 'playbooks', path: '/playbooks' },
   { icon: UserCircle, label: 'Profile', id: 'profile', path: '/profile' },
   { icon: Settings, label: 'Settings', id: 'settings', path: '/settings' },
 ];

@@ -15,7 +15,7 @@ import Profile from "./pages/Profile";
 import { Network } from "lucide-react";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicRoute from "./routes/PublicRoute";
-
+import PlaybookManagement from "./pages/PlaybookManagement";
 
 function App() {
   return (
@@ -47,6 +47,7 @@ function App() {
           <Route path="/users" element={<RBACUsers />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<SettingsPage />} />
+          <Route path="/playbooks" element={<PlaybookManagement />} />
           
         </Route>
       </Routes>

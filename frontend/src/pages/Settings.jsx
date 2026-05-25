@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Bell, Shield, Globe, Database } from 'lucide-react';
+import PageHeader from "../components/PageHeader";
 
 function Toggle({ enabled, onChange }) {
   return (
@@ -46,11 +47,14 @@ export default function SettingsPage() {
   const toggle = (key) => setSettings(prev => ({ ...prev, [key]: !prev[key] }));
 
   return (
-    <div className="flex-1 min-h-screen bg-[#f0f2f5] p-6 overflow-auto">
+    <div className="flex-1 min-h-screen p-8 overflow-y-auto space-y-8" style={{ background: "linear-gradient(135deg, #F8FAFC 0%, #D1D5DB 100%)", backgroundAttachment: "fixed", fontFamily: '"Inter", sans-serif' }}>
       {/* Header */}
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-800 mb-1">Settings</h1>
-        <p className="text-sm text-gray-500">Manage system configuration and preferences</p>
+        <PageHeader 
+          title="Settings" 
+          description="Manage system configuration and preferences" 
+          isSmallSubtext={true}
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-5">

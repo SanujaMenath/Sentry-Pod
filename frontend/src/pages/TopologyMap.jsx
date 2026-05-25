@@ -1,5 +1,6 @@
 import React from "react";
 import { Maximize2, Router, Search, Server, Shield, ZoomIn } from "lucide-react";
+import PageHeader from "../components/PageHeader";
 
 const nodes = [
   { label: "Firewall-01", icon: Shield, position: "left-1/2 top-[40px] -translate-x-1/2", online: true },
@@ -18,12 +19,11 @@ export default function TopologyMap() {
     <div className="min-h-full bg-linear-to-br from-[#F8FAFC] to-[#D1D5DB] p-8 font-sans">
       <div className="flex items-start justify-between mb-5">
         <div>
-          <h1 className="text-[#0F172A] text-[30px] font-extrabold tracking-tight drop-shadow-sm">
-            Network Topology Map
-          </h1>
-          <p className="text-[#64748B] text-base font-medium">
-            Interactive visualization of network infrastructure
-          </p>
+          <PageHeader 
+            title="Network Topology Map" 
+            description="Interactive visualization of network infrastructure" 
+            isSmallSubtext={true}
+          />
         </div>
 
         <div className="flex items-center gap-4 text-slate-500">
@@ -35,7 +35,7 @@ export default function TopologyMap() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-[1fr_240px] gap-7">
-        <div className="rounded-2xl bg-slate-500/55 border border-slate-500 p-6 shadow-lg">
+        <div className="rounded-3xl bg-[#1D293DED]/40 border border-slate-700/30 p-6 shadow-[0_5px_15px_rgba(0,0,0,0.6)] backdrop-blur-sm">
           <div className="relative h-115 overflow-hidden rounded-2xl bg-[#223148]">
             <svg className="absolute inset-0 h-full w-full" viewBox="0 0 900 460" preserveAspectRatio="none">
               <g stroke="#64748B" strokeOpacity="0.38" strokeWidth="2">
@@ -84,7 +84,7 @@ export default function TopologyMap() {
 
 function Panel({ title, children }) {
   return (
-    <div className="rounded-2xl bg-[#1D293DED] border border-slate-700/50 p-6 shadow-lg">
+    <div className="rounded-3xl bg-[#1D293DED] border border-slate-700/30 p-6 shadow-[0_5px_15px_rgba(0,0,0,0.6)]">
       <h2 className="mb-6 text-lg font-extrabold text-white">{title}</h2>
       <div className="space-y-4">{children}</div>
     </div>
