@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { fetchNetworkTraffic } from '../services/networkService';
+import { fetchNetworkTrafficFor, fetchDevices } from '../services/networkService';
 
 export default function NetworkTrafficChart() {
   const [chartData, setChartData] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [devices, setDevices] = useState([]);
+  const [selectedDevice, setSelectedDevice] = useState("");
+  const [selectedIf, setSelectedIf] = useState(null);
+  const [allInterfaces, setAllInterfaces] = useState(false);
 
-  const getTelemetryData = async () => {
+  const getTelemetryData = async (opts = {}) => {
     try {
-      const data = await fetchNetworkTraffic();
+      setLoading(true);
+      const data = await fetchNetworkTrafficFor(opts);
       setChartData(data);
     } catch (err) {
       console.error("Failed to load telemetry data.");
@@ -17,11 +22,31 @@ export default function NetworkTrafficChart() {
     }
   };
 
+  const loadDevices = async () => {
+    const list = await fetchDevices();
+    setDevices(list);
+  };
+
   useEffect(() => {
+    loadDevices();
     getTelemetryData();
-    const liveInterval = setInterval(() => { getTelemetryData(); }, 30000); 
+    const liveInterval = setInterval(() => { 
+      const params = {};
+      if (selectedDevice) params.device = selectedDevice;
+      if (selectedIf) params.ifIndex = selectedIf;
+      if (allInterfaces) params.allInterfaces = true;
+      getTelemetryData(params);
+    }, 30000);
     return () => clearInterval(liveInterval);
   }, []);
+
+  useEffect(() => {
+    const params = {};
+    if (selectedDevice) params.device = selectedDevice;
+    if (selectedIf) params.ifIndex = selectedIf;
+    if (allInterfaces) params.allInterfaces = true;
+    getTelemetryData(params);
+  }, [selectedDevice, selectedIf, allInterfaces]);
 
   if (loading) {
     return (
@@ -37,6 +62,25 @@ export default function NetworkTrafficChart() {
         <h4 className="text-sm font-medium text-slate-300 m-0">
           Network Traffic (24h)
         </h4>
+        <div className="flex items-center gap-2">
+          <select className="bg-[#0D121F] text-slate-300 rounded px-2 py-1 text-sm" value={selectedDevice} onChange={e=>{setSelectedDevice(e.target.value); setSelectedIf(null); setAllInterfaces(false);}}>
+            <option value="">Select device</option>
+            {devices.map(d=> (
+              <option key={d.device} value={d.device}>{d.device}</option>
+            ))}
+          </select>
+
+          <select className="bg-[#0D121F] text-slate-300 rounded px-2 py-1 text-sm" value={selectedIf ?? ""} onChange={e=>setSelectedIf(e.target.value?Number(e.target.value):null)}>
+            <option value="">All interfaces</option>
+            {devices.find(d=>d.device===selectedDevice)?.interfaces?.map(ifc=> (
+              <option key={ifc.ifIndex} value={ifc.ifIndex}>{ifc.name || `if${ifc.ifIndex}`}</option>
+            ))}
+          </select>
+
+          <label className="text-sm text-slate-300">
+            <input type="checkbox" className="mr-1" checked={allInterfaces} onChange={e=>setAllInterfaces(e.target.checked)} /> allInterfaces
+          </label>
+        </div>
         <span className="flex h-2 w-2 relative">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
           <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>

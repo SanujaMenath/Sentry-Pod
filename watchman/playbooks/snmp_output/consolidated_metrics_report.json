@@ -1,0 +1,1517 @@
+{
+  "generated_at": "2026-05-23T02:19:33.934279",
+  "devices": {
+    "192.168.122.252": {
+      "host": "192.168.122.252",
+      "total_interfaces_tracked": 7,
+      "metrics_by_index": {
+        "1": {
+          "index": 1,
+          "ciscoMacNotification": 6708
+        },
+        "2": {
+          "index": 2,
+          "ciscoMacNotification": 136
+        },
+        "3": {
+          "index": 3,
+          "ciscoMacNotification": 23118360
+        },
+        "4": {
+          "index": 4,
+          "ciscoMacNotification": 23118360
+        },
+        "5": {
+          "index": 5,
+          "ciscoMacNotification": 12
+        },
+        "6": {
+          "index": 6,
+          "ciscoMacNotification": 23118360
+        },
+        "7": {
+          "index": 7,
+          "ciscoMacNotification": 23118364
+        }
+      }
+    },
+    "10.0.0.2": {
+      "host": "10.0.0.2",
+      "total_interfaces_tracked": 7,
+      "metrics_by_index": {
+        "1": {
+          "index": 1,
+          "ciscoMacNotification": 3116
+        },
+        "2": {
+          "index": 2,
+          "ciscoMacNotification": 8
+        },
+        "3": {
+          "index": 3,
+          "ciscoMacNotification": 7380
+        },
+        "4": {
+          "index": 4,
+          "ciscoMacNotification": 16046872
+        },
+        "5": {
+          "index": 5,
+          "ciscoMacNotification": 1084
+        },
+        "6": {
+          "index": 6,
+          "ciscoMacNotification": 16046876
+        },
+        "7": {
+          "index": 7,
+          "ciscoMacNotification": 16046876
+        }
+      }
+    },
+    "10.0.0.10": {
+      "host": "10.0.0.10",
+      "total_interfaces_tracked": 22,
+      "metrics_by_index": {
+        "1": {
+          "index": 1,
+          "ciscoMacNotification": 27090768
+        },
+        "2": {
+          "index": 2,
+          "ciscoMacNotification": 27090768
+        },
+        "3": {
+          "index": 3,
+          "ciscoMacNotification": 4
+        },
+        "4": {
+          "index": 4,
+          "ciscoMacNotification": 3096
+        },
+        "5": {
+          "index": 5,
+          "ciscoMacNotification": 4744
+        },
+        "6": {
+          "index": 6,
+          "ciscoMacNotification": 27090768
+        },
+        "7": {
+          "index": 7,
+          "ciscoMacNotification": 27090772
+        },
+        "8": {
+          "index": 8,
+          "ciscoMacNotification": 27090772
+        },
+        "9": {
+          "index": 9,
+          "ciscoMacNotification": 27090772
+        },
+        "10": {
+          "index": 10,
+          "ciscoMacNotification": 27090772
+        },
+        "11": {
+          "index": 11,
+          "ciscoMacNotification": 27090828
+        },
+        "12": {
+          "index": 12,
+          "ciscoMacNotification": 27090828
+        },
+        "13": {
+          "index": 13,
+          "ciscoMacNotification": 27090828
+        },
+        "14": {
+          "index": 14,
+          "ciscoMacNotification": 27090828
+        },
+        "15": {
+          "index": 15,
+          "ciscoMacNotification": 27090828
+        },
+        "16": {
+          "index": 16,
+          "ciscoMacNotification": 27090828
+        },
+        "17": {
+          "index": 17,
+          "ciscoMacNotification": 27090828
+        },
+        "18": {
+          "index": 18,
+          "ciscoMacNotification": 27090828
+        },
+        "19": {
+          "index": 19,
+          "ciscoMacNotification": 27090832
+        },
+        "20": {
+          "index": 20,
+          "ciscoMacNotification": 27090832
+        },
+        "21": {
+          "index": 21,
+          "ciscoMacNotification": 27090892
+        },
+        "22": {
+          "index": 22,
+          "ciscoMacNotification": 27090892
+        }
+      }
+    },
+    "10.0.0.20": {
+      "host": "10.0.0.20",
+      "total_interfaces_tracked": 22,
+      "metrics_by_index": {
+        "1": {
+          "index": 1,
+          "ciscoMacNotification": 27100316
+        },
+        "2": {
+          "index": 2,
+          "ciscoMacNotification": 27100316
+        },
+        "3": {
+          "index": 3,
+          "ciscoMacNotification": 4
+        },
+        "4": {
+          "index": 4,
+          "ciscoMacNotification": 4360
+        },
+        "5": {
+          "index": 5,
+          "ciscoMacNotification": 4176
+        },
+        "6": {
+          "index": 6,
+          "ciscoMacNotification": 27100316
+        },
+        "7": {
+          "index": 7,
+          "ciscoMacNotification": 27100316
+        },
+        "8": {
+          "index": 8,
+          "ciscoMacNotification": 27100320
+        },
+        "9": {
+          "index": 9,
+          "ciscoMacNotification": 27100320
+        },
+        "10": {
+          "index": 10,
+          "ciscoMacNotification": 27100320
+        },
+        "11": {
+          "index": 11,
+          "ciscoMacNotification": 27100408
+        },
+        "12": {
+          "index": 12,
+          "ciscoMacNotification": 27100408
+        },
+        "13": {
+          "index": 13,
+          "ciscoMacNotification": 27100408
+        },
+        "14": {
+          "index": 14,
+          "ciscoMacNotification": 27100408
+        },
+        "15": {
+          "index": 15,
+          "ciscoMacNotification": 27100408
+        },
+        "16": {
+          "index": 16,
+          "ciscoMacNotification": 27100408
+        },
+        "17": {
+          "index": 17,
+          "ciscoMacNotification": 27100408
+        },
+        "18": {
+          "index": 18,
+          "ciscoMacNotification": 27100412
+        },
+        "19": {
+          "index": 19,
+          "ciscoMacNotification": 27100412
+        },
+        "20": {
+          "index": 20,
+          "ciscoMacNotification": 27100412
+        },
+        "21": {
+          "index": 21,
+          "ciscoMacNotification": 27100500
+        },
+        "22": {
+          "index": 22,
+          "ciscoMacNotification": 27100500
+        }
+      }
+    },
+    "10.0.0.30": {
+      "host": "10.0.0.30",
+      "total_interfaces_tracked": 28,
+      "metrics_by_index": {
+        "1": {
+          "index": 1,
+          "ciscoMacNotification": 27090420
+        },
+        "2": {
+          "index": 2,
+          "ciscoMacNotification": 27090420
+        },
+        "3": {
+          "index": 3,
+          "ciscoMacNotification": 4
+        },
+        "4": {
+          "index": 4,
+          "ciscoMacNotification": 36152
+        },
+        "5": {
+          "index": 5,
+          "ciscoMacNotification": 67748
+        },
+        "6": {
+          "index": 6,
+          "ciscoMacNotification": 41960
+        },
+        "7": {
+          "index": 7,
+          "ciscoMacNotification": 131008
+        },
+        "8": {
+          "index": 8,
+          "ciscoMacNotification": 27090420
+        },
+        "9": {
+          "index": 9,
+          "ciscoMacNotification": 27090424
+        },
+        "10": {
+          "index": 10,
+          "ciscoMacNotification": 27090424
+        },
+        "11": {
+          "index": 11,
+          "ciscoMacNotification": 27090580
+        },
+        "12": {
+          "index": 12,
+          "ciscoMacNotification": 27090580
+        },
+        "13": {
+          "index": 13,
+          "ciscoMacNotification": 27090580
+        },
+        "14": {
+          "index": 14,
+          "ciscoMacNotification": 27090580
+        },
+        "15": {
+          "index": 15,
+          "ciscoMacNotification": 27090580
+        },
+        "16": {
+          "index": 16,
+          "ciscoMacNotification": 27090580
+        },
+        "17": {
+          "index": 17,
+          "ciscoMacNotification": 14216
+        },
+        "18": {
+          "index": 18,
+          "ciscoMacNotification": 14216
+        },
+        "19": {
+          "index": 19,
+          "ciscoMacNotification": 27090584
+        },
+        "20": {
+          "index": 20,
+          "ciscoMacNotification": 27090584
+        },
+        "21": {
+          "index": 21,
+          "ciscoMacNotification": 27056648
+        },
+        "22": {
+          "index": 22,
+          "ciscoMacNotification": 27090672
+        },
+        "23": {
+          "index": 23,
+          "ciscoMacNotification": 27054028
+        },
+        "24": {
+          "index": 24,
+          "ciscoMacNotification": 1084
+        },
+        "25": {
+          "index": 25,
+          "ciscoMacNotification": 1112
+        },
+        "26": {
+          "index": 26,
+          "ciscoMacNotification": 1084
+        },
+        "27": {
+          "index": 27,
+          "ciscoMacNotification": 1084
+        },
+        "28": {
+          "index": 28,
+          "ciscoMacNotification": 1052
+        }
+      }
+    },
+    "10.0.0.40": {
+      "host": "10.0.0.40",
+      "total_interfaces_tracked": 28,
+      "metrics_by_index": {
+        "1": {
+          "index": 1,
+          "ciscoMacNotification": 27090680
+        },
+        "2": {
+          "index": 2,
+          "ciscoMacNotification": 27090680
+        },
+        "3": {
+          "index": 3,
+          "ciscoMacNotification": 4
+        },
+        "4": {
+          "index": 4,
+          "ciscoMacNotification": 36456
+        },
+        "5": {
+          "index": 5,
+          "ciscoMacNotification": 68060
+        },
+        "6": {
+          "index": 6,
+          "ciscoMacNotification": 42268
+        },
+        "7": {
+          "index": 7,
+          "ciscoMacNotification": 131328
+        },
+        "8": {
+          "index": 8,
+          "ciscoMacNotification": 27090680
+        },
+        "9": {
+          "index": 9,
+          "ciscoMacNotification": 27090684
+        },
+        "10": {
+          "index": 10,
+          "ciscoMacNotification": 27090684
+        },
+        "11": {
+          "index": 11,
+          "ciscoMacNotification": 27090776
+        },
+        "12": {
+          "index": 12,
+          "ciscoMacNotification": 27090776
+        },
+        "13": {
+          "index": 13,
+          "ciscoMacNotification": 27090776
+        },
+        "14": {
+          "index": 14,
+          "ciscoMacNotification": 27090776
+        },
+        "15": {
+          "index": 15,
+          "ciscoMacNotification": 27090776
+        },
+        "16": {
+          "index": 16,
+          "ciscoMacNotification": 27090776
+        },
+        "17": {
+          "index": 17,
+          "ciscoMacNotification": 12932
+        },
+        "18": {
+          "index": 18,
+          "ciscoMacNotification": 12932
+        },
+        "19": {
+          "index": 19,
+          "ciscoMacNotification": 27090780
+        },
+        "20": {
+          "index": 20,
+          "ciscoMacNotification": 27090780
+        },
+        "21": {
+          "index": 21,
+          "ciscoMacNotification": 27090868
+        },
+        "22": {
+          "index": 22,
+          "ciscoMacNotification": 27090868
+        },
+        "23": {
+          "index": 23,
+          "ciscoMacNotification": 560
+        },
+        "24": {
+          "index": 24,
+          "ciscoMacNotification": 2856
+        },
+        "25": {
+          "index": 25,
+          "ciscoMacNotification": 2888
+        },
+        "26": {
+          "index": 26,
+          "ciscoMacNotification": 2888
+        },
+        "27": {
+          "index": 27,
+          "ciscoMacNotification": 2888
+        },
+        "28": {
+          "index": 28,
+          "ciscoMacNotification": 2856
+        }
+      }
+    },
+    "10.0.0.50": {
+      "host": "10.0.0.50",
+      "total_interfaces_tracked": 28,
+      "metrics_by_index": {
+        "1": {
+          "index": 1,
+          "ciscoMacNotification": 27090968
+        },
+        "2": {
+          "index": 2,
+          "ciscoMacNotification": 27090968
+        },
+        "3": {
+          "index": 3,
+          "ciscoMacNotification": 4
+        },
+        "4": {
+          "index": 4,
+          "ciscoMacNotification": 46436
+        },
+        "5": {
+          "index": 5,
+          "ciscoMacNotification": 88072
+        },
+        "6": {
+          "index": 6,
+          "ciscoMacNotification": 80960
+        },
+        "7": {
+          "index": 7,
+          "ciscoMacNotification": 52616
+        },
+        "8": {
+          "index": 8,
+          "ciscoMacNotification": 27090968
+        },
+        "9": {
+          "index": 9,
+          "ciscoMacNotification": 27090972
+        },
+        "10": {
+          "index": 10,
+          "ciscoMacNotification": 27090972
+        },
+        "11": {
+          "index": 11,
+          "ciscoMacNotification": 27091060
+        },
+        "12": {
+          "index": 12,
+          "ciscoMacNotification": 27091060
+        },
+        "13": {
+          "index": 13,
+          "ciscoMacNotification": 27091060
+        },
+        "14": {
+          "index": 14,
+          "ciscoMacNotification": 27091060
+        },
+        "15": {
+          "index": 15,
+          "ciscoMacNotification": 27091060
+        },
+        "16": {
+          "index": 16,
+          "ciscoMacNotification": 27091060
+        },
+        "17": {
+          "index": 17,
+          "ciscoMacNotification": 13936
+        },
+        "18": {
+          "index": 18,
+          "ciscoMacNotification": 13904
+        },
+        "19": {
+          "index": 19,
+          "ciscoMacNotification": 27091064
+        },
+        "20": {
+          "index": 20,
+          "ciscoMacNotification": 27091064
+        },
+        "21": {
+          "index": 21,
+          "ciscoMacNotification": 27056368
+        },
+        "22": {
+          "index": 22,
+          "ciscoMacNotification": 27091152
+        },
+        "23": {
+          "index": 23,
+          "ciscoMacNotification": 27053808
+        },
+        "24": {
+          "index": 24,
+          "ciscoMacNotification": 1016
+        },
+        "25": {
+          "index": 25,
+          "ciscoMacNotification": 984
+        },
+        "26": {
+          "index": 26,
+          "ciscoMacNotification": 984
+        },
+        "27": {
+          "index": 27,
+          "ciscoMacNotification": 1016
+        },
+        "28": {
+          "index": 28,
+          "ciscoMacNotification": 1016
+        }
+      }
+    },
+    "10.0.0.60": {
+      "host": "10.0.0.60",
+      "total_interfaces_tracked": 28,
+      "metrics_by_index": {
+        "1": {
+          "index": 1,
+          "ciscoMacNotification": 27091084
+        },
+        "2": {
+          "index": 2,
+          "ciscoMacNotification": 27091084
+        },
+        "3": {
+          "index": 3,
+          "ciscoMacNotification": 4
+        },
+        "4": {
+          "index": 4,
+          "ciscoMacNotification": 46740
+        },
+        "5": {
+          "index": 5,
+          "ciscoMacNotification": 88376
+        },
+        "6": {
+          "index": 6,
+          "ciscoMacNotification": 81244
+        },
+        "7": {
+          "index": 7,
+          "ciscoMacNotification": 52912
+        },
+        "8": {
+          "index": 8,
+          "ciscoMacNotification": 27091084
+        },
+        "9": {
+          "index": 9,
+          "ciscoMacNotification": 27091088
+        },
+        "10": {
+          "index": 10,
+          "ciscoMacNotification": 27091088
+        },
+        "11": {
+          "index": 11,
+          "ciscoMacNotification": 27091208
+        },
+        "12": {
+          "index": 12,
+          "ciscoMacNotification": 27091208
+        },
+        "13": {
+          "index": 13,
+          "ciscoMacNotification": 27091208
+        },
+        "14": {
+          "index": 14,
+          "ciscoMacNotification": 27091208
+        },
+        "15": {
+          "index": 15,
+          "ciscoMacNotification": 27091208
+        },
+        "16": {
+          "index": 16,
+          "ciscoMacNotification": 27091208
+        },
+        "17": {
+          "index": 17,
+          "ciscoMacNotification": 14408
+        },
+        "18": {
+          "index": 18,
+          "ciscoMacNotification": 14344
+        },
+        "19": {
+          "index": 19,
+          "ciscoMacNotification": 27091212
+        },
+        "20": {
+          "index": 20,
+          "ciscoMacNotification": 27091212
+        },
+        "21": {
+          "index": 21,
+          "ciscoMacNotification": 27091300
+        },
+        "22": {
+          "index": 22,
+          "ciscoMacNotification": 27091300
+        },
+        "23": {
+          "index": 23,
+          "ciscoMacNotification": 1660
+        },
+        "24": {
+          "index": 24,
+          "ciscoMacNotification": 740
+        },
+        "25": {
+          "index": 25,
+          "ciscoMacNotification": 804
+        },
+        "26": {
+          "index": 26,
+          "ciscoMacNotification": 772
+        },
+        "27": {
+          "index": 27,
+          "ciscoMacNotification": 740
+        },
+        "28": {
+          "index": 28,
+          "ciscoMacNotification": 740
+        }
+      }
+    },
+    "10.1.99.7": {
+      "host": "10.1.99.7",
+      "total_interfaces_tracked": 23,
+      "metrics_by_index": {
+        "1": {
+          "index": 1,
+          "ciscoMacNotification": 11666408
+        },
+        "2": {
+          "index": 2,
+          "ciscoMacNotification": 11666408
+        },
+        "3": {
+          "index": 3,
+          "ciscoMacNotification": 696
+        },
+        "4": {
+          "index": 4,
+          "ciscoMacNotification": 496
+        },
+        "5": {
+          "index": 5,
+          "ciscoMacNotification": 11666408
+        },
+        "6": {
+          "index": 6,
+          "ciscoMacNotification": 11666408
+        },
+        "7": {
+          "index": 7,
+          "ciscoMacNotification": 11666408
+        },
+        "8": {
+          "index": 8,
+          "ciscoMacNotification": 11666408
+        },
+        "9": {
+          "index": 9,
+          "ciscoMacNotification": 11666408
+        },
+        "10": {
+          "index": 10,
+          "ciscoMacNotification": 11666412
+        },
+        "11": {
+          "index": 11,
+          "ciscoMacNotification": 11666524
+        },
+        "12": {
+          "index": 12,
+          "ciscoMacNotification": 11666524
+        },
+        "13": {
+          "index": 13,
+          "ciscoMacNotification": 11666524
+        },
+        "14": {
+          "index": 14,
+          "ciscoMacNotification": 11666524
+        },
+        "15": {
+          "index": 15,
+          "ciscoMacNotification": 11666524
+        },
+        "16": {
+          "index": 16,
+          "ciscoMacNotification": 11666524
+        },
+        "17": {
+          "index": 17,
+          "ciscoMacNotification": 11666524
+        },
+        "18": {
+          "index": 18,
+          "ciscoMacNotification": 11666524
+        },
+        "19": {
+          "index": 19,
+          "ciscoMacNotification": 11666524
+        },
+        "20": {
+          "index": 20,
+          "ciscoMacNotification": 11666528
+        },
+        "21": {
+          "index": 21,
+          "ciscoMacNotification": 11666640
+        },
+        "22": {
+          "index": 22,
+          "ciscoMacNotification": 11666640
+        },
+        "23": {
+          "index": 23,
+          "ciscoMacNotification": 8
+        }
+      }
+    },
+    "10.1.99.8": {
+      "host": "10.1.99.8",
+      "total_interfaces_tracked": 23,
+      "metrics_by_index": {
+        "1": {
+          "index": 1,
+          "ciscoMacNotification": 11678276
+        },
+        "2": {
+          "index": 2,
+          "ciscoMacNotification": 11678276
+        },
+        "3": {
+          "index": 3,
+          "ciscoMacNotification": 84
+        },
+        "4": {
+          "index": 4,
+          "ciscoMacNotification": 740
+        },
+        "5": {
+          "index": 5,
+          "ciscoMacNotification": 11678276
+        },
+        "6": {
+          "index": 6,
+          "ciscoMacNotification": 11678276
+        },
+        "7": {
+          "index": 7,
+          "ciscoMacNotification": 11678276
+        },
+        "8": {
+          "index": 8,
+          "ciscoMacNotification": 11678276
+        },
+        "9": {
+          "index": 9,
+          "ciscoMacNotification": 11678276
+        },
+        "10": {
+          "index": 10,
+          "ciscoMacNotification": 11678280
+        },
+        "11": {
+          "index": 11,
+          "ciscoMacNotification": 11678372
+        },
+        "12": {
+          "index": 12,
+          "ciscoMacNotification": 11678372
+        },
+        "13": {
+          "index": 13,
+          "ciscoMacNotification": 11678372
+        },
+        "14": {
+          "index": 14,
+          "ciscoMacNotification": 11678372
+        },
+        "15": {
+          "index": 15,
+          "ciscoMacNotification": 11678372
+        },
+        "16": {
+          "index": 16,
+          "ciscoMacNotification": 11678376
+        },
+        "17": {
+          "index": 17,
+          "ciscoMacNotification": 11678376
+        },
+        "18": {
+          "index": 18,
+          "ciscoMacNotification": 11678376
+        },
+        "19": {
+          "index": 19,
+          "ciscoMacNotification": 11678376
+        },
+        "20": {
+          "index": 20,
+          "ciscoMacNotification": 11678376
+        },
+        "21": {
+          "index": 21,
+          "ciscoMacNotification": 11678444
+        },
+        "22": {
+          "index": 22,
+          "ciscoMacNotification": 11678444
+        },
+        "23": {
+          "index": 23,
+          "ciscoMacNotification": 4
+        }
+      }
+    },
+    "10.1.99.9": {
+      "host": "10.1.99.9",
+      "total_interfaces_tracked": 23,
+      "metrics_by_index": {
+        "1": {
+          "index": 1,
+          "ciscoMacNotification": 11669200
+        },
+        "2": {
+          "index": 2,
+          "ciscoMacNotification": 11669200
+        },
+        "3": {
+          "index": 3,
+          "ciscoMacNotification": 260
+        },
+        "4": {
+          "index": 4,
+          "ciscoMacNotification": 44
+        },
+        "5": {
+          "index": 5,
+          "ciscoMacNotification": 11669204
+        },
+        "6": {
+          "index": 6,
+          "ciscoMacNotification": 11669204
+        },
+        "7": {
+          "index": 7,
+          "ciscoMacNotification": 11669204
+        },
+        "8": {
+          "index": 8,
+          "ciscoMacNotification": 11669204
+        },
+        "9": {
+          "index": 9,
+          "ciscoMacNotification": 11669204
+        },
+        "10": {
+          "index": 10,
+          "ciscoMacNotification": 11669204
+        },
+        "11": {
+          "index": 11,
+          "ciscoMacNotification": 11669324
+        },
+        "12": {
+          "index": 12,
+          "ciscoMacNotification": 11669324
+        },
+        "13": {
+          "index": 13,
+          "ciscoMacNotification": 11669324
+        },
+        "14": {
+          "index": 14,
+          "ciscoMacNotification": 11669324
+        },
+        "15": {
+          "index": 15,
+          "ciscoMacNotification": 11669324
+        },
+        "16": {
+          "index": 16,
+          "ciscoMacNotification": 11669324
+        },
+        "17": {
+          "index": 17,
+          "ciscoMacNotification": 11669324
+        },
+        "18": {
+          "index": 18,
+          "ciscoMacNotification": 11669324
+        },
+        "19": {
+          "index": 19,
+          "ciscoMacNotification": 11669324
+        },
+        "20": {
+          "index": 20,
+          "ciscoMacNotification": 11669328
+        },
+        "21": {
+          "index": 21,
+          "ciscoMacNotification": 11669412
+        },
+        "22": {
+          "index": 22,
+          "ciscoMacNotification": 11669412
+        },
+        "23": {
+          "index": 23,
+          "ciscoMacNotification": 4
+        }
+      }
+    },
+    "10.1.99.10": {
+      "host": "10.1.99.10",
+      "total_interfaces_tracked": 23,
+      "metrics_by_index": {
+        "1": {
+          "index": 1,
+          "ciscoMacNotification": 11646856
+        },
+        "2": {
+          "index": 2,
+          "ciscoMacNotification": 11646856
+        },
+        "3": {
+          "index": 3,
+          "ciscoMacNotification": 440
+        },
+        "4": {
+          "index": 4,
+          "ciscoMacNotification": 252
+        },
+        "5": {
+          "index": 5,
+          "ciscoMacNotification": 11646856
+        },
+        "6": {
+          "index": 6,
+          "ciscoMacNotification": 11646856
+        },
+        "7": {
+          "index": 7,
+          "ciscoMacNotification": 11646856
+        },
+        "8": {
+          "index": 8,
+          "ciscoMacNotification": 11646856
+        },
+        "9": {
+          "index": 9,
+          "ciscoMacNotification": 11646856
+        },
+        "10": {
+          "index": 10,
+          "ciscoMacNotification": 11646860
+        },
+        "11": {
+          "index": 11,
+          "ciscoMacNotification": 11647016
+        },
+        "12": {
+          "index": 12,
+          "ciscoMacNotification": 11647016
+        },
+        "13": {
+          "index": 13,
+          "ciscoMacNotification": 11647016
+        },
+        "14": {
+          "index": 14,
+          "ciscoMacNotification": 11647016
+        },
+        "15": {
+          "index": 15,
+          "ciscoMacNotification": 11647016
+        },
+        "16": {
+          "index": 16,
+          "ciscoMacNotification": 11647016
+        },
+        "17": {
+          "index": 17,
+          "ciscoMacNotification": 11647016
+        },
+        "18": {
+          "index": 18,
+          "ciscoMacNotification": 11647016
+        },
+        "19": {
+          "index": 19,
+          "ciscoMacNotification": 11647016
+        },
+        "20": {
+          "index": 20,
+          "ciscoMacNotification": 11647020
+        },
+        "21": {
+          "index": 21,
+          "ciscoMacNotification": 11647104
+        },
+        "22": {
+          "index": 22,
+          "ciscoMacNotification": 11647104
+        },
+        "23": {
+          "index": 23,
+          "ciscoMacNotification": 4
+        }
+      }
+    },
+    "10.2.99.11": {
+      "host": "10.2.99.11",
+      "total_interfaces_tracked": 23,
+      "metrics_by_index": {
+        "1": {
+          "index": 1,
+          "ciscoMacNotification": 11670456
+        },
+        "2": {
+          "index": 2,
+          "ciscoMacNotification": 11670456
+        },
+        "3": {
+          "index": 3,
+          "ciscoMacNotification": 132
+        },
+        "4": {
+          "index": 4,
+          "ciscoMacNotification": 4
+        },
+        "5": {
+          "index": 5,
+          "ciscoMacNotification": 11670456
+        },
+        "6": {
+          "index": 6,
+          "ciscoMacNotification": 11670460
+        },
+        "7": {
+          "index": 7,
+          "ciscoMacNotification": 11670460
+        },
+        "8": {
+          "index": 8,
+          "ciscoMacNotification": 11670460
+        },
+        "9": {
+          "index": 9,
+          "ciscoMacNotification": 11670460
+        },
+        "10": {
+          "index": 10,
+          "ciscoMacNotification": 11670460
+        },
+        "11": {
+          "index": 11,
+          "ciscoMacNotification": 11670620
+        },
+        "12": {
+          "index": 12,
+          "ciscoMacNotification": 11670620
+        },
+        "13": {
+          "index": 13,
+          "ciscoMacNotification": 11670620
+        },
+        "14": {
+          "index": 14,
+          "ciscoMacNotification": 11670620
+        },
+        "15": {
+          "index": 15,
+          "ciscoMacNotification": 11670620
+        },
+        "16": {
+          "index": 16,
+          "ciscoMacNotification": 11670624
+        },
+        "17": {
+          "index": 17,
+          "ciscoMacNotification": 11670624
+        },
+        "18": {
+          "index": 18,
+          "ciscoMacNotification": 11670624
+        },
+        "19": {
+          "index": 19,
+          "ciscoMacNotification": 11670624
+        },
+        "20": {
+          "index": 20,
+          "ciscoMacNotification": 11670624
+        },
+        "21": {
+          "index": 21,
+          "ciscoMacNotification": 11670700
+        },
+        "22": {
+          "index": 22,
+          "ciscoMacNotification": 11670700
+        },
+        "23": {
+          "index": 23,
+          "ciscoMacNotification": 4
+        }
+      }
+    },
+    "10.2.99.12": {
+      "host": "10.2.99.12",
+      "total_interfaces_tracked": 23,
+      "metrics_by_index": {
+        "1": {
+          "index": 1,
+          "ciscoMacNotification": 11688236
+        },
+        "2": {
+          "index": 2,
+          "ciscoMacNotification": 11688236
+        },
+        "3": {
+          "index": 3,
+          "ciscoMacNotification": 416
+        },
+        "4": {
+          "index": 4,
+          "ciscoMacNotification": 184
+        },
+        "5": {
+          "index": 5,
+          "ciscoMacNotification": 11688240
+        },
+        "6": {
+          "index": 6,
+          "ciscoMacNotification": 11688240
+        },
+        "7": {
+          "index": 7,
+          "ciscoMacNotification": 11688240
+        },
+        "8": {
+          "index": 8,
+          "ciscoMacNotification": 11688240
+        },
+        "9": {
+          "index": 9,
+          "ciscoMacNotification": 11688240
+        },
+        "10": {
+          "index": 10,
+          "ciscoMacNotification": 11688240
+        },
+        "11": {
+          "index": 11,
+          "ciscoMacNotification": 11688352
+        },
+        "12": {
+          "index": 12,
+          "ciscoMacNotification": 11688352
+        },
+        "13": {
+          "index": 13,
+          "ciscoMacNotification": 11688352
+        },
+        "14": {
+          "index": 14,
+          "ciscoMacNotification": 11688352
+        },
+        "15": {
+          "index": 15,
+          "ciscoMacNotification": 11688352
+        },
+        "16": {
+          "index": 16,
+          "ciscoMacNotification": 11688352
+        },
+        "17": {
+          "index": 17,
+          "ciscoMacNotification": 11688352
+        },
+        "18": {
+          "index": 18,
+          "ciscoMacNotification": 11688352
+        },
+        "19": {
+          "index": 19,
+          "ciscoMacNotification": 11688352
+        },
+        "20": {
+          "index": 20,
+          "ciscoMacNotification": 11688356
+        },
+        "21": {
+          "index": 21,
+          "ciscoMacNotification": 11688440
+        },
+        "22": {
+          "index": 22,
+          "ciscoMacNotification": 11688440
+        },
+        "23": {
+          "index": 23,
+          "ciscoMacNotification": 4
+        }
+      }
+    },
+    "10.2.99.13": {
+      "host": "10.2.99.13",
+      "total_interfaces_tracked": 23,
+      "metrics_by_index": {
+        "1": {
+          "index": 1,
+          "ciscoMacNotification": 11685512
+        },
+        "2": {
+          "index": 2,
+          "ciscoMacNotification": 11685512
+        },
+        "3": {
+          "index": 3,
+          "ciscoMacNotification": 612
+        },
+        "4": {
+          "index": 4,
+          "ciscoMacNotification": 396
+        },
+        "5": {
+          "index": 5,
+          "ciscoMacNotification": 11685512
+        },
+        "6": {
+          "index": 6,
+          "ciscoMacNotification": 11685512
+        },
+        "7": {
+          "index": 7,
+          "ciscoMacNotification": 11685512
+        },
+        "8": {
+          "index": 8,
+          "ciscoMacNotification": 11685512
+        },
+        "9": {
+          "index": 9,
+          "ciscoMacNotification": 11685512
+        },
+        "10": {
+          "index": 10,
+          "ciscoMacNotification": 11685516
+        },
+        "11": {
+          "index": 11,
+          "ciscoMacNotification": 11685588
+        },
+        "12": {
+          "index": 12,
+          "ciscoMacNotification": 11685588
+        },
+        "13": {
+          "index": 13,
+          "ciscoMacNotification": 11685588
+        },
+        "14": {
+          "index": 14,
+          "ciscoMacNotification": 11685588
+        },
+        "15": {
+          "index": 15,
+          "ciscoMacNotification": 11685588
+        },
+        "16": {
+          "index": 16,
+          "ciscoMacNotification": 11685588
+        },
+        "17": {
+          "index": 17,
+          "ciscoMacNotification": 11685588
+        },
+        "18": {
+          "index": 18,
+          "ciscoMacNotification": 11685588
+        },
+        "19": {
+          "index": 19,
+          "ciscoMacNotification": 11685588
+        },
+        "20": {
+          "index": 20,
+          "ciscoMacNotification": 11685592
+        },
+        "21": {
+          "index": 21,
+          "ciscoMacNotification": 11685652
+        },
+        "22": {
+          "index": 22,
+          "ciscoMacNotification": 11685652
+        },
+        "23": {
+          "index": 23,
+          "ciscoMacNotification": 4
+        }
+      }
+    },
+    "10.2.99.14": {
+      "host": "10.2.99.14",
+      "total_interfaces_tracked": 23,
+      "metrics_by_index": {
+        "1": {
+          "index": 1,
+          "ciscoMacNotification": 21363984
+        },
+        "2": {
+          "index": 2,
+          "ciscoMacNotification": 21363984
+        },
+        "3": {
+          "index": 3,
+          "ciscoMacNotification": 1708
+        },
+        "4": {
+          "index": 4,
+          "ciscoMacNotification": 1260
+        },
+        "5": {
+          "index": 5,
+          "ciscoMacNotification": 21363984
+        },
+        "6": {
+          "index": 6,
+          "ciscoMacNotification": 21363984
+        },
+        "7": {
+          "index": 7,
+          "ciscoMacNotification": 21363984
+        },
+        "8": {
+          "index": 8,
+          "ciscoMacNotification": 21363984
+        },
+        "9": {
+          "index": 9,
+          "ciscoMacNotification": 21363984
+        },
+        "10": {
+          "index": 10,
+          "ciscoMacNotification": 21363988
+        },
+        "11": {
+          "index": 11,
+          "ciscoMacNotification": 21364216
+        },
+        "12": {
+          "index": 12,
+          "ciscoMacNotification": 21364216
+        },
+        "13": {
+          "index": 13,
+          "ciscoMacNotification": 21364216
+        },
+        "14": {
+          "index": 14,
+          "ciscoMacNotification": 21364216
+        },
+        "15": {
+          "index": 15,
+          "ciscoMacNotification": 21364220
+        },
+        "16": {
+          "index": 16,
+          "ciscoMacNotification": 21364220
+        },
+        "17": {
+          "index": 17,
+          "ciscoMacNotification": 21364220
+        },
+        "18": {
+          "index": 18,
+          "ciscoMacNotification": 21364220
+        },
+        "19": {
+          "index": 19,
+          "ciscoMacNotification": 21364220
+        },
+        "20": {
+          "index": 20,
+          "ciscoMacNotification": 21364220
+        },
+        "21": {
+          "index": 21,
+          "ciscoMacNotification": 21364504
+        },
+        "22": {
+          "index": 22,
+          "ciscoMacNotification": 21364504
+        },
+        "23": {
+          "index": 23,
+          "ciscoMacNotification": 4
+        }
+      }
+    }
+  }
+}
