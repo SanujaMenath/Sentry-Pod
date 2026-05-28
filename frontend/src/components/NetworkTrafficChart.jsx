@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { fetchNetworkTrafficFor, fetchDevices } from '../services/networkService';
+import { fetchNetworkTrafficFor, fetchTelemetryHosts } from '../services/networkService';
 
 export default function NetworkTrafficChart() {
   const [chartData, setChartData] = useState([]);
@@ -9,6 +9,8 @@ export default function NetworkTrafficChart() {
   const [selectedDevice, setSelectedDevice] = useState("");
   const [selectedIf, setSelectedIf] = useState(null);
   const [allInterfaces, setAllInterfaces] = useState(false);
+  const [openDeviceMenu, setOpenDeviceMenu] = useState(false);
+  const [openInterfaceMenu, setOpenInterfaceMenu] = useState(false);
 
   const getTelemetryData = async (opts = {}) => {
     try {
@@ -22,22 +24,26 @@ export default function NetworkTrafficChart() {
     }
   };
 
-  const loadDevices = async () => {
-    const list = await fetchDevices();
-    setDevices(list);
+  const loadTelemetryHosts = async () => {
+    const list = await fetchTelemetryHosts();
+    const mapped = list.map((item) => ({
+      device: item.host,
+      name: item.name || item.host,
+      interfaces: item.interfaces || [],
+      totalInterfacesTracked: item.total_interfaces_tracked || 0,
+    }));
+
+    setDevices(mapped);
+
+    if (mapped.length && !selectedDevice) {
+      setSelectedDevice(mapped[0].device);
+    }
   };
 
   useEffect(() => {
-    loadDevices();
-    getTelemetryData();
-    const liveInterval = setInterval(() => { 
-      const params = {};
-      if (selectedDevice) params.device = selectedDevice;
-      if (selectedIf) params.ifIndex = selectedIf;
-      if (allInterfaces) params.allInterfaces = true;
-      getTelemetryData(params);
-    }, 30000);
-    return () => clearInterval(liveInterval);
+    (async () => {
+      await loadTelemetryHosts();
+    })();
   }, []);
 
   useEffect(() => {
@@ -46,36 +52,119 @@ export default function NetworkTrafficChart() {
     if (selectedIf) params.ifIndex = selectedIf;
     if (allInterfaces) params.allInterfaces = true;
     getTelemetryData(params);
+
+    const liveInterval = setInterval(() => {
+      getTelemetryData(params);
+    }, 30000);
+
+    return () => clearInterval(liveInterval);
   }, [selectedDevice, selectedIf, allInterfaces]);
+
+  const selectedTelemetryHost = devices.find((device) => device.device === selectedDevice);
+
+  const selectedDeviceLabel = selectedTelemetryHost?.name || selectedDevice || "Select device";
+  const selectedInterfaceLabel = selectedIf ? (selectedTelemetryHost?.interfaces?.find((ifc) => ifc.ifIndex === selectedIf)?.name || `if${selectedIf}`) : "All interfaces";
 
   if (loading) {
     return (
       <div className="p-6 rounded-3xl bg-[#1D293DED] min-h-[300px] flex items-center justify-center text-slate-400 font-medium">
-        Loading Telemetry Stream...
+        Loading Network Baseline...
       </div>
     );
   }
 
   return (
     <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] bg-[#1D293DED] font-sans">
-      <div className="flex justify-between items-center mb-8">
+      <div className="flex justify-between items-center mb-8 overflow-visible">
         <h4 className="text-sm font-medium text-slate-300 m-0">
-          Network Traffic (24h)
+          Network Baseline
         </h4>
-        <div className="flex items-center gap-2">
-          <select className="bg-[#0D121F] text-slate-300 rounded px-2 py-1 text-sm" value={selectedDevice} onChange={e=>{setSelectedDevice(e.target.value); setSelectedIf(null); setAllInterfaces(false);}}>
-            <option value="">Select device</option>
-            {devices.map(d=> (
-              <option key={d.device} value={d.device}>{d.device}</option>
-            ))}
-          </select>
+        <div className="flex items-center gap-2 overflow-visible">
+          <div className="relative">
+            <button
+              type="button"
+              className="min-w-[150px] bg-[#0D121F] text-slate-300 rounded px-3 py-1 text-sm text-left border border-slate-700/50 hover:border-slate-500/60 transition-colors"
+              onClick={() => {
+                setOpenDeviceMenu((current) => !current);
+                setOpenInterfaceMenu(false);
+              }}
+            >
+              {selectedDeviceLabel}
+            </button>
+            {openDeviceMenu && (
+              <div className="absolute left-0 top-full mt-2 z-50 min-w-[150px] max-h-64 overflow-y-auto rounded-xl border border-slate-700/70 bg-[#0D121F] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
+                <button
+                  type="button"
+                  className="block w-full px-3 py-2 text-left text-sm text-slate-300 hover:bg-slate-800/80"
+                  onClick={() => {
+                    setSelectedDevice("");
+                    setSelectedIf(null);
+                    setAllInterfaces(false);
+                    setOpenDeviceMenu(false);
+                  }}
+                >
+                  Select device
+                </button>
+                {devices.map((device) => (
+                  <button
+                    type="button"
+                    key={device.device}
+                    className="block w-full px-3 py-2 text-left text-sm text-slate-300 hover:bg-slate-800/80"
+                    onClick={() => {
+                      setSelectedDevice(device.device);
+                      setSelectedIf(null);
+                      setAllInterfaces(false);
+                      setOpenDeviceMenu(false);
+                    }}
+                  >
+                    {device.name || device.device}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
-          <select className="bg-[#0D121F] text-slate-300 rounded px-2 py-1 text-sm" value={selectedIf ?? ""} onChange={e=>setSelectedIf(e.target.value?Number(e.target.value):null)}>
-            <option value="">All interfaces</option>
-            {devices.find(d=>d.device===selectedDevice)?.interfaces?.map(ifc=> (
-              <option key={ifc.ifIndex} value={ifc.ifIndex}>{ifc.name || `if${ifc.ifIndex}`}</option>
-            ))}
-          </select>
+          <div className="relative">
+            <button
+              type="button"
+              className="min-w-[170px] bg-[#0D121F] text-slate-300 rounded px-3 py-1 text-sm text-left border border-slate-700/50 hover:border-slate-500/60 transition-colors"
+              onClick={() => {
+                setOpenInterfaceMenu((current) => !current);
+                setOpenDeviceMenu(false);
+              }}
+            >
+              {selectedInterfaceLabel}
+            </button>
+            {openInterfaceMenu && (
+              <div className="absolute left-0 top-full mt-2 z-50 min-w-[170px] max-h-64 overflow-y-auto rounded-xl border border-slate-700/70 bg-[#0D121F] shadow-[0_18px_40px_rgba(0,0,0,0.45)]">
+                <button
+                  type="button"
+                  className="block w-full px-3 py-2 text-left text-sm text-slate-300 hover:bg-slate-800/80"
+                  onClick={() => {
+                    setSelectedIf(null);
+                    setAllInterfaces(true);
+                    setOpenInterfaceMenu(false);
+                  }}
+                >
+                  All interfaces
+                </button>
+                {selectedTelemetryHost?.interfaces?.map((ifc) => (
+                  <button
+                    type="button"
+                    key={ifc.ifIndex}
+                    className="block w-full px-3 py-2 text-left text-sm text-slate-300 hover:bg-slate-800/80"
+                    onClick={() => {
+                      setSelectedIf(ifc.ifIndex);
+                      setAllInterfaces(false);
+                      setOpenInterfaceMenu(false);
+                    }}
+                  >
+                    {ifc.name || `if${ifc.ifIndex}`}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
 
           <label className="text-sm text-slate-300">
             <input type="checkbox" className="mr-1" checked={allInterfaces} onChange={e=>setAllInterfaces(e.target.checked)} /> allInterfaces

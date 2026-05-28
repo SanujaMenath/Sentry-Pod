@@ -4,13 +4,16 @@ import os
 import re
 
 # Configuration
-HOSTS_FILE = "watchman/playbooks/hosts.ini"
+REPO_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+HOSTS_FILE = os.path.join(REPO_ROOT, "playbooks", "hosts.ini")
 COMMUNITY = "sentryPod"
-# Target OIDs: MAC notification table + interface description (ifDescr)
+# Target OIDs: MAC notification table + interface metadata
 MAC_OID = ".1.3.6.1.4.1.9.9.276.1.1.1.1.1"
 IFDESCR_OID = ".1.3.6.1.2.1.2.2.1.2"
-OIDS = [MAC_OID, IFDESCR_OID]
-OUTPUT_DIR = "watchman/playbooks/snmp_output"
+IFADMIN_OID = ".1.3.6.1.2.1.2.2.1.7"
+IFOPER_OID = ".1.3.6.1.2.1.2.2.1.8"
+OIDS = [MAC_OID, IFDESCR_OID, IFADMIN_OID, IFOPER_OID]
+OUTPUT_DIR = os.path.join(REPO_ROOT, "playbooks", "snmp_output")
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 

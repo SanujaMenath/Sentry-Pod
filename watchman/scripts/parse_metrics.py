@@ -12,6 +12,11 @@ def clean_interface_name(val_str):
     name = re.sub(re.compile(r'^(string:\s*|hex-string:\s*)', re.IGNORECASE), '', val_str)
     return name.replace('"', '').strip()
 
+
+def normalize_status(val_str):
+    """Normalize SNMP status payloads like 'up(1)' into 'up'."""
+    return re.sub(r'\(.*\)$', '', val_str).strip().lower()
+
 def process_to_per_interface():
     if not os.path.exists(INPUT_DIR):
         print(f"[!] Input directory {INPUT_DIR} does not exist.")
@@ -26,6 +31,8 @@ def process_to_per_interface():
     mac_re = re.compile(r'\.(\d+)\s*=\s*\w+32:\s*(\d+)\s*$')
     # Match standard interface descriptions if captured (fallback logic included)
     ifdescr_re = re.compile(r'\.(\d+)\s*=\s*STRING:\s*(.+)\s*$', re.IGNORECASE)
+    ifadmin_re = re.compile(r'ifAdminStatus\.(\d+)\s*=\s*INTEGER:\s*(.+)\s*$', re.IGNORECASE)
+    ifoper_re = re.compile(r'ifOperStatus\.(\d+)\s*=\s*INTEGER:\s*(.+)\s*$', re.IGNORECASE)
 
     files = [f for f in os.listdir(INPUT_DIR) if f.endswith('_mac_notifications.json')]
     if not files:
@@ -48,6 +55,8 @@ def process_to_per_interface():
             # Temp storage to match names and counters for this specific host
             host_descriptions = {}
             host_counters = {}
+            host_admin_status = {}
+            host_oper_status = {}
 
             for line in raw_lines:
                 # 1. Look for MAC Notification metrics
@@ -64,6 +73,18 @@ def process_to_per_interface():
                     idx = desc_match.group(1)
                     name = clean_interface_name(desc_match.group(2))
                     host_descriptions[idx] = name
+                    continue
+
+                admin_match = ifadmin_re.search(line)
+                if admin_match:
+                    idx = admin_match.group(1)
+                    host_admin_status[idx] = normalize_status(admin_match.group(2))
+                    continue
+
+                oper_match = ifoper_re.search(line)
+                if oper_match:
+                    idx = oper_match.group(1)
+                    host_oper_status[idx] = normalize_status(oper_match.group(2))
 
             # 3. Consolidate into a flat data collection structure
             for idx, counter in host_counters.items():
@@ -75,6 +96,8 @@ def process_to_per_interface():
                     "interface_index": int(idx),
                     "interface_name": interface_name,
                     "ciscoMacNotification": counter,
+                    "ifAdminStatus": host_admin_status.get(idx),
+                    "ifOperStatus": host_oper_status.get(idx),
                     "unique_key": f"{host}_{interface_name.lower().replace('/', '_')}"
                 }
                 report["interfaces"].append(interface_entry)

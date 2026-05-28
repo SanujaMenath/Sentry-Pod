@@ -80,3 +80,13 @@ export const fetchNetworkTrafficFor = async (params = {}) => {
     throw e;
   }
 };
+
+export const fetchTelemetryHosts = async () => {
+  try {
+    const resp = await api.get('/api/network/telemetry-hosts');
+    return resp.data;
+  } catch (e) {
+    console.error('Error fetching telemetry hosts:', e);
+    return [];
+  }
+};
