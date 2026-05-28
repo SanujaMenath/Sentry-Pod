@@ -1,0 +1,13 @@
+- name: configure HSRP for Inter Vlan Routing
+  hosts: Distribution_Switches
+  gather_facts: false
+
+  tasks:
+    - name: setup HSRP
+      cisco.ios.ios_config:
+        lines:
+          - interface vlan {{ item.id }}
+          - ip address {{ item.ip}} 255.255.255.0
+          - standby {{ item.id }} ip {{ item.standby }}
+      loop: "{{ vlans }}"
+      when: vlans is defined

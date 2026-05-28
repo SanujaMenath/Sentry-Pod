@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Bell, Shield, Globe, Database } from 'lucide-react';
+import PageHeader from "../components/PageHeader";
 
 function Toggle({ enabled, onChange }) {
   return (

@@ -1,6 +1,9 @@
-import { useState } from 'react';
+ import { useState, useEffect } from 'react';
 import { Download, FileText, CheckCircle, AlertTriangle, XCircle, ChevronDown, Calendar } from 'lucide-react';
 import ExportLogsModal from '../components/ExportLogsModal';
+import AuditLogDetailModal from '../components/AuditLogDetailModal';
+import { getAllAuditLogs } from '../services/auditService';
+import PageHeader from "../components/PageHeader";
 
 const logs = [
   { id: 'LOG-8934', timestamp: '2026-03-05 14:23:45', user: 'Admin User', action: 'Configuration Change', target: 'access-sw-02', status: 'success', details: 'Applied...' },
@@ -21,7 +24,33 @@ const statusConfig = {
 };
 
 export default function AuditLogs() {
+  const [logs, setLogs] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [showExport, setShowExport] = useState(false);
+  const [selectedLog, setSelectedLog] = useState(null);
+
+  useEffect(() => {
+    const fetchLogs = async () => {
+      try {
+        setLoading(true);
+        const response = await getAllAuditLogs(100);
+        if (response.logs) {
+          const formattedLogs = response.logs.map(formatLogForDisplay);
+          setLogs(formattedLogs);
+        }
+        setError(null);
+      } catch (err) {
+        console.error('Failed to fetch audit logs:', err);
+        setError('Failed to load audit logs. Showing no logs.');
+        setLogs([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchLogs();
+  }, []);
 
   const styles = {
     main: {

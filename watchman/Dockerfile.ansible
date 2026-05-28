@@ -1,0 +1,22 @@
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+# Install dependencies and native openssh client
+RUN apt-get update && apt-get install -y \
+    software-properties-common \
+    python3-pip \
+    build-essential \
+    openssh-client \
+    crypto-policies \
+    && add-apt-repository --yes --update ppa:ansible/ansible \
+    && apt-get install -y ansible \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# This cleanly forces the native OpenSSH client to allow old group1-sha1 KEX methods
+RUN update-crypto-policies --set LEGACY
+
+RUN ansible-galaxy collection install containers.podman
+
+WORKDIR /ansible

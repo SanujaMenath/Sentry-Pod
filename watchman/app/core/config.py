@@ -1,29 +1,59 @@
 # watchman/app/core/config.py
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import computed_field
 from typing import List
+from urllib.parse import quote_plus
+
 
 class Settings(BaseSettings):
-    # --- Project Metadata ---
+    # -----------------------------
+    # Project
+    # -----------------------------
     PROJECT_NAME: str = "Sentry-Pod Watchman"
     VERSION: str = "1.0.0"
-    API_V1_STR: str = "/api/v1"
 
-    # --- Database Settings ---
-    # This defaults to the Podman service name 'vault'
-    DATABASE_URL: str = "mongodb://sentry_pod:Admin123@vault:27017/sentry_nms?authSource=admin"
+    # -----------------------------
+    # MongoDB
+    # -----------------------------
+    DB_USER: str
+    DB_PASS: str
+    DB_HOST: str
+    DB_NAME: str = "watchman"
 
-    # --- Security & JWT ---
-    # IMPORTANT: In production, never hardcode this! 
-    # Use: openssl rand -hex 32 to generate a real one
-    SECRET_KEY: str = "7ba8c9d0e1f2a3b4c5d6e7f8a9b0c1d2e3f4a5b6c7d8e9f0a1b2c3d4e5f6a7b8"
+    @computed_field
+    @property
+    def MONGO_URI(self) -> str:
+        user = quote_plus(self.DB_USER)
+        password = quote_plus(self.DB_PASS)
+
+        return (
+            f"mongodb+srv://{user}:{password}"
+            f"@{self.DB_HOST}/{self.DB_NAME}"
+            f"?retryWrites=true&w=majority"
+        )
+
+    # -----------------------------
+    # JWT
+    # -----------------------------
+    SECRET_KEY: str
     ALGORITHM: str = "HS256"
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 240  # 4 hours
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 120
 
-    # --- CORS Settings ---
-    BACKEND_CORS_ORIGINS: List[str] = ["http://localhost:3000"]
+    # -----------------------------
+    # CORS
+    # -----------------------------
+    BACKEND_CORS_ORIGINS: List[str] = [
+        "http://localhost:5173",
+        "http://localhost:5174",
+        "http://localhost:3000",
+    ]
 
-    # This tells Pydantic to look for a .env file if it exists
-    model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=True,
+        extra="ignore",
+    )
 
-# Create a single instance to be imported elsewhere
+
 settings = Settings()

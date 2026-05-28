@@ -1,0 +1,125 @@
+from fastapi import APIRouter, HTTPException, status
+from fastapi.responses import StreamingResponse
+
+from app.models.playbook import PlaybookRequest, PlaybookResponse
+import app.services.playbook_service as playbook_service
+
+router = APIRouter(prefix="/playbooks", tags=["Playbooks"])
+
+@router.post("/execute", response_model=PlaybookResponse)
+async def execute_playbook(request: PlaybookRequest):
+    """Execute an Ansible playbook by name"""
+    try:
+        returncode, output = playbook_service.run_playbook(request.playbook_name)
+        return PlaybookResponse(
+            status="success" if returncode == 0 else "failed",
+            playbook_name=request.playbook_name,
+            message=f"Playbook execution {'completed' if returncode == 0 else 'failed'}",
+            output=output
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+@router.get("/execute-stream/{playbook_name}")
+async def execute_playbook_stream(playbook_name: str):
+    """Execute an Ansible playbook and stream output in real-time using Server-Sent Events"""
+    try:
+        # Initial validation before entering async stream generator
+        playbook_service.validate_playbook_path(playbook_name)
+        
+        return StreamingResponse(
+            playbook_service.run_playbook_stream_generator(playbook_name),
+            media_type="text/event-stream",
+            headers={
+                "Cache-Control": "no-cache",
+                "Connection": "keep-alive",
+            }
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+@router.get("/list")
+async def list_playbooks():
+    """List all available playbooks"""
+    try:
+        playbooks = playbook_service.get_playbook_files()
+        return {
+            "status": "success",
+            "playbooks": playbooks,
+            "count": len(playbooks)
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+@router.get("/catalog")
+async def get_playbook_catalog():
+    """Get the complete playbook catalog with metadata"""
+    try:
+        catalog = playbook_service.load_catalog()
+        return {
+            "status": "success",
+            "catalog": catalog,
+            "count": len(catalog)
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+@router.post("/suggest")
+async def suggest_playbooks(request: PlaybookRequest):
+    """Find playbook suggestions matching a user prompt"""
+    try:
+        if not request.playbook_name or not request.playbook_name.strip():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Prompt cannot be empty"
+            )
+        
+        suggestions = playbook_service.find_playbook_suggestions(request.playbook_name, top_k=3)
+        return {
+            "status": "success",
+            "prompt": request.playbook_name,
+            "suggestions": suggestions,
+            "count": len(suggestions)
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+@router.get("/inventory/all-hosts-count")
+async def get_all_hosts_count():
+    """Return the number of devices listed under [allHosts] in hosts.ini."""
+    try:
+        hostnames = playbook_service.get_all_hosts_from_inventory()
+        return {
+            "status": "success",
+            "group": "allHosts",
+            "count": len(hostnames),
+            "hosts": hostnames,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
