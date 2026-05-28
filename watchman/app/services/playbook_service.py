@@ -236,3 +236,52 @@ def get_playbook_files() -> List[str]:
     """Gather physical playbook files inside directory paths."""
     playbooks = [f.name for f in PLAYBOOKS_DIR.glob('*.yml')] + [f.name for f in PLAYBOOKS_DIR.glob('*.yaml')]
     return sorted([p for p in playbooks if not p.startswith('.')])
+
+
+def parse_config_drift_reports() -> List[dict]:
+    """Parse config drift diff files saved by the Ansible playbook.
+
+    Returns a list of summaries: {hostname, path, mtime, additions, removals, summary}
+    """
+    drift_dir = PLAYBOOKS_DIR / "configDrift"
+    results: List[dict] = []
+
+    if not drift_dir.exists() or not drift_dir.is_dir():
+        return results
+
+    for path in sorted(drift_dir.glob('DRIFT_*.diff')):
+        try:
+            hostname = path.name.replace('DRIFT_', '').replace('.diff', '')
+            text = path.read_text(encoding='utf-8', errors='ignore')
+            lines = text.splitlines()
+
+            additions = []
+            removals = []
+            for ln in lines:
+                if ln.startswith('+++') or ln.startswith('---'):
+                    continue
+                if ln.startswith('+') and not ln.startswith('++'):
+                    additions.append(ln[1:].strip())
+                elif ln.startswith('-') and not ln.startswith('--'):
+                    removals.append(ln[1:].strip())
+
+            summary = None
+            if additions or removals:
+                summary = {
+                    "added": len(additions),
+                    "removed": len(removals),
+                }
+
+            results.append({
+                "hostname": hostname,
+                "path": str(path.relative_to(BASE_DIR)),
+                "mtime": int(path.stat().st_mtime),
+                "additions": additions,
+                "removals": removals,
+                "summary": summary,
+            })
+        except Exception:
+            # best-effort parsing; skip files we cannot read
+            continue
+
+    return results

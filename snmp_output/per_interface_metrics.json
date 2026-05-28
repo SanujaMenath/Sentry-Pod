@@ -1,0 +1,411 @@
+{
+  "generated_at": "2026-05-23T02:21:51.672013",
+  "interfaces": [
+    {
+      "host": "10.0.0.10",
+      "interface_index": 1,
+      "interface_name": "administratively down",
+      "ciscoMacNotification": 0,
+      "unique_key": "10.0.0.10_administratively down"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 2,
+      "interface_name": "administratively down",
+      "ciscoMacNotification": 0,
+      "unique_key": "10.0.0.10_administratively down"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 3,
+      "interface_name": "up",
+      "ciscoMacNotification": 1,
+      "unique_key": "10.0.0.10_up"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 4,
+      "interface_name": "up",
+      "ciscoMacNotification": 1,
+      "unique_key": "10.0.0.10_up"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 5,
+      "interface_name": "up",
+      "ciscoMacNotification": 1,
+      "unique_key": "10.0.0.10_up"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 6,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.10_down"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 7,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.10_down"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 8,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.10_down"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 9,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.10_down"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 10,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.10_down"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 11,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.10_down"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 12,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.10_down"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 13,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.10_down"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 14,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.10_down"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 15,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.10_down"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 16,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.10_down"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 17,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.10_down"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 18,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.10_down"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 19,
+      "interface_name": "up",
+      "ciscoMacNotification": 0,
+      "unique_key": "10.0.0.10_up"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 20,
+      "interface_name": "Interface-idx-20",
+      "ciscoMacNotification": 0,
+      "unique_key": "10.0.0.10_interface-idx-20"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 21,
+      "interface_name": "administratively down",
+      "ciscoMacNotification": 3,
+      "unique_key": "10.0.0.10_administratively down"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 22,
+      "interface_name": "up",
+      "ciscoMacNotification": 0,
+      "unique_key": "10.0.0.10_up"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 1,
+      "interface_name": "administratively down",
+      "ciscoMacNotification": 0,
+      "unique_key": "10.0.0.20_administratively down"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 2,
+      "interface_name": "administratively down",
+      "ciscoMacNotification": 0,
+      "unique_key": "10.0.0.20_administratively down"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 3,
+      "interface_name": "up",
+      "ciscoMacNotification": 1,
+      "unique_key": "10.0.0.20_up"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 4,
+      "interface_name": "up",
+      "ciscoMacNotification": 1,
+      "unique_key": "10.0.0.20_up"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 5,
+      "interface_name": "up",
+      "ciscoMacNotification": 1,
+      "unique_key": "10.0.0.20_up"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 6,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.20_down"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 7,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.20_down"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 8,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.20_down"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 9,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.20_down"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 10,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.20_down"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 11,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.20_down"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 12,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.20_down"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 13,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.20_down"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 14,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.20_down"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 15,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.20_down"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 16,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.20_down"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 17,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.20_down"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 18,
+      "interface_name": "down",
+      "ciscoMacNotification": 2,
+      "unique_key": "10.0.0.20_down"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 19,
+      "interface_name": "up",
+      "ciscoMacNotification": 0,
+      "unique_key": "10.0.0.20_up"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 20,
+      "interface_name": "Interface-idx-20",
+      "ciscoMacNotification": 0,
+      "unique_key": "10.0.0.20_interface-idx-20"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 21,
+      "interface_name": "administratively down",
+      "ciscoMacNotification": 3,
+      "unique_key": "10.0.0.20_administratively down"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 22,
+      "interface_name": "up",
+      "ciscoMacNotification": 0,
+      "unique_key": "10.0.0.20_up"
+    },
+    {
+      "host": "192.168.122.252",
+      "interface_index": 1,
+      "interface_name": "Interface-idx-1",
+      "ciscoMacNotification": 100,
+      "unique_key": "192.168.122.252_interface-idx-1"
+    },
+    {
+      "host": "192.168.122.252",
+      "interface_index": 2,
+      "interface_name": "Interface-idx-2",
+      "ciscoMacNotification": 100,
+      "unique_key": "192.168.122.252_interface-idx-2"
+    },
+    {
+      "host": "192.168.122.252",
+      "interface_index": 3,
+      "interface_name": "administratively down",
+      "ciscoMacNotification": 100,
+      "unique_key": "192.168.122.252_administratively down"
+    },
+    {
+      "host": "192.168.122.252",
+      "interface_index": 4,
+      "interface_name": "administratively down",
+      "ciscoMacNotification": 100,
+      "unique_key": "192.168.122.252_administratively down"
+    },
+    {
+      "host": "192.168.122.252",
+      "interface_index": 5,
+      "interface_name": "Interface-idx-5",
+      "ciscoMacNotification": 1000,
+      "unique_key": "192.168.122.252_interface-idx-5"
+    },
+    {
+      "host": "192.168.122.252",
+      "interface_index": 6,
+      "interface_name": "Interface-idx-6",
+      "ciscoMacNotification": 10000,
+      "unique_key": "192.168.122.252_interface-idx-6"
+    },
+    {
+      "host": "192.168.122.252",
+      "interface_index": 7,
+      "interface_name": "up",
+      "ciscoMacNotification": 8000,
+      "unique_key": "192.168.122.252_up"
+    },
+    {
+      "host": "10.0.0.2",
+      "interface_index": 1,
+      "interface_name": "Interface-idx-1",
+      "ciscoMacNotification": 100,
+      "unique_key": "10.0.0.2_interface-idx-1"
+    },
+    {
+      "host": "10.0.0.2",
+      "interface_index": 2,
+      "interface_name": "Interface-idx-2",
+      "ciscoMacNotification": 100,
+      "unique_key": "10.0.0.2_interface-idx-2"
+    },
+    {
+      "host": "10.0.0.2",
+      "interface_index": 3,
+      "interface_name": "Interface-idx-3",
+      "ciscoMacNotification": 100,
+      "unique_key": "10.0.0.2_interface-idx-3"
+    },
+    {
+      "host": "10.0.0.2",
+      "interface_index": 4,
+      "interface_name": "administratively down",
+      "ciscoMacNotification": 100,
+      "unique_key": "10.0.0.2_administratively down"
+    },
+    {
+      "host": "10.0.0.2",
+      "interface_index": 5,
+      "interface_name": "Interface-idx-5",
+      "ciscoMacNotification": 1000,
+      "unique_key": "10.0.0.2_interface-idx-5"
+    },
+    {
+      "host": "10.0.0.2",
+      "interface_index": 6,
+      "interface_name": "Interface-idx-6",
+      "ciscoMacNotification": 10000,
+      "unique_key": "10.0.0.2_interface-idx-6"
+    },
+    {
+      "host": "10.0.0.2",
+      "interface_index": 7,
+      "interface_name": "up",
+      "ciscoMacNotification": 8000,
+      "unique_key": "10.0.0.2_up"
+    }
+  ]
+}

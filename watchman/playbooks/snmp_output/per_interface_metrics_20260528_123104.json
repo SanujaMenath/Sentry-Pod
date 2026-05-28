@@ -1,0 +1,3191 @@
+{
+  "generated_at": "2026-05-28T12:31:33.039807",
+  "interfaces": [
+    {
+      "host": "192.168.122.252",
+      "interface_index": 1,
+      "interface_name": "FastEthernet0/0",
+      "ciscoMacNotification": 4420,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "192.168.122.252_fastethernet0_0"
+    },
+    {
+      "host": "192.168.122.252",
+      "interface_index": 2,
+      "interface_name": "FastEthernet0/1",
+      "ciscoMacNotification": 484,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "192.168.122.252_fastethernet0_1"
+    },
+    {
+      "host": "192.168.122.252",
+      "interface_index": 3,
+      "interface_name": "FastEthernet1/0",
+      "ciscoMacNotification": 7013504,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "192.168.122.252_fastethernet1_0"
+    },
+    {
+      "host": "192.168.122.252",
+      "interface_index": 4,
+      "interface_name": "FastEthernet1/1",
+      "ciscoMacNotification": 7013504,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "192.168.122.252_fastethernet1_1"
+    },
+    {
+      "host": "192.168.122.252",
+      "interface_index": 5,
+      "interface_name": "GigabitEthernet2/0",
+      "ciscoMacNotification": 12,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "192.168.122.252_gigabitethernet2_0"
+    },
+    {
+      "host": "192.168.122.252",
+      "interface_index": 6,
+      "interface_name": "Null0",
+      "ciscoMacNotification": 7013508,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "192.168.122.252_null0"
+    },
+    {
+      "host": "192.168.122.252",
+      "interface_index": 7,
+      "interface_name": "Loopback0",
+      "ciscoMacNotification": 7013508,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "192.168.122.252_loopback0"
+    },
+    {
+      "host": "10.0.0.2",
+      "interface_index": 1,
+      "interface_name": "FastEthernet0/0",
+      "ciscoMacNotification": 5088,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.2_fastethernet0_0"
+    },
+    {
+      "host": "10.0.0.2",
+      "interface_index": 2,
+      "interface_name": "FastEthernet0/1",
+      "ciscoMacNotification": 8,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.2_fastethernet0_1"
+    },
+    {
+      "host": "10.0.0.2",
+      "interface_index": 3,
+      "interface_name": "FastEthernet1/0",
+      "ciscoMacNotification": 1546484,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.2_fastethernet1_0"
+    },
+    {
+      "host": "10.0.0.2",
+      "interface_index": 4,
+      "interface_name": "FastEthernet1/1",
+      "ciscoMacNotification": 7027576,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.2_fastethernet1_1"
+    },
+    {
+      "host": "10.0.0.2",
+      "interface_index": 5,
+      "interface_name": "GigabitEthernet2/0",
+      "ciscoMacNotification": 544,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.2_gigabitethernet2_0"
+    },
+    {
+      "host": "10.0.0.2",
+      "interface_index": 6,
+      "interface_name": "Null0",
+      "ciscoMacNotification": 7027580,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.2_null0"
+    },
+    {
+      "host": "10.0.0.2",
+      "interface_index": 7,
+      "interface_name": "Loopback0",
+      "ciscoMacNotification": 7027580,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.2_loopback0"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 1,
+      "interface_name": "FastEthernet0/0",
+      "ciscoMacNotification": 12284064,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.10_fastethernet0_0"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 2,
+      "interface_name": "FastEthernet0/1",
+      "ciscoMacNotification": 12284064,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.10_fastethernet0_1"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 3,
+      "interface_name": "FastEthernet1/0",
+      "ciscoMacNotification": 4,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.10_fastethernet1_0"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 4,
+      "interface_name": "FastEthernet1/1",
+      "ciscoMacNotification": 7600,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.10_fastethernet1_1"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 5,
+      "interface_name": "FastEthernet1/2",
+      "ciscoMacNotification": 7264,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.10_fastethernet1_2"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 6,
+      "interface_name": "FastEthernet1/3",
+      "ciscoMacNotification": 12284064,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.10_fastethernet1_3"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 7,
+      "interface_name": "FastEthernet1/4",
+      "ciscoMacNotification": 12284064,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.10_fastethernet1_4"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 8,
+      "interface_name": "FastEthernet1/5",
+      "ciscoMacNotification": 12284064,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.10_fastethernet1_5"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 9,
+      "interface_name": "FastEthernet1/6",
+      "ciscoMacNotification": 12284068,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.10_fastethernet1_6"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 10,
+      "interface_name": "FastEthernet1/7",
+      "ciscoMacNotification": 12284068,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.10_fastethernet1_7"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 11,
+      "interface_name": "FastEthernet1/8",
+      "ciscoMacNotification": 12284128,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.10_fastethernet1_8"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 12,
+      "interface_name": "FastEthernet1/9",
+      "ciscoMacNotification": 12284128,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.10_fastethernet1_9"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 13,
+      "interface_name": "FastEthernet1/10",
+      "ciscoMacNotification": 12284128,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.10_fastethernet1_10"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 14,
+      "interface_name": "FastEthernet1/11",
+      "ciscoMacNotification": 12284128,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.10_fastethernet1_11"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 15,
+      "interface_name": "FastEthernet1/12",
+      "ciscoMacNotification": 12284128,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.10_fastethernet1_12"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 16,
+      "interface_name": "FastEthernet1/13",
+      "ciscoMacNotification": 12284128,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.10_fastethernet1_13"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 17,
+      "interface_name": "FastEthernet1/14",
+      "ciscoMacNotification": 12284128,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.10_fastethernet1_14"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 18,
+      "interface_name": "FastEthernet1/15",
+      "ciscoMacNotification": 12284132,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.10_fastethernet1_15"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 19,
+      "interface_name": "Interface-idx-19",
+      "ciscoMacNotification": 12284132,
+      "ifAdminStatus": null,
+      "ifOperStatus": null,
+      "unique_key": "10.0.0.10_interface-idx-19"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 20,
+      "interface_name": "Null0",
+      "ciscoMacNotification": 12284132,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.10_null0"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 21,
+      "interface_name": "Vlan1",
+      "ciscoMacNotification": 12284192,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.10_vlan1"
+    },
+    {
+      "host": "10.0.0.10",
+      "interface_index": 22,
+      "interface_name": "Loopback0",
+      "ciscoMacNotification": 12284192,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.10_loopback0"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 1,
+      "interface_name": "FastEthernet0/0",
+      "ciscoMacNotification": 12285008,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.20_fastethernet0_0"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 2,
+      "interface_name": "FastEthernet0/1",
+      "ciscoMacNotification": 12285008,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.20_fastethernet0_1"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 3,
+      "interface_name": "FastEthernet1/0",
+      "ciscoMacNotification": 4,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.20_fastethernet1_0"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 4,
+      "interface_name": "FastEthernet1/1",
+      "ciscoMacNotification": 7912,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.20_fastethernet1_1"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 5,
+      "interface_name": "FastEthernet1/2",
+      "ciscoMacNotification": 7788,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.20_fastethernet1_2"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 6,
+      "interface_name": "FastEthernet1/3",
+      "ciscoMacNotification": 12285008,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.20_fastethernet1_3"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 7,
+      "interface_name": "FastEthernet1/4",
+      "ciscoMacNotification": 12285008,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.20_fastethernet1_4"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 8,
+      "interface_name": "FastEthernet1/5",
+      "ciscoMacNotification": 12285008,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.20_fastethernet1_5"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 9,
+      "interface_name": "FastEthernet1/6",
+      "ciscoMacNotification": 12285012,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.20_fastethernet1_6"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 10,
+      "interface_name": "FastEthernet1/7",
+      "ciscoMacNotification": 12285012,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.20_fastethernet1_7"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 11,
+      "interface_name": "FastEthernet1/8",
+      "ciscoMacNotification": 12285136,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.20_fastethernet1_8"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 12,
+      "interface_name": "FastEthernet1/9",
+      "ciscoMacNotification": 12285136,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.20_fastethernet1_9"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 13,
+      "interface_name": "FastEthernet1/10",
+      "ciscoMacNotification": 12285136,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.20_fastethernet1_10"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 14,
+      "interface_name": "FastEthernet1/11",
+      "ciscoMacNotification": 12285136,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.20_fastethernet1_11"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 15,
+      "interface_name": "FastEthernet1/12",
+      "ciscoMacNotification": 12285136,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.20_fastethernet1_12"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 16,
+      "interface_name": "FastEthernet1/13",
+      "ciscoMacNotification": 12285136,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.20_fastethernet1_13"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 17,
+      "interface_name": "FastEthernet1/14",
+      "ciscoMacNotification": 12285136,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.20_fastethernet1_14"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 18,
+      "interface_name": "FastEthernet1/15",
+      "ciscoMacNotification": 12285136,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.20_fastethernet1_15"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 19,
+      "interface_name": "Interface-idx-19",
+      "ciscoMacNotification": 12285140,
+      "ifAdminStatus": null,
+      "ifOperStatus": null,
+      "unique_key": "10.0.0.20_interface-idx-19"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 20,
+      "interface_name": "Null0",
+      "ciscoMacNotification": 12285140,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.20_null0"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 21,
+      "interface_name": "Vlan1",
+      "ciscoMacNotification": 12285196,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.20_vlan1"
+    },
+    {
+      "host": "10.0.0.20",
+      "interface_index": 22,
+      "interface_name": "Loopback0",
+      "ciscoMacNotification": 12285196,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.20_loopback0"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 1,
+      "interface_name": "FastEthernet0/0",
+      "ciscoMacNotification": 12286060,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.30_fastethernet0_0"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 2,
+      "interface_name": "FastEthernet0/1",
+      "ciscoMacNotification": 12286060,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.30_fastethernet0_1"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 3,
+      "interface_name": "FastEthernet1/0",
+      "ciscoMacNotification": 4,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.30_fastethernet1_0"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 4,
+      "interface_name": "FastEthernet1/1",
+      "ciscoMacNotification": 17896,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.30_fastethernet1_1"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 5,
+      "interface_name": "FastEthernet1/2",
+      "ciscoMacNotification": 36528,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.30_fastethernet1_2"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 6,
+      "interface_name": "FastEthernet1/3",
+      "ciscoMacNotification": 30964,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.30_fastethernet1_3"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 7,
+      "interface_name": "FastEthernet1/4",
+      "ciscoMacNotification": 136396,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.30_fastethernet1_4"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 8,
+      "interface_name": "FastEthernet1/5",
+      "ciscoMacNotification": 12286060,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.30_fastethernet1_5"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 9,
+      "interface_name": "FastEthernet1/6",
+      "ciscoMacNotification": 12286064,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.30_fastethernet1_6"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 10,
+      "interface_name": "FastEthernet1/7",
+      "ciscoMacNotification": 12286064,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.30_fastethernet1_7"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 11,
+      "interface_name": "FastEthernet1/8",
+      "ciscoMacNotification": 12286152,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.30_fastethernet1_8"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 12,
+      "interface_name": "FastEthernet1/9",
+      "ciscoMacNotification": 12286152,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.30_fastethernet1_9"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 13,
+      "interface_name": "FastEthernet1/10",
+      "ciscoMacNotification": 12286152,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.30_fastethernet1_10"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 14,
+      "interface_name": "FastEthernet1/11",
+      "ciscoMacNotification": 12286152,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.30_fastethernet1_11"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 15,
+      "interface_name": "FastEthernet1/12",
+      "ciscoMacNotification": 12286152,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.30_fastethernet1_12"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 16,
+      "interface_name": "FastEthernet1/13",
+      "ciscoMacNotification": 12286152,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.30_fastethernet1_13"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 17,
+      "interface_name": "FastEthernet1/14",
+      "ciscoMacNotification": 28028,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.30_fastethernet1_14"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 18,
+      "interface_name": "FastEthernet1/15",
+      "ciscoMacNotification": 27996,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.30_fastethernet1_15"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 19,
+      "interface_name": "Interface-idx-19",
+      "ciscoMacNotification": 12286156,
+      "ifAdminStatus": null,
+      "ifOperStatus": null,
+      "unique_key": "10.0.0.30_interface-idx-19"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 20,
+      "interface_name": "Null0",
+      "ciscoMacNotification": 12286156,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.30_null0"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 21,
+      "interface_name": "Vlan1",
+      "ciscoMacNotification": 12250792,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.30_vlan1"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 22,
+      "interface_name": "Loopback0",
+      "ciscoMacNotification": 12286248,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.30_loopback0"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 23,
+      "interface_name": "Port-channel1",
+      "ciscoMacNotification": 12248192,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.30_port-channel1"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 24,
+      "interface_name": "Vlan7",
+      "ciscoMacNotification": 2240,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.30_vlan7"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 25,
+      "interface_name": "Vlan8",
+      "ciscoMacNotification": 2304,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.30_vlan8"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 26,
+      "interface_name": "Vlan9",
+      "ciscoMacNotification": 2272,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.30_vlan9"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 27,
+      "interface_name": "Vlan10",
+      "ciscoMacNotification": 2272,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.30_vlan10"
+    },
+    {
+      "host": "10.0.0.30",
+      "interface_index": 28,
+      "interface_name": "Vlan99",
+      "ciscoMacNotification": 2272,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.30_vlan99"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 1,
+      "interface_name": "FastEthernet0/0",
+      "ciscoMacNotification": 12288408,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.40_fastethernet0_0"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 2,
+      "interface_name": "FastEthernet0/1",
+      "ciscoMacNotification": 12288408,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.40_fastethernet0_1"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 3,
+      "interface_name": "FastEthernet1/0",
+      "ciscoMacNotification": 4,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.40_fastethernet1_0"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 4,
+      "interface_name": "FastEthernet1/1",
+      "ciscoMacNotification": 20204,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.40_fastethernet1_1"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 5,
+      "interface_name": "FastEthernet1/2",
+      "ciscoMacNotification": 38876,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.40_fastethernet1_2"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 6,
+      "interface_name": "FastEthernet1/3",
+      "ciscoMacNotification": 33308,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.40_fastethernet1_3"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 7,
+      "interface_name": "FastEthernet1/4",
+      "ciscoMacNotification": 138708,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.40_fastethernet1_4"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 8,
+      "interface_name": "FastEthernet1/5",
+      "ciscoMacNotification": 12288408,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.40_fastethernet1_5"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 9,
+      "interface_name": "FastEthernet1/6",
+      "ciscoMacNotification": 12288412,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.40_fastethernet1_6"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 10,
+      "interface_name": "FastEthernet1/7",
+      "ciscoMacNotification": 12288412,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.40_fastethernet1_7"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 11,
+      "interface_name": "FastEthernet1/8",
+      "ciscoMacNotification": 12288500,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.40_fastethernet1_8"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 12,
+      "interface_name": "FastEthernet1/9",
+      "ciscoMacNotification": 12288500,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.40_fastethernet1_9"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 13,
+      "interface_name": "FastEthernet1/10",
+      "ciscoMacNotification": 12288500,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.40_fastethernet1_10"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 14,
+      "interface_name": "FastEthernet1/11",
+      "ciscoMacNotification": 12288500,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.40_fastethernet1_11"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 15,
+      "interface_name": "FastEthernet1/12",
+      "ciscoMacNotification": 12288500,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.40_fastethernet1_12"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 16,
+      "interface_name": "FastEthernet1/13",
+      "ciscoMacNotification": 12288500,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.40_fastethernet1_13"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 17,
+      "interface_name": "FastEthernet1/14",
+      "ciscoMacNotification": 30832,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.40_fastethernet1_14"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 18,
+      "interface_name": "FastEthernet1/15",
+      "ciscoMacNotification": 30832,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.40_fastethernet1_15"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 19,
+      "interface_name": "Interface-idx-19",
+      "ciscoMacNotification": 12288504,
+      "ifAdminStatus": null,
+      "ifOperStatus": null,
+      "unique_key": "10.0.0.40_interface-idx-19"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 20,
+      "interface_name": "Null0",
+      "ciscoMacNotification": 12288504,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.40_null0"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 21,
+      "interface_name": "Vlan1",
+      "ciscoMacNotification": 12288592,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.40_vlan1"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 22,
+      "interface_name": "Loopback0",
+      "ciscoMacNotification": 12288592,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.40_loopback0"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 23,
+      "interface_name": "Port-channel1",
+      "ciscoMacNotification": 1076,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.40_port-channel1"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 24,
+      "interface_name": "Vlan7",
+      "ciscoMacNotification": 892,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.40_vlan7"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 25,
+      "interface_name": "Vlan8",
+      "ciscoMacNotification": 1200,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.40_vlan8"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 26,
+      "interface_name": "Vlan9",
+      "ciscoMacNotification": 1168,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.40_vlan9"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 27,
+      "interface_name": "Vlan10",
+      "ciscoMacNotification": 1080,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.40_vlan10"
+    },
+    {
+      "host": "10.0.0.40",
+      "interface_index": 28,
+      "interface_name": "Vlan99",
+      "ciscoMacNotification": 1048,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.40_vlan99"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 1,
+      "interface_name": "FastEthernet0/0",
+      "ciscoMacNotification": 12289644,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.50_fastethernet0_0"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 2,
+      "interface_name": "FastEthernet0/1",
+      "ciscoMacNotification": 12289644,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.50_fastethernet0_1"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 3,
+      "interface_name": "FastEthernet1/0",
+      "ciscoMacNotification": 4,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.50_fastethernet1_0"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 4,
+      "interface_name": "FastEthernet1/1",
+      "ciscoMacNotification": 34632,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.50_fastethernet1_1"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 5,
+      "interface_name": "FastEthernet1/2",
+      "ciscoMacNotification": 50384,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.50_fastethernet1_2"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 6,
+      "interface_name": "FastEthernet1/3",
+      "ciscoMacNotification": 34756,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.50_fastethernet1_3"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 7,
+      "interface_name": "FastEthernet1/4",
+      "ciscoMacNotification": 10616,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.50_fastethernet1_4"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 8,
+      "interface_name": "FastEthernet1/5",
+      "ciscoMacNotification": 12289648,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.50_fastethernet1_5"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 9,
+      "interface_name": "FastEthernet1/6",
+      "ciscoMacNotification": 12289648,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.50_fastethernet1_6"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 10,
+      "interface_name": "FastEthernet1/7",
+      "ciscoMacNotification": 12289648,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.50_fastethernet1_7"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 11,
+      "interface_name": "FastEthernet1/8",
+      "ciscoMacNotification": 12289828,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.50_fastethernet1_8"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 12,
+      "interface_name": "FastEthernet1/9",
+      "ciscoMacNotification": 12289828,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.50_fastethernet1_9"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 13,
+      "interface_name": "FastEthernet1/10",
+      "ciscoMacNotification": 12289828,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.50_fastethernet1_10"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 14,
+      "interface_name": "FastEthernet1/11",
+      "ciscoMacNotification": 12289828,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.50_fastethernet1_11"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 15,
+      "interface_name": "FastEthernet1/12",
+      "ciscoMacNotification": 12289828,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.50_fastethernet1_12"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 16,
+      "interface_name": "FastEthernet1/13",
+      "ciscoMacNotification": 12289828,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.50_fastethernet1_13"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 17,
+      "interface_name": "FastEthernet1/14",
+      "ciscoMacNotification": 31572,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.50_fastethernet1_14"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 18,
+      "interface_name": "FastEthernet1/15",
+      "ciscoMacNotification": 31572,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.50_fastethernet1_15"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 19,
+      "interface_name": "Interface-idx-19",
+      "ciscoMacNotification": 12289832,
+      "ifAdminStatus": null,
+      "ifOperStatus": null,
+      "unique_key": "10.0.0.50_interface-idx-19"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 20,
+      "interface_name": "Null0",
+      "ciscoMacNotification": 12289832,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.50_null0"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 21,
+      "interface_name": "Vlan1",
+      "ciscoMacNotification": 12253960,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.50_vlan1"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 22,
+      "interface_name": "Loopback0",
+      "ciscoMacNotification": 12289924,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.50_loopback0"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 23,
+      "interface_name": "Port-channel1",
+      "ciscoMacNotification": 12251432,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.50_port-channel1"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 24,
+      "interface_name": "Vlan11",
+      "ciscoMacNotification": 2976,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.50_vlan11"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 25,
+      "interface_name": "Vlan12",
+      "ciscoMacNotification": 8,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.50_vlan12"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 26,
+      "interface_name": "Vlan13",
+      "ciscoMacNotification": 2912,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.50_vlan13"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 27,
+      "interface_name": "Vlan14",
+      "ciscoMacNotification": 3004,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.50_vlan14"
+    },
+    {
+      "host": "10.0.0.50",
+      "interface_index": 28,
+      "interface_name": "Vlan99",
+      "ciscoMacNotification": 8,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.50_vlan99"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 1,
+      "interface_name": "FastEthernet0/0",
+      "ciscoMacNotification": 12291084,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.60_fastethernet0_0"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 2,
+      "interface_name": "FastEthernet0/1",
+      "ciscoMacNotification": 12291084,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.60_fastethernet0_1"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 3,
+      "interface_name": "FastEthernet1/0",
+      "ciscoMacNotification": 4,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.60_fastethernet1_0"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 4,
+      "interface_name": "FastEthernet1/1",
+      "ciscoMacNotification": 36264,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.60_fastethernet1_1"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 5,
+      "interface_name": "FastEthernet1/2",
+      "ciscoMacNotification": 52016,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.60_fastethernet1_2"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 6,
+      "interface_name": "FastEthernet1/3",
+      "ciscoMacNotification": 36388,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.60_fastethernet1_3"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 7,
+      "interface_name": "FastEthernet1/4",
+      "ciscoMacNotification": 12244,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.60_fastethernet1_4"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 8,
+      "interface_name": "FastEthernet1/5",
+      "ciscoMacNotification": 12291084,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.60_fastethernet1_5"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 9,
+      "interface_name": "FastEthernet1/6",
+      "ciscoMacNotification": 12291088,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.60_fastethernet1_6"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 10,
+      "interface_name": "FastEthernet1/7",
+      "ciscoMacNotification": 12291088,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.60_fastethernet1_7"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 11,
+      "interface_name": "FastEthernet1/8",
+      "ciscoMacNotification": 12291268,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.60_fastethernet1_8"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 12,
+      "interface_name": "FastEthernet1/9",
+      "ciscoMacNotification": 12291268,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.60_fastethernet1_9"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 13,
+      "interface_name": "FastEthernet1/10",
+      "ciscoMacNotification": 12291268,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.60_fastethernet1_10"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 14,
+      "interface_name": "FastEthernet1/11",
+      "ciscoMacNotification": 12291268,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.60_fastethernet1_11"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 15,
+      "interface_name": "FastEthernet1/12",
+      "ciscoMacNotification": 12291268,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.60_fastethernet1_12"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 16,
+      "interface_name": "FastEthernet1/13",
+      "ciscoMacNotification": 12291268,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.60_fastethernet1_13"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 17,
+      "interface_name": "FastEthernet1/14",
+      "ciscoMacNotification": 33388,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.60_fastethernet1_14"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 18,
+      "interface_name": "FastEthernet1/15",
+      "ciscoMacNotification": 33356,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.60_fastethernet1_15"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 19,
+      "interface_name": "Interface-idx-19",
+      "ciscoMacNotification": 12291272,
+      "ifAdminStatus": null,
+      "ifOperStatus": null,
+      "unique_key": "10.0.0.60_interface-idx-19"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 20,
+      "interface_name": "Null0",
+      "ciscoMacNotification": 12291272,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.60_null0"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 21,
+      "interface_name": "Vlan1",
+      "ciscoMacNotification": 12291428,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.0.0.60_vlan1"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 22,
+      "interface_name": "Loopback0",
+      "ciscoMacNotification": 12291428,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.60_loopback0"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 23,
+      "interface_name": "Port-channel1",
+      "ciscoMacNotification": 8,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.60_port-channel1"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 24,
+      "interface_name": "Vlan11",
+      "ciscoMacNotification": 808,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.60_vlan11"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 25,
+      "interface_name": "Vlan12",
+      "ciscoMacNotification": 688,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.60_vlan12"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 26,
+      "interface_name": "Vlan13",
+      "ciscoMacNotification": 656,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.60_vlan13"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 27,
+      "interface_name": "Vlan14",
+      "ciscoMacNotification": 960,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.60_vlan14"
+    },
+    {
+      "host": "10.0.0.60",
+      "interface_index": 28,
+      "interface_name": "Vlan99",
+      "ciscoMacNotification": 656,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.0.0.60_vlan99"
+    },
+    {
+      "host": "10.1.99.7",
+      "interface_index": 1,
+      "interface_name": "FastEthernet0/0",
+      "ciscoMacNotification": 5302344,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.7_fastethernet0_0"
+    },
+    {
+      "host": "10.1.99.7",
+      "interface_index": 2,
+      "interface_name": "FastEthernet0/1",
+      "ciscoMacNotification": 5302344,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.7_fastethernet0_1"
+    },
+    {
+      "host": "10.1.99.7",
+      "interface_index": 3,
+      "interface_name": "FastEthernet1/0",
+      "ciscoMacNotification": 96,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.1.99.7_fastethernet1_0"
+    },
+    {
+      "host": "10.1.99.7",
+      "interface_index": 4,
+      "interface_name": "FastEthernet1/1",
+      "ciscoMacNotification": 800,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.1.99.7_fastethernet1_1"
+    },
+    {
+      "host": "10.1.99.7",
+      "interface_index": 5,
+      "interface_name": "FastEthernet1/2",
+      "ciscoMacNotification": 5302348,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.1.99.7_fastethernet1_2"
+    },
+    {
+      "host": "10.1.99.7",
+      "interface_index": 6,
+      "interface_name": "FastEthernet1/3",
+      "ciscoMacNotification": 5302348,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.7_fastethernet1_3"
+    },
+    {
+      "host": "10.1.99.7",
+      "interface_index": 7,
+      "interface_name": "FastEthernet1/4",
+      "ciscoMacNotification": 5302348,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.7_fastethernet1_4"
+    },
+    {
+      "host": "10.1.99.7",
+      "interface_index": 8,
+      "interface_name": "FastEthernet1/5",
+      "ciscoMacNotification": 5302348,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.7_fastethernet1_5"
+    },
+    {
+      "host": "10.1.99.7",
+      "interface_index": 9,
+      "interface_name": "FastEthernet1/6",
+      "ciscoMacNotification": 5302348,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.7_fastethernet1_6"
+    },
+    {
+      "host": "10.1.99.7",
+      "interface_index": 10,
+      "interface_name": "FastEthernet1/7",
+      "ciscoMacNotification": 5302348,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.7_fastethernet1_7"
+    },
+    {
+      "host": "10.1.99.7",
+      "interface_index": 11,
+      "interface_name": "FastEthernet1/8",
+      "ciscoMacNotification": 5302504,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.7_fastethernet1_8"
+    },
+    {
+      "host": "10.1.99.7",
+      "interface_index": 12,
+      "interface_name": "FastEthernet1/9",
+      "ciscoMacNotification": 5302504,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.7_fastethernet1_9"
+    },
+    {
+      "host": "10.1.99.7",
+      "interface_index": 13,
+      "interface_name": "FastEthernet1/10",
+      "ciscoMacNotification": 5302504,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.7_fastethernet1_10"
+    },
+    {
+      "host": "10.1.99.7",
+      "interface_index": 14,
+      "interface_name": "FastEthernet1/11",
+      "ciscoMacNotification": 5302508,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.7_fastethernet1_11"
+    },
+    {
+      "host": "10.1.99.7",
+      "interface_index": 15,
+      "interface_name": "FastEthernet1/12",
+      "ciscoMacNotification": 5302508,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.7_fastethernet1_12"
+    },
+    {
+      "host": "10.1.99.7",
+      "interface_index": 16,
+      "interface_name": "FastEthernet1/13",
+      "ciscoMacNotification": 5302508,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.7_fastethernet1_13"
+    },
+    {
+      "host": "10.1.99.7",
+      "interface_index": 17,
+      "interface_name": "FastEthernet1/14",
+      "ciscoMacNotification": 5302508,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.7_fastethernet1_14"
+    },
+    {
+      "host": "10.1.99.7",
+      "interface_index": 18,
+      "interface_name": "FastEthernet1/15",
+      "ciscoMacNotification": 5302508,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.7_fastethernet1_15"
+    },
+    {
+      "host": "10.1.99.7",
+      "interface_index": 19,
+      "interface_name": "Interface-idx-19",
+      "ciscoMacNotification": 5302508,
+      "ifAdminStatus": null,
+      "ifOperStatus": null,
+      "unique_key": "10.1.99.7_interface-idx-19"
+    },
+    {
+      "host": "10.1.99.7",
+      "interface_index": 20,
+      "interface_name": "Null0",
+      "ciscoMacNotification": 5302508,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.1.99.7_null0"
+    },
+    {
+      "host": "10.1.99.7",
+      "interface_index": 21,
+      "interface_name": "Vlan1",
+      "ciscoMacNotification": 5302572,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.7_vlan1"
+    },
+    {
+      "host": "10.1.99.7",
+      "interface_index": 22,
+      "interface_name": "Loopback0",
+      "ciscoMacNotification": 5302572,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.7_loopback0"
+    },
+    {
+      "host": "10.1.99.7",
+      "interface_index": 23,
+      "interface_name": "Vlan99",
+      "ciscoMacNotification": 4,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.1.99.7_vlan99"
+    },
+    {
+      "host": "10.1.99.8",
+      "interface_index": 1,
+      "interface_name": "FastEthernet0/0",
+      "ciscoMacNotification": 5309548,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.8_fastethernet0_0"
+    },
+    {
+      "host": "10.1.99.8",
+      "interface_index": 2,
+      "interface_name": "FastEthernet0/1",
+      "ciscoMacNotification": 5309548,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.8_fastethernet0_1"
+    },
+    {
+      "host": "10.1.99.8",
+      "interface_index": 3,
+      "interface_name": "FastEthernet1/0",
+      "ciscoMacNotification": 152,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.1.99.8_fastethernet1_0"
+    },
+    {
+      "host": "10.1.99.8",
+      "interface_index": 4,
+      "interface_name": "FastEthernet1/1",
+      "ciscoMacNotification": 8,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.1.99.8_fastethernet1_1"
+    },
+    {
+      "host": "10.1.99.8",
+      "interface_index": 5,
+      "interface_name": "FastEthernet1/2",
+      "ciscoMacNotification": 5309552,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.1.99.8_fastethernet1_2"
+    },
+    {
+      "host": "10.1.99.8",
+      "interface_index": 6,
+      "interface_name": "FastEthernet1/3",
+      "ciscoMacNotification": 5309552,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.8_fastethernet1_3"
+    },
+    {
+      "host": "10.1.99.8",
+      "interface_index": 7,
+      "interface_name": "FastEthernet1/4",
+      "ciscoMacNotification": 5309552,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.8_fastethernet1_4"
+    },
+    {
+      "host": "10.1.99.8",
+      "interface_index": 8,
+      "interface_name": "FastEthernet1/5",
+      "ciscoMacNotification": 5309552,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.8_fastethernet1_5"
+    },
+    {
+      "host": "10.1.99.8",
+      "interface_index": 9,
+      "interface_name": "FastEthernet1/6",
+      "ciscoMacNotification": 5309552,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.8_fastethernet1_6"
+    },
+    {
+      "host": "10.1.99.8",
+      "interface_index": 10,
+      "interface_name": "FastEthernet1/7",
+      "ciscoMacNotification": 5309552,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.8_fastethernet1_7"
+    },
+    {
+      "host": "10.1.99.8",
+      "interface_index": 11,
+      "interface_name": "FastEthernet1/8",
+      "ciscoMacNotification": 5309648,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.8_fastethernet1_8"
+    },
+    {
+      "host": "10.1.99.8",
+      "interface_index": 12,
+      "interface_name": "FastEthernet1/9",
+      "ciscoMacNotification": 5309648,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.8_fastethernet1_9"
+    },
+    {
+      "host": "10.1.99.8",
+      "interface_index": 13,
+      "interface_name": "FastEthernet1/10",
+      "ciscoMacNotification": 5309648,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.8_fastethernet1_10"
+    },
+    {
+      "host": "10.1.99.8",
+      "interface_index": 14,
+      "interface_name": "FastEthernet1/11",
+      "ciscoMacNotification": 5309648,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.8_fastethernet1_11"
+    },
+    {
+      "host": "10.1.99.8",
+      "interface_index": 15,
+      "interface_name": "FastEthernet1/12",
+      "ciscoMacNotification": 5309648,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.8_fastethernet1_12"
+    },
+    {
+      "host": "10.1.99.8",
+      "interface_index": 16,
+      "interface_name": "FastEthernet1/13",
+      "ciscoMacNotification": 5309648,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.8_fastethernet1_13"
+    },
+    {
+      "host": "10.1.99.8",
+      "interface_index": 17,
+      "interface_name": "FastEthernet1/14",
+      "ciscoMacNotification": 5309648,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.8_fastethernet1_14"
+    },
+    {
+      "host": "10.1.99.8",
+      "interface_index": 18,
+      "interface_name": "FastEthernet1/15",
+      "ciscoMacNotification": 5309648,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.8_fastethernet1_15"
+    },
+    {
+      "host": "10.1.99.8",
+      "interface_index": 19,
+      "interface_name": "Interface-idx-19",
+      "ciscoMacNotification": 5309648,
+      "ifAdminStatus": null,
+      "ifOperStatus": null,
+      "unique_key": "10.1.99.8_interface-idx-19"
+    },
+    {
+      "host": "10.1.99.8",
+      "interface_index": 20,
+      "interface_name": "Null0",
+      "ciscoMacNotification": 5309652,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.1.99.8_null0"
+    },
+    {
+      "host": "10.1.99.8",
+      "interface_index": 21,
+      "interface_name": "Vlan1",
+      "ciscoMacNotification": 5309740,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.8_vlan1"
+    },
+    {
+      "host": "10.1.99.8",
+      "interface_index": 22,
+      "interface_name": "Loopback0",
+      "ciscoMacNotification": 5309740,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.8_loopback0"
+    },
+    {
+      "host": "10.1.99.8",
+      "interface_index": 23,
+      "interface_name": "Vlan99",
+      "ciscoMacNotification": 4,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.1.99.8_vlan99"
+    },
+    {
+      "host": "10.1.99.9",
+      "interface_index": 1,
+      "interface_name": "FastEthernet0/0",
+      "ciscoMacNotification": 5307408,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.9_fastethernet0_0"
+    },
+    {
+      "host": "10.1.99.9",
+      "interface_index": 2,
+      "interface_name": "FastEthernet0/1",
+      "ciscoMacNotification": 5307408,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.9_fastethernet0_1"
+    },
+    {
+      "host": "10.1.99.9",
+      "interface_index": 3,
+      "interface_name": "FastEthernet1/0",
+      "ciscoMacNotification": 316,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.1.99.9_fastethernet1_0"
+    },
+    {
+      "host": "10.1.99.9",
+      "interface_index": 4,
+      "interface_name": "FastEthernet1/1",
+      "ciscoMacNotification": 132,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.1.99.9_fastethernet1_1"
+    },
+    {
+      "host": "10.1.99.9",
+      "interface_index": 5,
+      "interface_name": "FastEthernet1/2",
+      "ciscoMacNotification": 5307408,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.1.99.9_fastethernet1_2"
+    },
+    {
+      "host": "10.1.99.9",
+      "interface_index": 6,
+      "interface_name": "FastEthernet1/3",
+      "ciscoMacNotification": 5307408,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.9_fastethernet1_3"
+    },
+    {
+      "host": "10.1.99.9",
+      "interface_index": 7,
+      "interface_name": "FastEthernet1/4",
+      "ciscoMacNotification": 5307408,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.9_fastethernet1_4"
+    },
+    {
+      "host": "10.1.99.9",
+      "interface_index": 8,
+      "interface_name": "FastEthernet1/5",
+      "ciscoMacNotification": 5307412,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.9_fastethernet1_5"
+    },
+    {
+      "host": "10.1.99.9",
+      "interface_index": 9,
+      "interface_name": "FastEthernet1/6",
+      "ciscoMacNotification": 5307412,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.9_fastethernet1_6"
+    },
+    {
+      "host": "10.1.99.9",
+      "interface_index": 10,
+      "interface_name": "FastEthernet1/7",
+      "ciscoMacNotification": 5307412,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.9_fastethernet1_7"
+    },
+    {
+      "host": "10.1.99.9",
+      "interface_index": 11,
+      "interface_name": "FastEthernet1/8",
+      "ciscoMacNotification": 5307580,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.9_fastethernet1_8"
+    },
+    {
+      "host": "10.1.99.9",
+      "interface_index": 12,
+      "interface_name": "FastEthernet1/9",
+      "ciscoMacNotification": 5307580,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.9_fastethernet1_9"
+    },
+    {
+      "host": "10.1.99.9",
+      "interface_index": 13,
+      "interface_name": "FastEthernet1/10",
+      "ciscoMacNotification": 5307580,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.9_fastethernet1_10"
+    },
+    {
+      "host": "10.1.99.9",
+      "interface_index": 14,
+      "interface_name": "FastEthernet1/11",
+      "ciscoMacNotification": 5307580,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.9_fastethernet1_11"
+    },
+    {
+      "host": "10.1.99.9",
+      "interface_index": 15,
+      "interface_name": "FastEthernet1/12",
+      "ciscoMacNotification": 5307580,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.9_fastethernet1_12"
+    },
+    {
+      "host": "10.1.99.9",
+      "interface_index": 16,
+      "interface_name": "FastEthernet1/13",
+      "ciscoMacNotification": 5307580,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.9_fastethernet1_13"
+    },
+    {
+      "host": "10.1.99.9",
+      "interface_index": 17,
+      "interface_name": "FastEthernet1/14",
+      "ciscoMacNotification": 5307580,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.9_fastethernet1_14"
+    },
+    {
+      "host": "10.1.99.9",
+      "interface_index": 18,
+      "interface_name": "FastEthernet1/15",
+      "ciscoMacNotification": 5307584,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.9_fastethernet1_15"
+    },
+    {
+      "host": "10.1.99.9",
+      "interface_index": 19,
+      "interface_name": "Interface-idx-19",
+      "ciscoMacNotification": 5307584,
+      "ifAdminStatus": null,
+      "ifOperStatus": null,
+      "unique_key": "10.1.99.9_interface-idx-19"
+    },
+    {
+      "host": "10.1.99.9",
+      "interface_index": 20,
+      "interface_name": "Null0",
+      "ciscoMacNotification": 5307584,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.1.99.9_null0"
+    },
+    {
+      "host": "10.1.99.9",
+      "interface_index": 21,
+      "interface_name": "Vlan1",
+      "ciscoMacNotification": 5307708,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.9_vlan1"
+    },
+    {
+      "host": "10.1.99.9",
+      "interface_index": 22,
+      "interface_name": "Loopback0",
+      "ciscoMacNotification": 5307708,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.9_loopback0"
+    },
+    {
+      "host": "10.1.99.9",
+      "interface_index": 23,
+      "interface_name": "Vlan99",
+      "ciscoMacNotification": 4,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.1.99.9_vlan99"
+    },
+    {
+      "host": "10.1.99.10",
+      "interface_index": 1,
+      "interface_name": "FastEthernet0/0",
+      "ciscoMacNotification": 5295584,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.10_fastethernet0_0"
+    },
+    {
+      "host": "10.1.99.10",
+      "interface_index": 2,
+      "interface_name": "FastEthernet0/1",
+      "ciscoMacNotification": 5295584,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.10_fastethernet0_1"
+    },
+    {
+      "host": "10.1.99.10",
+      "interface_index": 3,
+      "interface_name": "FastEthernet1/0",
+      "ciscoMacNotification": 308,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.1.99.10_fastethernet1_0"
+    },
+    {
+      "host": "10.1.99.10",
+      "interface_index": 4,
+      "interface_name": "FastEthernet1/1",
+      "ciscoMacNotification": 120,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.1.99.10_fastethernet1_1"
+    },
+    {
+      "host": "10.1.99.10",
+      "interface_index": 5,
+      "interface_name": "FastEthernet1/2",
+      "ciscoMacNotification": 5295588,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.1.99.10_fastethernet1_2"
+    },
+    {
+      "host": "10.1.99.10",
+      "interface_index": 6,
+      "interface_name": "FastEthernet1/3",
+      "ciscoMacNotification": 5295588,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.10_fastethernet1_3"
+    },
+    {
+      "host": "10.1.99.10",
+      "interface_index": 7,
+      "interface_name": "FastEthernet1/4",
+      "ciscoMacNotification": 5295588,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.10_fastethernet1_4"
+    },
+    {
+      "host": "10.1.99.10",
+      "interface_index": 8,
+      "interface_name": "FastEthernet1/5",
+      "ciscoMacNotification": 5295588,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.10_fastethernet1_5"
+    },
+    {
+      "host": "10.1.99.10",
+      "interface_index": 9,
+      "interface_name": "FastEthernet1/6",
+      "ciscoMacNotification": 5295588,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.10_fastethernet1_6"
+    },
+    {
+      "host": "10.1.99.10",
+      "interface_index": 10,
+      "interface_name": "FastEthernet1/7",
+      "ciscoMacNotification": 5295588,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.10_fastethernet1_7"
+    },
+    {
+      "host": "10.1.99.10",
+      "interface_index": 11,
+      "interface_name": "FastEthernet1/8",
+      "ciscoMacNotification": 5295712,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.10_fastethernet1_8"
+    },
+    {
+      "host": "10.1.99.10",
+      "interface_index": 12,
+      "interface_name": "FastEthernet1/9",
+      "ciscoMacNotification": 5295712,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.10_fastethernet1_9"
+    },
+    {
+      "host": "10.1.99.10",
+      "interface_index": 13,
+      "interface_name": "FastEthernet1/10",
+      "ciscoMacNotification": 5295712,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.10_fastethernet1_10"
+    },
+    {
+      "host": "10.1.99.10",
+      "interface_index": 14,
+      "interface_name": "FastEthernet1/11",
+      "ciscoMacNotification": 5295712,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.10_fastethernet1_11"
+    },
+    {
+      "host": "10.1.99.10",
+      "interface_index": 15,
+      "interface_name": "FastEthernet1/12",
+      "ciscoMacNotification": 5295712,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.10_fastethernet1_12"
+    },
+    {
+      "host": "10.1.99.10",
+      "interface_index": 16,
+      "interface_name": "FastEthernet1/13",
+      "ciscoMacNotification": 5295712,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.10_fastethernet1_13"
+    },
+    {
+      "host": "10.1.99.10",
+      "interface_index": 17,
+      "interface_name": "FastEthernet1/14",
+      "ciscoMacNotification": 5295712,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.10_fastethernet1_14"
+    },
+    {
+      "host": "10.1.99.10",
+      "interface_index": 18,
+      "interface_name": "FastEthernet1/15",
+      "ciscoMacNotification": 5295712,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.10_fastethernet1_15"
+    },
+    {
+      "host": "10.1.99.10",
+      "interface_index": 19,
+      "interface_name": "Interface-idx-19",
+      "ciscoMacNotification": 5295712,
+      "ifAdminStatus": null,
+      "ifOperStatus": null,
+      "unique_key": "10.1.99.10_interface-idx-19"
+    },
+    {
+      "host": "10.1.99.10",
+      "interface_index": 20,
+      "interface_name": "Null0",
+      "ciscoMacNotification": 5295716,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.1.99.10_null0"
+    },
+    {
+      "host": "10.1.99.10",
+      "interface_index": 21,
+      "interface_name": "Vlan1",
+      "ciscoMacNotification": 5295808,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.10_vlan1"
+    },
+    {
+      "host": "10.1.99.10",
+      "interface_index": 22,
+      "interface_name": "Loopback0",
+      "ciscoMacNotification": 5295808,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.1.99.10_loopback0"
+    },
+    {
+      "host": "10.1.99.10",
+      "interface_index": 23,
+      "interface_name": "Vlan99",
+      "ciscoMacNotification": 4,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.1.99.10_vlan99"
+    },
+    {
+      "host": "10.2.99.11",
+      "interface_index": 1,
+      "interface_name": "FastEthernet0/0",
+      "ciscoMacNotification": 5309372,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.11_fastethernet0_0"
+    },
+    {
+      "host": "10.2.99.11",
+      "interface_index": 2,
+      "interface_name": "FastEthernet0/1",
+      "ciscoMacNotification": 5309372,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.11_fastethernet0_1"
+    },
+    {
+      "host": "10.2.99.11",
+      "interface_index": 3,
+      "interface_name": "FastEthernet1/0",
+      "ciscoMacNotification": 372,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.2.99.11_fastethernet1_0"
+    },
+    {
+      "host": "10.2.99.11",
+      "interface_index": 4,
+      "interface_name": "FastEthernet1/1",
+      "ciscoMacNotification": 156,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.2.99.11_fastethernet1_1"
+    },
+    {
+      "host": "10.2.99.11",
+      "interface_index": 5,
+      "interface_name": "FastEthernet1/2",
+      "ciscoMacNotification": 5309372,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.2.99.11_fastethernet1_2"
+    },
+    {
+      "host": "10.2.99.11",
+      "interface_index": 6,
+      "interface_name": "FastEthernet1/3",
+      "ciscoMacNotification": 5309372,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.11_fastethernet1_3"
+    },
+    {
+      "host": "10.2.99.11",
+      "interface_index": 7,
+      "interface_name": "FastEthernet1/4",
+      "ciscoMacNotification": 5309372,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.11_fastethernet1_4"
+    },
+    {
+      "host": "10.2.99.11",
+      "interface_index": 8,
+      "interface_name": "FastEthernet1/5",
+      "ciscoMacNotification": 5309376,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.11_fastethernet1_5"
+    },
+    {
+      "host": "10.2.99.11",
+      "interface_index": 9,
+      "interface_name": "FastEthernet1/6",
+      "ciscoMacNotification": 5309376,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.11_fastethernet1_6"
+    },
+    {
+      "host": "10.2.99.11",
+      "interface_index": 10,
+      "interface_name": "FastEthernet1/7",
+      "ciscoMacNotification": 5309376,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.11_fastethernet1_7"
+    },
+    {
+      "host": "10.2.99.11",
+      "interface_index": 11,
+      "interface_name": "FastEthernet1/8",
+      "ciscoMacNotification": 5309464,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.11_fastethernet1_8"
+    },
+    {
+      "host": "10.2.99.11",
+      "interface_index": 12,
+      "interface_name": "FastEthernet1/9",
+      "ciscoMacNotification": 5309464,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.11_fastethernet1_9"
+    },
+    {
+      "host": "10.2.99.11",
+      "interface_index": 13,
+      "interface_name": "FastEthernet1/10",
+      "ciscoMacNotification": 5309464,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.11_fastethernet1_10"
+    },
+    {
+      "host": "10.2.99.11",
+      "interface_index": 14,
+      "interface_name": "FastEthernet1/11",
+      "ciscoMacNotification": 5309464,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.11_fastethernet1_11"
+    },
+    {
+      "host": "10.2.99.11",
+      "interface_index": 15,
+      "interface_name": "FastEthernet1/12",
+      "ciscoMacNotification": 5309464,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.11_fastethernet1_12"
+    },
+    {
+      "host": "10.2.99.11",
+      "interface_index": 16,
+      "interface_name": "FastEthernet1/13",
+      "ciscoMacNotification": 5309464,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.11_fastethernet1_13"
+    },
+    {
+      "host": "10.2.99.11",
+      "interface_index": 17,
+      "interface_name": "FastEthernet1/14",
+      "ciscoMacNotification": 5309464,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.11_fastethernet1_14"
+    },
+    {
+      "host": "10.2.99.11",
+      "interface_index": 18,
+      "interface_name": "FastEthernet1/15",
+      "ciscoMacNotification": 5309464,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.11_fastethernet1_15"
+    },
+    {
+      "host": "10.2.99.11",
+      "interface_index": 19,
+      "interface_name": "Interface-idx-19",
+      "ciscoMacNotification": 5309464,
+      "ifAdminStatus": null,
+      "ifOperStatus": null,
+      "unique_key": "10.2.99.11_interface-idx-19"
+    },
+    {
+      "host": "10.2.99.11",
+      "interface_index": 20,
+      "interface_name": "Null0",
+      "ciscoMacNotification": 5309468,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.2.99.11_null0"
+    },
+    {
+      "host": "10.2.99.11",
+      "interface_index": 21,
+      "interface_name": "Vlan1",
+      "ciscoMacNotification": 5309528,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.11_vlan1"
+    },
+    {
+      "host": "10.2.99.11",
+      "interface_index": 22,
+      "interface_name": "Loopback0",
+      "ciscoMacNotification": 5309528,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.11_loopback0"
+    },
+    {
+      "host": "10.2.99.11",
+      "interface_index": 23,
+      "interface_name": "Vlan99",
+      "ciscoMacNotification": 4,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.2.99.11_vlan99"
+    },
+    {
+      "host": "10.2.99.12",
+      "interface_index": 1,
+      "interface_name": "FastEthernet0/0",
+      "ciscoMacNotification": 5317072,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.12_fastethernet0_0"
+    },
+    {
+      "host": "10.2.99.12",
+      "interface_index": 2,
+      "interface_name": "FastEthernet0/1",
+      "ciscoMacNotification": 5317072,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.12_fastethernet0_1"
+    },
+    {
+      "host": "10.2.99.12",
+      "interface_index": 3,
+      "interface_name": "FastEthernet1/0",
+      "ciscoMacNotification": 416,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.2.99.12_fastethernet1_0"
+    },
+    {
+      "host": "10.2.99.12",
+      "interface_index": 4,
+      "interface_name": "FastEthernet1/1",
+      "ciscoMacNotification": 216,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.2.99.12_fastethernet1_1"
+    },
+    {
+      "host": "10.2.99.12",
+      "interface_index": 5,
+      "interface_name": "FastEthernet1/2",
+      "ciscoMacNotification": 5317072,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.2.99.12_fastethernet1_2"
+    },
+    {
+      "host": "10.2.99.12",
+      "interface_index": 6,
+      "interface_name": "FastEthernet1/3",
+      "ciscoMacNotification": 5317072,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.12_fastethernet1_3"
+    },
+    {
+      "host": "10.2.99.12",
+      "interface_index": 7,
+      "interface_name": "FastEthernet1/4",
+      "ciscoMacNotification": 5317072,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.12_fastethernet1_4"
+    },
+    {
+      "host": "10.2.99.12",
+      "interface_index": 8,
+      "interface_name": "FastEthernet1/5",
+      "ciscoMacNotification": 5317072,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.12_fastethernet1_5"
+    },
+    {
+      "host": "10.2.99.12",
+      "interface_index": 9,
+      "interface_name": "FastEthernet1/6",
+      "ciscoMacNotification": 5317072,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.12_fastethernet1_6"
+    },
+    {
+      "host": "10.2.99.12",
+      "interface_index": 10,
+      "interface_name": "FastEthernet1/7",
+      "ciscoMacNotification": 5317076,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.12_fastethernet1_7"
+    },
+    {
+      "host": "10.2.99.12",
+      "interface_index": 11,
+      "interface_name": "FastEthernet1/8",
+      "ciscoMacNotification": 5317176,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.12_fastethernet1_8"
+    },
+    {
+      "host": "10.2.99.12",
+      "interface_index": 12,
+      "interface_name": "FastEthernet1/9",
+      "ciscoMacNotification": 5317176,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.12_fastethernet1_9"
+    },
+    {
+      "host": "10.2.99.12",
+      "interface_index": 13,
+      "interface_name": "FastEthernet1/10",
+      "ciscoMacNotification": 5317176,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.12_fastethernet1_10"
+    },
+    {
+      "host": "10.2.99.12",
+      "interface_index": 14,
+      "interface_name": "FastEthernet1/11",
+      "ciscoMacNotification": 5317176,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.12_fastethernet1_11"
+    },
+    {
+      "host": "10.2.99.12",
+      "interface_index": 15,
+      "interface_name": "FastEthernet1/12",
+      "ciscoMacNotification": 5317176,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.12_fastethernet1_12"
+    },
+    {
+      "host": "10.2.99.12",
+      "interface_index": 16,
+      "interface_name": "FastEthernet1/13",
+      "ciscoMacNotification": 5317176,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.12_fastethernet1_13"
+    },
+    {
+      "host": "10.2.99.12",
+      "interface_index": 17,
+      "interface_name": "FastEthernet1/14",
+      "ciscoMacNotification": 5317176,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.12_fastethernet1_14"
+    },
+    {
+      "host": "10.2.99.12",
+      "interface_index": 18,
+      "interface_name": "FastEthernet1/15",
+      "ciscoMacNotification": 5317176,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.12_fastethernet1_15"
+    },
+    {
+      "host": "10.2.99.12",
+      "interface_index": 19,
+      "interface_name": "Interface-idx-19",
+      "ciscoMacNotification": 5317176,
+      "ifAdminStatus": null,
+      "ifOperStatus": null,
+      "unique_key": "10.2.99.12_interface-idx-19"
+    },
+    {
+      "host": "10.2.99.12",
+      "interface_index": 20,
+      "interface_name": "Null0",
+      "ciscoMacNotification": 5317180,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.2.99.12_null0"
+    },
+    {
+      "host": "10.2.99.12",
+      "interface_index": 21,
+      "interface_name": "Vlan1",
+      "ciscoMacNotification": 5317252,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.12_vlan1"
+    },
+    {
+      "host": "10.2.99.12",
+      "interface_index": 22,
+      "interface_name": "Loopback0",
+      "ciscoMacNotification": 5317252,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.12_loopback0"
+    },
+    {
+      "host": "10.2.99.12",
+      "interface_index": 23,
+      "interface_name": "Vlan99",
+      "ciscoMacNotification": 4,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.2.99.12_vlan99"
+    },
+    {
+      "host": "10.2.99.13",
+      "interface_index": 1,
+      "interface_name": "FastEthernet0/0",
+      "ciscoMacNotification": 5314188,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.13_fastethernet0_0"
+    },
+    {
+      "host": "10.2.99.13",
+      "interface_index": 2,
+      "interface_name": "FastEthernet0/1",
+      "ciscoMacNotification": 5314188,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.13_fastethernet0_1"
+    },
+    {
+      "host": "10.2.99.13",
+      "interface_index": 3,
+      "interface_name": "FastEthernet1/0",
+      "ciscoMacNotification": 548,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.2.99.13_fastethernet1_0"
+    },
+    {
+      "host": "10.2.99.13",
+      "interface_index": 4,
+      "interface_name": "FastEthernet1/1",
+      "ciscoMacNotification": 348,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.2.99.13_fastethernet1_1"
+    },
+    {
+      "host": "10.2.99.13",
+      "interface_index": 5,
+      "interface_name": "FastEthernet1/2",
+      "ciscoMacNotification": 5314188,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.2.99.13_fastethernet1_2"
+    },
+    {
+      "host": "10.2.99.13",
+      "interface_index": 6,
+      "interface_name": "FastEthernet1/3",
+      "ciscoMacNotification": 5314188,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.13_fastethernet1_3"
+    },
+    {
+      "host": "10.2.99.13",
+      "interface_index": 7,
+      "interface_name": "FastEthernet1/4",
+      "ciscoMacNotification": 5314188,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.13_fastethernet1_4"
+    },
+    {
+      "host": "10.2.99.13",
+      "interface_index": 8,
+      "interface_name": "FastEthernet1/5",
+      "ciscoMacNotification": 5314188,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.13_fastethernet1_5"
+    },
+    {
+      "host": "10.2.99.13",
+      "interface_index": 9,
+      "interface_name": "FastEthernet1/6",
+      "ciscoMacNotification": 5314188,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.13_fastethernet1_6"
+    },
+    {
+      "host": "10.2.99.13",
+      "interface_index": 10,
+      "interface_name": "FastEthernet1/7",
+      "ciscoMacNotification": 5314192,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.13_fastethernet1_7"
+    },
+    {
+      "host": "10.2.99.13",
+      "interface_index": 11,
+      "interface_name": "FastEthernet1/8",
+      "ciscoMacNotification": 5314324,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.13_fastethernet1_8"
+    },
+    {
+      "host": "10.2.99.13",
+      "interface_index": 12,
+      "interface_name": "FastEthernet1/9",
+      "ciscoMacNotification": 5314324,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.13_fastethernet1_9"
+    },
+    {
+      "host": "10.2.99.13",
+      "interface_index": 13,
+      "interface_name": "FastEthernet1/10",
+      "ciscoMacNotification": 5314324,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.13_fastethernet1_10"
+    },
+    {
+      "host": "10.2.99.13",
+      "interface_index": 14,
+      "interface_name": "FastEthernet1/11",
+      "ciscoMacNotification": 5314324,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.13_fastethernet1_11"
+    },
+    {
+      "host": "10.2.99.13",
+      "interface_index": 15,
+      "interface_name": "FastEthernet1/12",
+      "ciscoMacNotification": 5314324,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.13_fastethernet1_12"
+    },
+    {
+      "host": "10.2.99.13",
+      "interface_index": 16,
+      "interface_name": "FastEthernet1/13",
+      "ciscoMacNotification": 5314324,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.13_fastethernet1_13"
+    },
+    {
+      "host": "10.2.99.13",
+      "interface_index": 17,
+      "interface_name": "FastEthernet1/14",
+      "ciscoMacNotification": 5314324,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.13_fastethernet1_14"
+    },
+    {
+      "host": "10.2.99.13",
+      "interface_index": 18,
+      "interface_name": "FastEthernet1/15",
+      "ciscoMacNotification": 5314324,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.13_fastethernet1_15"
+    },
+    {
+      "host": "10.2.99.13",
+      "interface_index": 19,
+      "interface_name": "Interface-idx-19",
+      "ciscoMacNotification": 5314324,
+      "ifAdminStatus": null,
+      "ifOperStatus": null,
+      "unique_key": "10.2.99.13_interface-idx-19"
+    },
+    {
+      "host": "10.2.99.13",
+      "interface_index": 20,
+      "interface_name": "Null0",
+      "ciscoMacNotification": 5314328,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.2.99.13_null0"
+    },
+    {
+      "host": "10.2.99.13",
+      "interface_index": 21,
+      "interface_name": "Vlan1",
+      "ciscoMacNotification": 5314424,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.13_vlan1"
+    },
+    {
+      "host": "10.2.99.13",
+      "interface_index": 22,
+      "interface_name": "Loopback0",
+      "ciscoMacNotification": 5314424,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.13_loopback0"
+    },
+    {
+      "host": "10.2.99.13",
+      "interface_index": 23,
+      "interface_name": "Vlan99",
+      "ciscoMacNotification": 4,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.2.99.13_vlan99"
+    },
+    {
+      "host": "10.2.99.14",
+      "interface_index": 1,
+      "interface_name": "FastEthernet0/0",
+      "ciscoMacNotification": 5304388,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.14_fastethernet0_0"
+    },
+    {
+      "host": "10.2.99.14",
+      "interface_index": 2,
+      "interface_name": "FastEthernet0/1",
+      "ciscoMacNotification": 5304388,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.14_fastethernet0_1"
+    },
+    {
+      "host": "10.2.99.14",
+      "interface_index": 3,
+      "interface_name": "FastEthernet1/0",
+      "ciscoMacNotification": 672,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.2.99.14_fastethernet1_0"
+    },
+    {
+      "host": "10.2.99.14",
+      "interface_index": 4,
+      "interface_name": "FastEthernet1/1",
+      "ciscoMacNotification": 464,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.2.99.14_fastethernet1_1"
+    },
+    {
+      "host": "10.2.99.14",
+      "interface_index": 5,
+      "interface_name": "FastEthernet1/2",
+      "ciscoMacNotification": 5304388,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.2.99.14_fastethernet1_2"
+    },
+    {
+      "host": "10.2.99.14",
+      "interface_index": 6,
+      "interface_name": "FastEthernet1/3",
+      "ciscoMacNotification": 5304388,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.14_fastethernet1_3"
+    },
+    {
+      "host": "10.2.99.14",
+      "interface_index": 7,
+      "interface_name": "FastEthernet1/4",
+      "ciscoMacNotification": 5304388,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.14_fastethernet1_4"
+    },
+    {
+      "host": "10.2.99.14",
+      "interface_index": 8,
+      "interface_name": "FastEthernet1/5",
+      "ciscoMacNotification": 5304388,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.14_fastethernet1_5"
+    },
+    {
+      "host": "10.2.99.14",
+      "interface_index": 9,
+      "interface_name": "FastEthernet1/6",
+      "ciscoMacNotification": 5304388,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.14_fastethernet1_6"
+    },
+    {
+      "host": "10.2.99.14",
+      "interface_index": 10,
+      "interface_name": "FastEthernet1/7",
+      "ciscoMacNotification": 5304392,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.14_fastethernet1_7"
+    },
+    {
+      "host": "10.2.99.14",
+      "interface_index": 11,
+      "interface_name": "FastEthernet1/8",
+      "ciscoMacNotification": 5304496,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.14_fastethernet1_8"
+    },
+    {
+      "host": "10.2.99.14",
+      "interface_index": 12,
+      "interface_name": "FastEthernet1/9",
+      "ciscoMacNotification": 5304496,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.14_fastethernet1_9"
+    },
+    {
+      "host": "10.2.99.14",
+      "interface_index": 13,
+      "interface_name": "FastEthernet1/10",
+      "ciscoMacNotification": 5304496,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.14_fastethernet1_10"
+    },
+    {
+      "host": "10.2.99.14",
+      "interface_index": 14,
+      "interface_name": "FastEthernet1/11",
+      "ciscoMacNotification": 5304496,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.14_fastethernet1_11"
+    },
+    {
+      "host": "10.2.99.14",
+      "interface_index": 15,
+      "interface_name": "FastEthernet1/12",
+      "ciscoMacNotification": 5304496,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.14_fastethernet1_12"
+    },
+    {
+      "host": "10.2.99.14",
+      "interface_index": 16,
+      "interface_name": "FastEthernet1/13",
+      "ciscoMacNotification": 5304496,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.14_fastethernet1_13"
+    },
+    {
+      "host": "10.2.99.14",
+      "interface_index": 17,
+      "interface_name": "FastEthernet1/14",
+      "ciscoMacNotification": 5304496,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.14_fastethernet1_14"
+    },
+    {
+      "host": "10.2.99.14",
+      "interface_index": 18,
+      "interface_name": "FastEthernet1/15",
+      "ciscoMacNotification": 5304496,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.14_fastethernet1_15"
+    },
+    {
+      "host": "10.2.99.14",
+      "interface_index": 19,
+      "interface_name": "Interface-idx-19",
+      "ciscoMacNotification": 5304496,
+      "ifAdminStatus": null,
+      "ifOperStatus": null,
+      "unique_key": "10.2.99.14_interface-idx-19"
+    },
+    {
+      "host": "10.2.99.14",
+      "interface_index": 20,
+      "interface_name": "Null0",
+      "ciscoMacNotification": 5304500,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.2.99.14_null0"
+    },
+    {
+      "host": "10.2.99.14",
+      "interface_index": 21,
+      "interface_name": "Vlan1",
+      "ciscoMacNotification": 5304612,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.14_vlan1"
+    },
+    {
+      "host": "10.2.99.14",
+      "interface_index": 22,
+      "interface_name": "Loopback0",
+      "ciscoMacNotification": 5304612,
+      "ifAdminStatus": "down",
+      "ifOperStatus": "down",
+      "unique_key": "10.2.99.14_loopback0"
+    },
+    {
+      "host": "10.2.99.14",
+      "interface_index": 23,
+      "interface_name": "Vlan99",
+      "ciscoMacNotification": 4,
+      "ifAdminStatus": "up",
+      "ifOperStatus": "up",
+      "unique_key": "10.2.99.14_vlan99"
+    }
+  ]
+}

@@ -59,3 +59,34 @@ export const getNetworkTerminalSocketUrl = (deviceId) => {
   url.search = '';
   return url.toString();
 };
+
+
+export const fetchDevices = async () => {
+  try {
+    const resp = await api.get('/api/network/devices');
+    return resp.data;
+  } catch (e) {
+    console.error('Error fetching network devices:', e);
+    return [];
+  }
+};
+
+export const fetchNetworkTrafficFor = async (params = {}) => {
+  try {
+    const resp = await api.get('/api/network/traffic-history', { params });
+    return resp.data;
+  } catch (e) {
+    console.error('Error fetching filtered network traffic:', e);
+    throw e;
+  }
+};
+
+export const fetchTelemetryHosts = async () => {
+  try {
+    const resp = await api.get('/api/network/telemetry-hosts');
+    return resp.data;
+  } catch (e) {
+    console.error('Error fetching telemetry hosts:', e);
+    return [];
+  }
+};

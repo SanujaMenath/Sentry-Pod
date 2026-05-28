@@ -32,6 +32,7 @@ const Dashboard = () => {
   const [totalDevices, setTotalDevices] = useState("--");
 
   const [showNotifications, setShowNotifications] = useState(false);
+  const [driftReports, setDriftReports] = useState([]);
 
 
   const handleApprove = (e) => {
@@ -59,6 +60,20 @@ const Dashboard = () => {
     };
 
     fetchAllHostsCount();
+  }, []);
+
+  useEffect(() => {
+    const fetchDrift = async () => {
+      try {
+        const res = await fetch("http://127.0.0.1:8000/playbooks/drift");
+        const data = await res.json();
+        if (data && data.reports) setDriftReports(data.reports);
+      } catch (e) {
+        console.error("Failed to load drift reports:", e);
+      }
+    };
+
+    fetchDrift();
   }, []);
 
   const styles = {
@@ -120,8 +135,8 @@ const Dashboard = () => {
             />
             <StatCard
               title="Configuration Drift Alerts"
-              value="8"
-              subValue="-3 from yesterday"
+              value={String(driftReports.length || 0)}
+              subValue={driftReports.length > 0 ? "Updated recently" : "No drift detected"}
               icon={ShieldAlert}
               iconBg="bg-[#3E2C23]"
               iconColor="text-[#EAB308]"
@@ -334,13 +349,17 @@ const Dashboard = () => {
                   </h4>
                 </div>
                 <span className="text-[10px] bg-amber-500/10 text-amber-500 px-3 py-1 rounded-lg border border-amber-500/20 font-bold">
-                  8 Drifts Detected
+                  {driftReports.length} Drifts Detected
                 </span>
               </div>
 
               <div className="flex justify-between text-[11px] text-slate-500 mb-4 px-1">
-                <span>Device: core-sw-01</span>
-                <span>Updated 15 min ago</span>
+                  <span>
+                    Device: {driftReports[0]?.hostname ?? '—'}
+                  </span>
+                  <span>
+                    Updated {driftReports[0] ? new Date(driftReports[0].mtime * 1000).toLocaleString() : '—'}
+                  </span>
               </div>
 
               {/* Side-by-Side Comparison Area */}
@@ -350,8 +369,18 @@ const Dashboard = () => {
                     Baseline Configuration
                   </p>
                   <div className="bg-[#0D121F] rounded-xl p-4 font-mono text-[10px] leading-relaxed text-slate-400 border border-slate-800 h-56 overflow-hidden">
-                    <p>interface</p>
-                    <p>GigabitEthernet1/0/1</p>
+                    {driftReports[0] ? (
+                      <div className="space-y-1">
+                        {driftReports[0].additions.slice(0,10).map((l, idx) => (
+                          <p key={"a"+idx} className="text-emerald-500/80">+ {l}</p>
+                        ))}
+                      </div>
+                    ) : (
+                      <>
+                        <p>interface</p>
+                        <p>GigabitEthernet1/0/1</p>
+                      </>
+                    )}
                     <p className="pl-2">switchport mode</p>
                     <p className="pl-2">access</p>
                     <p className="pl-2 text-emerald-500 bg-emerald-500/5">
@@ -369,8 +398,18 @@ const Dashboard = () => {
                     Current Configuration
                   </p>
                   <div className="bg-[#0D121F] rounded-xl p-4 font-mono text-[10px] leading-relaxed text-slate-400 border border-slate-800 h-56 overflow-hidden">
-                    <p>interface</p>
-                    <p>GigabitEthernet1/0/1</p>
+                    {driftReports[0] ? (
+                      <div className="space-y-1">
+                        {driftReports[0].removals.slice(0,10).map((l, idx) => (
+                          <p key={"r"+idx} className="text-rose-400/90">- {l}</p>
+                        ))}
+                      </div>
+                    ) : (
+                      <>
+                        <p>interface</p>
+                        <p>GigabitEthernet1/0/1</p>
+                      </>
+                    )}
                     <p className="pl-2">switchport mode</p>
                     <p className="pl-2">access</p>
                     <p className="pl-2 text-rose-400 bg-rose-500/10">

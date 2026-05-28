@@ -1,0 +1,27 @@
+- name: Find Config drift
+  hosts: allHosts
+  gather_facts: false
+
+  tasks:
+    - name: Check for Config Drift
+      ansible.utils.fact_diff:
+        before: "{{ lookup('file', './goldenState/GS_' + inventory_hostname + '.txt') | regex_replace('(?m)^ntp clock-period .*\\n', '') | regex_replace('(?m)^! Current configuration : .*\\n', '') }}"
+        after: "{{ lookup('file', './tempRun/TS_' + inventory_hostname + '.txt') | regex_replace('(?m)^ntp clock-period .*\\n', '') | regex_replace('(?m)^! Current configuration : .*\\n', '') }}"
+      register: config_drift
+      ignore_errors: true 
+
+    - name: Create directory for config drift reports
+      file:
+        path: "./configDrift"
+        state: directory
+
+    - name: Save Config Drift Report
+      copy:
+        content: "{{ config_drift.diff.prepared }}"
+        dest: "./configDrift/DRIFT_{{ inventory_hostname }}.diff"
+      delegate_to: localhost
+
+    - name: Alert if Drift is Found
+      debug:
+        msg: "WARNING: Configuration drift detected on {{ inventory_hostname }}!"
+      when: config_drift.changed

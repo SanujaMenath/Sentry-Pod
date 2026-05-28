@@ -1,8 +1,12 @@
 import asyncio
 import contextlib
+import json
+import os
+import math
+import re
 
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, status
-from typing import List
+from typing import List, Optional
 from app.database import device_configurations_collection, devices_collection
 from app.models.telemetry import (
     DeviceConfiguration,
@@ -17,6 +21,93 @@ from app.models.telemetry import (
 from datetime import datetime, timedelta
 
 router = APIRouter(prefix="/api/network", tags=["Network Telemetry"])
+
+
+def load_metrics() -> dict:
+    """Load per-interface metrics from the repository `snmp_output` dump.
+
+    Falls back to an empty dict if the file is missing or invalid.
+    """
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    candidates = [
+        os.path.join(repo_root, "snmp_output", "per_interface_metrics.json"),
+        os.path.join(repo_root, "playbooks", "snmp_output", "per_interface_metrics.json"),
+    ]
+
+    for metrics_path in candidates:
+        try:
+            if os.path.exists(metrics_path):
+                with open(metrics_path, "r", encoding="utf-8") as fh:
+                    return json.load(fh)
+        except Exception:
+            continue
+
+    return {}
+
+
+def load_host_aliases() -> dict:
+    """Map SNMP host IPs to inventory hostnames from the Ansible inventory."""
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    inventory_path = os.path.join(repo_root, "playbooks", "hosts.ini")
+    aliases = {}
+    section_ranks = {
+        "edge_routers": 0,
+        "core_switches": 1,
+        "distribution_switches": 2,
+        "access_switches": 3,
+    }
+    current_rank = 99
+
+    if not os.path.exists(inventory_path):
+        return aliases
+
+    host_re = re.compile(r"^(?P<name>\S+)\s+.*?ansible_host=(?P<ip>\S+)")
+
+    try:
+        with open(inventory_path, "r", encoding="utf-8") as fh:
+            for line in fh:
+                stripped = line.strip()
+                if not stripped or stripped.startswith("#"):
+                    continue
+
+                if stripped.startswith("[") and stripped.endswith("]"):
+                    current_rank = section_ranks.get(stripped.strip("[]").lower(), 99)
+                    continue
+
+                match = host_re.search(stripped)
+                if match:
+                    aliases[match.group("ip")] = {
+                        "name": match.group("name"),
+                        "rank": current_rank,
+                    }
+    except Exception:
+        return aliases
+
+    return aliases
+
+
+def get_host_sort_key(host: str, host_aliases: dict) -> tuple:
+    alias = host_aliases.get(host, {})
+    label = alias.get("name", host).lower()
+    parts = re.split(r"(\d+)", label)
+    natural_parts = [int(part) if part.isdigit() else part for part in parts]
+    return tuple(natural_parts + [host])
+
+
+def normalize_interface_status(value: Optional[str]) -> str:
+    if not value:
+        return ""
+    return str(value).strip().lower()
+
+
+def is_interface_up(item: dict) -> bool:
+    admin_status = normalize_interface_status(item.get("ifAdminStatus"))
+    oper_status = normalize_interface_status(item.get("ifOperStatus"))
+
+    if admin_status or oper_status:
+        return admin_status == "up" and oper_status == "up"
+
+    return int(item.get("ciscoMacNotification", 0)) > 0
 
 DEFAULT_DEVICES = [
     {
@@ -70,24 +161,100 @@ DEFAULT_DEVICES = [
 ]
 
 @router.get("/traffic-history", response_model=List[TrafficDataPoint])
-async def get_traffic_history():
+async def get_traffic_history(device: Optional[str] = None, ifIndex: Optional[int] = None, allInterfaces: Optional[bool] = False):
+    """
+    Returns a simple 24h series (13 points every 2 hours) using the latest
+    `ciscoMacNotification` value from the parsed metrics. If `ifIndex` is
+    provided, use that interface; if `allInterfaces` is true, sum across all
+    interfaces for the device. If `device` not provided, returns empty list.
+    """
+    metrics = load_metrics()
+    if not device:
+        return []
+
+    # collect matching interfaces
+    matches = [it for it in metrics.get("interfaces", []) if it.get("host") == device]
+    if not matches:
+        return []
+
+    if ifIndex is not None:
+        matches = [it for it in matches if int(it.get("interface_index")) == int(ifIndex)]
+
+    has_status_fields = any(
+        it.get("ifAdminStatus") is not None or it.get("ifOperStatus") is not None
+        for it in matches
+    )
+
+    if has_status_fields:
+        matches = [it for it in matches if is_interface_up(it)]
+
+    # base value
+    if allInterfaces:
+        base_value = sum(int(it.get("ciscoMacNotification", 0)) for it in matches)
+    else:
+        # pick first matching interface
+        base_value = int(matches[0].get("ciscoMacNotification", 0)) if matches else 0
+
+    # normalize to a reasonable number for charting
+    # scale down large counters using log10
+    if base_value <= 0:
+        scaled = 0
+    else:
+        scaled = int( math.ceil( math.log10(base_value) * 10 ) )
+
     data = []
     now = datetime.now()
-    
-    # Generate data points covering the last 24 hours
+    # Build a baseline series over the last 24 hours: 13 points at 2-hour
+    # intervals (including the current time).
     for i in range(12, -1, -1):
         target_time = now - timedelta(hours=i * 2)
         formatted_time = target_time.strftime("%H:%M")
-        
-        hour = target_time.hour
-        if 8 <= hour <= 18:
-            traffic_value = 100
-        else:
-            traffic_value = 10
-            
-        data.append(TrafficDataPoint(time=formatted_time, traffic=traffic_value))
-        
+        # create small variation
+        noise = int((i % 3) * 2)
+        value = max(0, scaled + noise)
+        data.append(TrafficDataPoint(time=formatted_time, traffic=value))
+
     return data
+
+
+@router.get("/telemetry-hosts")
+async def get_telemetry_hosts():
+    """Return the translated SNMP telemetry grouped by host and interface."""
+    metrics = load_metrics()
+    host_aliases = load_host_aliases()
+    grouped_hosts = {}
+
+    for item in metrics.get("interfaces", []):
+        host = item.get("host")
+        if not host:
+            continue
+
+        host_entry = grouped_hosts.setdefault(
+            host,
+            {
+                "host": host,
+                "name": host_aliases.get(host, {}).get("name", host),
+                "rank": host_aliases.get(host, {}).get("rank", 99),
+                "total_interfaces_tracked": 0,
+                "interfaces": [],
+            },
+        )
+        host_entry["interfaces"].append(
+            {
+                "ifIndex": int(item.get("interface_index", 0)),
+                "name": item.get("interface_name") or f"if{item.get('interface_index')}",
+                "ciscoMacNotification": int(item.get("ciscoMacNotification", 0)),
+                "uniqueKey": item.get("unique_key"),
+            }
+        )
+
+    telemetry_hosts = []
+    for host in sorted(grouped_hosts, key=lambda item: get_host_sort_key(item, host_aliases)):
+        host_entry = grouped_hosts[host]
+        host_entry["total_interfaces_tracked"] = len(host_entry["interfaces"])
+        telemetry_hosts.append(host_entry)
+
+    return telemetry_hosts
 
 
 @router.get("/devices", response_model=List[NetworkDevice])

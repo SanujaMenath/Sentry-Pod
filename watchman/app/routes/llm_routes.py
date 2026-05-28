@@ -8,6 +8,7 @@ import asyncio
 
 # Import playbook matching utilities
 from . import playbook_routes
+import app.services.playbook_service as playbook_service
 
 logger = logging.getLogger(__name__)
 
@@ -89,7 +90,7 @@ async def chat(request: ChatRequest):
     model = request.model if request.model in SUPPORTED_MODELS else "deepseek-ai/DeepSeek-R1:novita"
 
     # Find playbook suggestions
-    suggestions = playbook_routes.find_playbook_suggestions(request.prompt, top_k=3)
+    suggestions = playbook_service.find_playbook_suggestions(request.prompt, top_k=3)
     
     # Build system prompt with playbook suggestions
     system_prompt = SYSTEM_PROMPT_BASE
