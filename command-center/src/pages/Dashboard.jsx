@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -26,8 +26,24 @@ const Dashboard = () => {
   const navigate = useNavigate();
 
   const [status, setStatus] = useState("pending");
-
+  const [activeDevicesCount, setActiveDevicesCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
+
+  useEffect(() => {
+    const fetchActiveDevices = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:8000/api/network/active-devices');
+        if (response.ok) {
+          const data = await response.json();
+          setActiveDevicesCount(data.length || 0);
+        }
+      } catch (error) {
+        console.error('Error fetching active devices:', error);
+      }
+    };
+
+    fetchActiveDevices();
+  }, []);
 
   const styles = {
     sidebar: {
@@ -82,7 +98,7 @@ const Dashboard = () => {
             />
             <StatCard
               title="Active Devices"
-              value="242"
+              value={activeDevicesCount.toString()}
               subValue="98% uptime"
               icon={CheckCircle2}
               iconBg="bg-emerald-600/20"

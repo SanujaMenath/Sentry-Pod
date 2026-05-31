@@ -16,6 +16,7 @@ import {
   AlertTriangle,
   X,
   Loader2,
+  RefreshCw,
 } from "lucide-react";
 
 import logo from "../images/logo.png";
@@ -30,6 +31,8 @@ const Dashboard = () => {
 
   const [status, setStatus] = useState("pending");
   const [totalDevices, setTotalDevices] = useState("--");
+  const [activeDevicesCount, setActiveDevicesCount] = useState(0);
+  const [isScanning, setIsScanning] = useState(false);
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [driftReports, setDriftReports] = useState([]);
@@ -75,6 +78,41 @@ const Dashboard = () => {
 
     fetchDrift();
   }, []);
+
+  useEffect(() => {
+    const fetchActiveDevices = async () => {
+      try {
+        const response = await fetch('http://127.0.0.1:8000/api/network/active-devices');
+        if (response.ok) {
+          const data = await response.json();
+          setActiveDevicesCount(data.length || 0);
+        }
+      } catch (error) {
+        console.error('Error fetching active devices:', error);
+      }
+    };
+
+    fetchActiveDevices();
+  }, []);
+
+  const handleRefreshDevices = async () => {
+    setIsScanning(true);
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/network/active-devices/scan', {
+        method: 'POST'
+      });
+      if (response.ok) {
+        const result = await response.json();
+        setActiveDevicesCount(result.devices_count || 0);
+      } else {
+        console.error('Scan failed:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error triggering nmap scan:', error);
+    } finally {
+      setIsScanning(false);
+    }
+  };
 
   const styles = {
     sidebar: {
@@ -125,18 +163,32 @@ const Dashboard = () => {
               iconBg="bg-blue-600/20"
               iconColor="text-blue-400"
             />
-            <StatCard
-              title="Active Devices"
-              value="242"
-              subValue="98% uptime"
-              icon={CheckCircle2}
-              iconBg="bg-emerald-600/20"
-              iconColor="text-emerald-400"
-            />
+            <div className="bg-[#1D293DED] border border-slate-700/50 rounded-3xl p-6 shadow-[0_5px_15px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col">
+              <div className="flex justify-between items-center mb-4">
+                <div className="z-10">
+                  <p className="text-slate-400 text-sm font-medium mb-2">Active Devices</p>
+                  <h3 className="text-4xl font-extrabold text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] tracking-tight">
+                    {isScanning ? "..." : activeDevicesCount}
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-2 font-medium">via Nmap</p>
+                </div>
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-emerald-600/20 text-emerald-400 border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]">
+                  <CheckCircle2 size={32} strokeWidth={1.5} />
+                </div>
+              </div>
+              <button
+                onClick={handleRefreshDevices}
+                disabled={isScanning}
+                className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 text-xs font-bold disabled:opacity-50 transition-all active:scale-95"
+              >
+                <RefreshCw size={14} className={isScanning ? 'animate-spin' : ''} />
+                {isScanning ? 'Scanning...' : 'Refresh'}
+              </button>
+            </div>
             <StatCard
               title="Configuration Drift Alerts"
               value={String(driftReports.length || 0)}
-              subValue={driftReports.length > 0 ? "Updated recently" : "No drift detected"}
+              subValue={driftReports.length > 0 ? "Updated recently (via SNMP)" : "No drift detected (via SNMP)"}
               icon={ShieldAlert}
               iconBg="bg-[#3E2C23]"
               iconColor="text-[#EAB308]"
