@@ -1,8 +1,8 @@
  import { useState, useEffect } from 'react';
-import { Download, FileText, CheckCircle, AlertTriangle, XCircle, ChevronDown, Calendar } from 'lucide-react';
+import { Download, FileText, CheckCircle, AlertTriangle, XCircle, ChevronDown, Calendar, Eye } from 'lucide-react';
 import ExportLogsModal from '../components/ExportLogsModal';
 import AuditLogDetailModal from '../components/AuditLogDetailModal';
-import { getAllAuditLogs } from '../services/auditService';
+import { getAllAuditLogs, getAuditLogById } from '../services/auditService';
 import PageHeader from "../components/PageHeader";
 
 const statusConfig = {
@@ -15,6 +15,7 @@ const statusConfig = {
 };
 
 const formatLogForDisplay = (log) => {
+  const output = log.output || null;
   return {
     id: log._id || 'N/A',
     timestamp: log.timestamp ? new Date(log.timestamp).toLocaleString('en-US', { 
@@ -29,8 +30,9 @@ const formatLogForDisplay = (log) => {
     action: log.action_name || 'Unknown',
     target: log.playbook_name || 'N/A',
     status: log.status || 'pending',
-    details: log.output ? (log.output.substring(0, 50) + (log.output.length > 50 ? '...' : '')) : 'N/A',
-    fullOutput: log.output || '',
+    details: output ? (output.substring(0, 50) + (output.length > 50 ? '...' : '')) : 'N/A',
+    output: output,
+    hasOutput: !!output,
   };
 };
 
@@ -40,6 +42,23 @@ export default function AuditLogs() {
   const [error, setError] = useState(null);
   const [showExport, setShowExport] = useState(false);
   const [selectedLog, setSelectedLog] = useState(null);
+  const [loadingLogId, setLoadingLogId] = useState(null);
+
+  const handleViewLog = async (logId) => {
+    try {
+      setLoadingLogId(logId);
+      const response = await getAuditLogById(logId);
+      if (response.log) {
+        const formattedLog = formatLogForDisplay(response.log);
+        setSelectedLog(formattedLog);
+      }
+    } catch (err) {
+      console.error('Failed to fetch log details:', err);
+      alert('Failed to load log details: ' + err);
+    } finally {
+      setLoadingLogId(null);
+    }
+  };
 
   useEffect(() => {
     const fetchLogs = async () => {
@@ -145,17 +164,19 @@ export default function AuditLogs() {
         {/* Filter Bar */}
         <div className="p-4 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] flex items-center gap-3" style={styles.card}>
           <input
+            id="search-logs"
+            name="search"
             type="text"
             placeholder="Search logs..."
             className="flex-1 bg-[#0D121F] border border-slate-700/50 rounded-xl px-4 py-2 text-sm text-slate-400 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500/30"
           />
-          <button className="flex items-center gap-2 bg-[#0D121F] border border-slate-700/50 rounded-xl px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors min-w-[130px] justify-between">
+          <button id="action-filter" name="action-type" className="flex items-center gap-2 bg-[#0D121F] border border-slate-700/50 rounded-xl px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors min-w-[130px] justify-between">
             Action Type <ChevronDown size={14} />
           </button>
-          <button className="flex items-center gap-2 bg-[#0D121F] border border-slate-700/50 rounded-xl px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors min-w-[120px] justify-between">
+          <button id="severity-filter" name="severity" className="flex items-center gap-2 bg-[#0D121F] border border-slate-700/50 rounded-xl px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors min-w-[120px] justify-between">
             Severity <ChevronDown size={14} />
           </button>
-          <button className="flex items-center gap-2 bg-[#0D121F] border border-slate-700/50 rounded-xl px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors">
+          <button id="date-filter" name="date-range" className="flex items-center gap-2 bg-[#0D121F] border border-slate-700/50 rounded-xl px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors">
             <Calendar size={14} /> Date Range
           </button>
         </div>
@@ -169,7 +190,7 @@ export default function AuditLogs() {
             <table className="w-full text-left">
               <thead className="text-slate-500 text-[12px] font-medium border-b border-slate-800/30">
                 <tr>
-                  {['Log ID', 'Timestamp', 'User', 'Action', 'Target', 'Status', 'Details'].map(h => (
+                  {['Log ID', 'Timestamp', 'User', 'Action', 'Target', 'Status', 'Details', 'View'].map(h => (
                     <th key={h} className="py-5 font-normal">{h}</th>
                   ))}
                 </tr>
@@ -188,6 +209,16 @@ export default function AuditLogs() {
                       </span>
                     </td>
                     <td className="py-4 text-slate-500 text-xs">{log.details}</td>
+                    <td className="py-4">
+                      <button
+                        onClick={() => handleViewLog(log.id)}
+                        disabled={loadingLogId === log.id}
+                        className="flex items-center gap-1 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-600 text-white px-2 py-1 rounded text-xs font-medium transition-colors"
+                      >
+                        <Eye size={12} />
+                        {loadingLogId === log.id ? 'Loading...' : 'View'}
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -197,6 +228,7 @@ export default function AuditLogs() {
 
       </div>
       {showExport && <ExportLogsModal onClose={() => setShowExport(false)} />}
+      {selectedLog && <AuditLogDetailModal log={selectedLog} onClose={() => setSelectedLog(null)} />}
     </div>
   );
 }

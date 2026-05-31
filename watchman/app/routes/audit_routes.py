@@ -91,6 +91,30 @@ async def get_logs_by_user(username: str, limit: int = 50):
             detail=str(e)
         )
 
+@router.get("/{log_id}")
+async def get_audit_log(log_id: str):
+    """Retrieve a specific audit log by ID"""
+    try:
+        from bson import ObjectId
+        log = await audit_logs_collection.find_one({"_id": ObjectId(log_id)})
+        
+        if not log:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Log with ID '{log_id}' not found"
+            )
+        
+        log["_id"] = str(log["_id"])
+        return {
+            "status": "success",
+            "log": log,
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
 @router.get("/by-action/{action_name}")
 async def get_logs_by_action(action_name: str, limit: int = 50):
     """Retrieve audit logs for a specific action"""

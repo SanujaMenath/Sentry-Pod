@@ -1,8 +1,10 @@
 from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import StreamingResponse
+from datetime import datetime
 
 from app.models.playbook import PlaybookRequest, PlaybookResponse
 import app.services.playbook_service as playbook_service
+from app.database import db
 
 router = APIRouter(prefix="/playbooks", tags=["Playbooks"])
 
@@ -11,6 +13,23 @@ async def execute_playbook(request: PlaybookRequest):
     """Execute an Ansible playbook by name"""
     try:
         returncode, output = playbook_service.run_playbook(request.playbook_name)
+        
+        # Record audit log entry for this playbook execution
+        try:
+            audit_col = db.get_collection("audit_logs")
+            audit_entry = {
+                "action_name": "playbook_execute",
+                "playbook_name": request.playbook_name,
+                "status": "success" if returncode == 0 else "failed",
+                "output": output,
+                "username": getattr(request, 'username', 'ChatConsole'),
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+            }
+            await audit_col.insert_one(audit_entry)
+        except Exception:
+            # Don't fail the playbook response if audit logging fails
+            pass
+        
         return PlaybookResponse(
             status="success" if returncode == 0 else "failed",
             playbook_name=request.playbook_name,
