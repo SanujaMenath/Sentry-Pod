@@ -3,7 +3,6 @@ import { Bot, Send, Zap, Shield, Wrench, BarChart3, ChevronDown, ChevronUp, Copy
 import { logAction } from "../services/auditService";
 import { generateText } from "../services/llmService";
 import PlaybookStagingGate from "../components/PlaybookStagingGate";
-import PageHeader from "../components/PageHeader";
 
 const mocha = {
   base: "#1e1e2e",
@@ -416,11 +415,9 @@ export default function AiChat() {
     <div className="min-h-full bg-linear-to-br from-[#F8FAFC] to-[#D1D5DB] p-8 font-sans">
       <PlaybookStagingGate playbook={pendingPlaybook} onApprove={handleStagingGateApprove} onReject={handleStagingGateReject} isOpen={!!pendingPlaybook} />
 
-      <PageHeader 
-       title="AI Chat Console" 
-         description="Natural language network management and configuration" 
-      />
-      
+      <h1 className="text-[30px] font-extrabold tracking-tight text-[#0F172A] drop-shadow-sm">AI Chat Console</h1>
+      <p className="mb-6 text-base font-medium text-[#64748B]">Natural language network management and configuration</p>
+
       <div className="mb-8">
         <h2 className="mb-4 text-lg font-bold text-[#0F172A]">Quick Actions</h2>
         <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
