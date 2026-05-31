@@ -130,6 +130,18 @@ export default function RBACUsers() {
     );
   });
 
+  const styles = {
+    main: {
+      background: 'linear-gradient(135deg, #F8FAFC 0%, #D1D5DB 100%)',
+      backgroundAttachment: 'fixed',
+      fontFamily: '"Inter", sans-serif',
+      minHeight: '100%',
+    },
+    card: { backgroundColor: '#1D293DED', fontFamily: '"Inter", sans-serif' },
+    headline: { color: '#0F172A', fontSize: '30px', fontWeight: '800', fontFamily: '"Inter", sans-serif', letterSpacing: '-0.025em' },
+    subtext: { color: '#475569', fontSize: '16px', fontWeight: '500', fontFamily: '"Inter", sans-serif' }
+  };
+
   return (
     <div className="flex-1 min-h-screen bg-[#f0f2f5] p-6 overflow-auto">
       {/* Header */}
@@ -141,14 +153,6 @@ export default function RBACUsers() {
             isSmallSubtext={true}
           />
         </div>
-        <button
-          onClick={() => setShowAddUser(true)}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-        >
-          <UserPlus size={14} />
-          Add New User
-        </button>
-      </div>
 
       {/* Operation Alert Feeds */}
       {systemAlert && (
@@ -287,6 +291,7 @@ export default function RBACUsers() {
         </table>
       </div>
 
+      </div>
       {showAddUser && <AddUserModal onClose={() => setShowAddUser(false)} />}
     </div>
   );
