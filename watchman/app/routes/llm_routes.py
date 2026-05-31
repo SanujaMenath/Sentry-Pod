@@ -5,6 +5,8 @@ import httpx  # type: ignore
 import os
 import logging
 import asyncio
+from datetime import datetime
+from pathlib import Path
 
 # Import playbook matching utilities
 from . import playbook_routes
@@ -67,6 +69,61 @@ SUPPORTED_MODELS = {
 }
 
 
+# ============================================================
+# API KEY MANAGEMENT HELPER
+# ============================================================
+
+class ApiKeyRequest(BaseModel):
+    api_key: str
+
+
+async def get_stored_api_key():
+    """Retrieve the stored API key from MongoDB."""
+    from app.database import api_keys_collection
+    
+    doc = await api_keys_collection.find_one({"_id": "huggingface"})
+    if doc:
+        return doc.get("key")
+    return None
+
+
+def update_env_file(api_key: str):
+    """Update the HUGGINGFACE_API_KEY in the .env file."""
+    env_path = Path(__file__).parent.parent.parent / ".env"
+    
+    if not env_path.exists():
+        logger.warning(f".env file not found at {env_path}")
+        return
+    
+    try:
+        with open(env_path, "r") as f:
+            lines = f.readlines()
+        
+        # Find and update the HUGGINGFACE_API_KEY line
+        updated = False
+        for i, line in enumerate(lines):
+            if line.startswith("HUGGINGFACE_API_KEY="):
+                lines[i] = f"HUGGINGFACE_API_KEY={api_key}\n"
+                updated = True
+                break
+        
+        # If not found, add it at the beginning
+        if not updated:
+            lines.insert(0, f"HUGGINGFACE_API_KEY={api_key}\n")
+        
+        with open(env_path, "w") as f:
+            f.writelines(lines)
+        
+        logger.info("Successfully updated HUGGINGFACE_API_KEY in .env file")
+    except Exception as e:
+        logger.error(f"Error updating .env file: {str(e)}")
+        raise
+
+
+# ============================================================
+# CHAT ENDPOINT
+# ============================================================
+
 @router.post("/chat")
 async def chat(request: ChatRequest):
     """
@@ -75,7 +132,11 @@ async def chat(request: ChatRequest):
     Keeps API key safe on backend, avoids CORS issues.
     Also searches for and suggests matching playbooks before generating new responses.
     """
-    if not HF_API_KEY:
+    # Try to get the stored API key first, fall back to env var
+    stored_key = await get_stored_api_key()
+    api_key = stored_key or HF_API_KEY
+    
+    if not api_key:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Hugging Face API key not configured on server (HUGGINGFACE_API_KEY)",
@@ -105,7 +166,7 @@ async def chat(request: ChatRequest):
             system_prompt += f"\n   Match reason: {suggestion.reason} (score: {suggestion.match_score:.1%})"
     
     headers = {
-        "Authorization": f"Bearer {HF_API_KEY}",
+        "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
     }
     payload = {
@@ -234,4 +295,128 @@ async def chat(request: ChatRequest):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Unexpected error: {str(e)}",
+        )
+
+
+# ============================================================
+# API KEY MANAGEMENT ENDPOINTS
+# ============================================================
+
+@router.get("/api-key-status")
+async def get_api_key_status():
+    """Check if an API key is configured (from DB or env var)."""
+    stored_key = await get_stored_api_key()
+    env_key = HF_API_KEY
+    has_key = (stored_key is not None and len(stored_key) > 0) or (env_key is not None and len(env_key) > 0)
+    return {
+        "has_key": has_key,
+    }
+
+
+@router.post("/api-key")
+async def save_api_key(request: ApiKeyRequest):
+    """Save or update the Hugging Face API key."""
+    from app.database import api_keys_collection
+    
+    if not request.api_key or not request.api_key.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="API key cannot be empty",
+        )
+    
+    try:
+        # Update MongoDB
+        await api_keys_collection.update_one(
+            {"_id": "huggingface"},
+            {
+                "$set": {
+                    "_id": "huggingface",
+                    "key": request.api_key.strip(),
+                    "updated_at": datetime.utcnow(),
+                }
+            },
+            upsert=True,
+        )
+        
+        # Update .env file
+        update_env_file(request.api_key.strip())
+        
+        return {"status": "success", "message": "API key saved successfully"}
+    except Exception as e:
+        logger.error(f"Error saving API key: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to save API key",
+        )
+
+
+@router.delete("/api-key")
+async def delete_api_key():
+    """Delete the stored Hugging Face API key."""
+    from app.database import api_keys_collection
+    
+    try:
+        await api_keys_collection.delete_one({"_id": "huggingface"})
+        
+        # Clear from .env file (set to empty)
+        update_env_file("")
+        
+        return {"status": "success", "message": "API key deleted successfully"}
+    except Exception as e:
+        logger.error(f"Error deleting API key: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to delete API key",
+        )
+
+
+@router.post("/api-key-test")
+async def test_api_key(request: ApiKeyRequest):
+    """Test if the provided API key is valid."""
+    if not request.api_key or not request.api_key.strip():
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="API key cannot be empty",
+        )
+    
+    headers = {
+        "Authorization": f"Bearer {request.api_key.strip()}",
+        "Content-Type": "application/json",
+    }
+    
+    payload = {
+        "messages": [
+            {
+                "role": "user",
+                "content": "Say 'OK' in one word only.",
+            }
+        ],
+        "model": "google/gemma-4-31B-it:novita",
+        "max_tokens": 10,
+    }
+    
+    try:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            response = await client.post(HF_API_URL, json=payload, headers=headers)
+            
+            if response.status_code == 200:
+                return {"status": "success", "message": "API key is valid and working"}
+            elif response.status_code == 401:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="API key is invalid or expired",
+                )
+            else:
+                error_data = response.json() if response.headers.get("content-type") == "application/json" else {"error": response.text}
+                raise HTTPException(
+                    status_code=response.status_code,
+                    detail=f"API test failed: {error_data.get('error', 'Unknown error')}",
+                )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error testing API key: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to test API key: {str(e)}",
         )
