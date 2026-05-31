@@ -5,22 +5,33 @@ import AuditLogDetailModal from '../components/AuditLogDetailModal';
 import { getAllAuditLogs } from '../services/auditService';
 import PageHeader from "../components/PageHeader";
 
-const logs = [
-  { id: 'LOG-8934', timestamp: '2026-03-05 14:23:45', user: 'Admin User', action: 'Configuration Change', target: 'access-sw-02', status: 'success', details: 'Applied...' },
-  { id: 'LOG-8933', timestamp: '2026-03-05 14:15:22', user: 'John Network', action: 'Device Login', target: 'core-sw-01', status: 'success', details: 'SSH log...' },
-  { id: 'LOG-8932', timestamp: '2026-03-05 13:58:10', user: 'System', action: 'Port Security Violation', target: 'access-sw-02 G11/0/24', status: 'blocked', details: 'MAC ac...' },
-  { id: 'LOG-8931', timestamp: '2026-03-05 13:45:33', user: 'Sarah Security', action: 'User Role Modified', target: 'Mike Monitor', status: 'success', details: 'Change...' },
-  { id: 'LOG-8930', timestamp: '2026-03-05 13:30:18', user: 'Admin User', action: 'Backup Created', target: 'All Devices', status: 'success', details: 'Autom...' },
-  { id: 'LOG-8929', timestamp: '2026-03-05 13:12:05', user: 'System', action: 'Configuration Drift', target: 'core-sw-01 G11/0/1', status: 'detected', details: 'VLAN a...' },
-  { id: 'LOG-8928', timestamp: '2026-03-05 12:55:42', user: 'John Network', action: 'Device Reboot', target: 'dist-sw-03', status: 'success', details: 'Manual...' },
-  { id: 'LOG-8927', timestamp: '2026-03-05 12:20:15', user: 'System', action: 'Failed Login Attempt', target: 'router-edge-01', status: 'failed', details: '3 cons...' },
-];
-
 const statusConfig = {
   success: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
   blocked: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
   detected: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
   failed: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
+  error: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
+  pending: 'bg-slate-500/10 text-slate-400 border border-slate-500/20',
+};
+
+const formatLogForDisplay = (log) => {
+  return {
+    id: log._id || 'N/A',
+    timestamp: log.timestamp ? new Date(log.timestamp).toLocaleString('en-US', { 
+      year: 'numeric', 
+      month: '2-digit', 
+      day: '2-digit', 
+      hour: '2-digit', 
+      minute: '2-digit', 
+      second: '2-digit' 
+    }) : 'N/A',
+    user: log.username || 'System',
+    action: log.action_name || 'Unknown',
+    target: log.playbook_name || 'N/A',
+    status: log.status || 'pending',
+    details: log.output ? (log.output.substring(0, 50) + (log.output.length > 50 ? '...' : '')) : 'N/A',
+    fullOutput: log.output || '',
+  };
 };
 
 export default function AuditLogs() {
@@ -51,6 +62,14 @@ export default function AuditLogs() {
 
     fetchLogs();
   }, []);
+
+  // Calculate stats from logs
+  const stats = {
+    total: logs.length,
+    success: logs.filter(l => l.status === 'success').length,
+    warnings: logs.filter(l => l.status === 'detected' || l.status === 'blocked').length,
+    critical: logs.filter(l => l.status === 'failed' || l.status === 'error').length,
+  };
 
   const styles = {
     main: {
@@ -88,7 +107,7 @@ export default function AuditLogs() {
           <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] flex items-center justify-between" style={styles.card}>
             <div>
               <p className="text-slate-400 text-sm font-medium mb-2">Total Events</p>
-              <h3 className="text-4xl font-extrabold text-white tracking-tight">8,934</h3>
+              <h3 className="text-4xl font-extrabold text-white tracking-tight">{stats.total}</h3>
             </div>
             <div className="w-16 h-16 rounded-2xl bg-blue-600/20 flex items-center justify-center border border-white/10">
               <FileText size={32} className="text-blue-400" strokeWidth={1.5} />
@@ -97,7 +116,7 @@ export default function AuditLogs() {
           <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] flex items-center justify-between" style={styles.card}>
             <div>
               <p className="text-slate-400 text-sm font-medium mb-2">Success</p>
-              <h3 className="text-4xl font-extrabold text-emerald-400 tracking-tight">7,821</h3>
+              <h3 className="text-4xl font-extrabold text-emerald-400 tracking-tight">{stats.success}</h3>
             </div>
             <div className="w-16 h-16 rounded-2xl bg-emerald-600/20 flex items-center justify-center border border-white/10">
               <CheckCircle size={32} className="text-emerald-400" strokeWidth={1.5} />
@@ -106,7 +125,7 @@ export default function AuditLogs() {
           <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] flex items-center justify-between" style={styles.card}>
             <div>
               <p className="text-slate-400 text-sm font-medium mb-2">Warnings</p>
-              <h3 className="text-4xl font-extrabold text-amber-400 tracking-tight">892</h3>
+              <h3 className="text-4xl font-extrabold text-amber-400 tracking-tight">{stats.warnings}</h3>
             </div>
             <div className="w-16 h-16 rounded-2xl bg-amber-600/20 flex items-center justify-center border border-white/10">
               <AlertTriangle size={32} className="text-amber-400" strokeWidth={1.5} />
@@ -115,7 +134,7 @@ export default function AuditLogs() {
           <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] flex items-center justify-between" style={styles.card}>
             <div>
               <p className="text-slate-400 text-sm font-medium mb-2">Critical</p>
-              <h3 className="text-4xl font-extrabold text-rose-400 tracking-tight">221</h3>
+              <h3 className="text-4xl font-extrabold text-rose-400 tracking-tight">{stats.critical}</h3>
             </div>
             <div className="w-16 h-16 rounded-2xl bg-rose-600/20 flex items-center justify-center border border-white/10">
               <XCircle size={32} className="text-rose-400" strokeWidth={1.5} />
