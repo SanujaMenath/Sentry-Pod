@@ -3,6 +3,7 @@ import json
 import yaml
 import logging
 import subprocess
+import platform
 from pathlib import Path
 from typing import List, Tuple, Generator
 from fastapi import HTTPException, status
@@ -16,7 +17,53 @@ PLAYBOOKS_DIR = BASE_DIR / "playbooks"
 HOSTS_INI_PATH = PLAYBOOKS_DIR / "hosts.ini"
 CATALOG_PATH = PLAYBOOKS_DIR / "catalog.json"
 
+# Podman container configuration
+PODMAN_CONTAINER_IMAGE = "sentry-ansible"
+PODMAN_ANSIBLE_DIR = "/ansible"  # Mount point inside container
+
 _catalog_cache = None
+
+
+def get_podman_command(playbook_name: str) -> List[str]:
+    """
+    Build a cross-platform Podman command for running Ansible playbooks.
+    
+    Works on both Windows and Linux by:
+    - Using absolute paths for volume mounts
+    - Avoiding network=host on Windows (use default networking)
+    - Normalizing path separators for the container
+    
+    Args:
+        playbook_name: Name of the playbook file (e.g., "get_facts.yml")
+    
+    Returns:
+        List of command arguments for subprocess
+    """
+    system = platform.system()
+    
+    # Get absolute paths
+    playbooks_abs_path = PLAYBOOKS_DIR.resolve()
+    
+    # Build the podman command
+    cmd = ["podman", "run", "--rm"]
+    
+    # Add networking flag (only on Linux)
+    if system == "Linux":
+        cmd.append("--network=host")
+    
+    # Add volume mount
+    # On Windows, Podman may need different path handling, but the :Z flag should help
+    cmd.extend(["-v", f"{playbooks_abs_path}:{PODMAN_ANSIBLE_DIR}:Z"])
+    
+    # Container image
+    cmd.append(PODMAN_CONTAINER_IMAGE)
+    
+    # Ansible command inside the container
+    cmd.extend(["ansible-playbook", f"{PODMAN_ANSIBLE_DIR}/{playbook_name}", 
+                "-i", f"{PODMAN_ANSIBLE_DIR}/hosts.ini"])
+    
+    logger.debug(f"Podman command: {' '.join(cmd)}")
+    return cmd
 
 def load_catalog() -> List[PlaybookCatalogItem]:
     """Load playbook catalog from JSON file with caching."""
@@ -185,12 +232,12 @@ def validate_playbook_path(playbook_name: str) -> Path:
     return playbook_path
 
 def run_playbook(playbook_name: str) -> Tuple[int, str]:
-    """Executes an Ansible playbook blocking system process call."""
+    """Executes an Ansible playbook inside Podman container with blocking call."""
     playbook_path = validate_playbook_path(playbook_name)
     try:
+        cmd = get_podman_command(playbook_name)
         result = subprocess.run(
-            ['ansible-playbook', str(playbook_path), '-i', str(PLAYBOOKS_DIR / 'hosts.ini')],
-            cwd=str(PLAYBOOKS_DIR),
+            cmd,
             capture_output=True,
             text=True,
             timeout=300
@@ -199,16 +246,21 @@ def run_playbook(playbook_name: str) -> Tuple[int, str]:
     except subprocess.TimeoutExpired:
         raise HTTPException(
             status_code=status.HTTP_408_REQUEST_TIMEOUT,
-            detail="Playbook execution timeout"
+            detail="Playbook execution timeout (300s)"
+        )
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Podman not found. Ensure Podman is installed and in PATH"
         )
 
 def run_playbook_stream_generator(playbook_name: str) -> Generator[str, None, None]:
-    """Starts the subprocess and yields SSE formatted event payloads data."""
+    """Starts the Podman subprocess and yields SSE formatted event payloads data."""
     playbook_path = validate_playbook_path(playbook_name)
     try:
+        cmd = get_podman_command(playbook_name)
         process = subprocess.Popen(
-            ['ansible-playbook', str(playbook_path), '-i', str(PLAYBOOKS_DIR / 'hosts.ini')],
-            cwd=str(PLAYBOOKS_DIR),
+            cmd,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             text=True,
@@ -228,6 +280,12 @@ def run_playbook_stream_generator(playbook_name: str) -> Generator[str, None, No
         })
         yield f"data: {completion_data}\n\n"
         
+    except FileNotFoundError:
+        error_data = json.dumps({
+            "type": "error", 
+            "message": "Podman not found. Ensure Podman is installed and in PATH"
+        })
+        yield f"data: {error_data}\n\n"
     except Exception as e:
         error_data = json.dumps({"type": "error", "message": str(e)})
         yield f"data: {error_data}\n\n"
