@@ -140,6 +140,7 @@ const Dashboard = () => {
               icon={ShieldAlert}
               iconBg="bg-[#3E2C23]"
               iconColor="text-[#EAB308]"
+              onClick={() => navigate('/drift-reports')}
             />
             <StatCard
               title="Security Status"
@@ -347,6 +348,9 @@ const Dashboard = () => {
                   <h4 className="text-base font-bold text-slate-200">
                     Drift Detection
                   </h4>
+                </div>
+                <div>
+                  <a href="/drift-reports" className="text-xs text-amber-300 underline">View all</a>
                 </div>
                 <span className="text-[10px] bg-amber-500/10 text-amber-500 px-3 py-1 rounded-lg border border-amber-500/20 font-bold">
                   {driftReports.length} Drifts Detected

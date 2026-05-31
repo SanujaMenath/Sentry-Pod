@@ -285,3 +285,15 @@ def parse_config_drift_reports() -> List[dict]:
             continue
 
     return results
+
+
+def read_config_drift_file(hostname: str) -> str:
+    """Return the raw diff file contents for a given hostname (DRIFT_<hostname>.diff)"""
+    drift_dir = PLAYBOOKS_DIR / "configDrift"
+    target = drift_dir / f"DRIFT_{hostname}.diff"
+    if not target.exists():
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Drift report not found")
+    try:
+        return target.read_text(encoding='utf-8', errors='ignore')
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

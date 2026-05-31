@@ -93,6 +93,21 @@ async def get_config_drift_reports():
             detail=str(e)
         )
 
+
+@router.get("/drift/{hostname}")
+async def get_config_drift_file(hostname: str):
+    """Return raw diff report for a specific hostname"""
+    try:
+        content = playbook_service.read_config_drift_file(hostname)
+        return {"status": "success", "hostname": hostname, "content": content}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
 @router.post("/suggest")
 async def suggest_playbooks(request: PlaybookRequest):
     """Find playbook suggestions matching a user prompt"""
