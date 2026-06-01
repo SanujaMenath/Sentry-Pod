@@ -155,6 +155,7 @@ const Dashboard = () => {
            />
 
           {/* ROW STAT CARDS */}
+           {/* Total devices */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard
               title="Total Devices"
@@ -164,6 +165,7 @@ const Dashboard = () => {
               iconBg="bg-blue-600/20"
               iconColor="text-blue-400"
             />
+             {/* Active devices */}
             <div className="bg-[#1D293DED] border border-slate-700/50 rounded-3xl p-6 shadow-[0_5px_15px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col">
               <div className="flex justify-between items-center mb-4">
                 <div className="z-10">
@@ -186,15 +188,18 @@ const Dashboard = () => {
                 {isScanning ? 'Scanning...' : 'Refresh'}
               </button>
             </div>
+             {/* Config Drift */}
             <StatCard
               title="Configuration Drift Alerts"
               value={String(driftReports.length || 0)}
-              subValue={driftReports.length > 0 ? "Updated recently (via SNMP)" : "No drift detected (via SNMP)"}
+              subValue={driftReports.length > 0 ? "Updated recently (via Ansible)" : "No drift detected (via Ansible)"}
               icon={ShieldAlert}
               iconBg="bg-[#3E2C23]"
               iconColor="text-[#EAB308]"
               onClick={() => navigate('/drift-reports')}
             />
+            
+            
             <StatCard
               title="Security Status"
               value="Secure"
