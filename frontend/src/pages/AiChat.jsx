@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { Bot, Send, Zap, Shield, Wrench, BarChart3, ChevronDown, ChevronUp, Copy, Check, Play } from "lucide-react";
+import { Bot, Send, Zap, Shield, Wrench, BarChart3, ChevronDown, ChevronUp, Copy, Check, Play, Settings } from "lucide-react";
 import { logAction } from "../services/auditService";
 import { generateText } from "../services/llmService";
 import PlaybookStagingGate from "../components/PlaybookStagingGate";
+import ApiKeyModal from "../components/ApiKeyModal";
 
 const mocha = {
   base: "#1e1e2e",
@@ -180,6 +181,7 @@ export default function AiChat() {
   const [pendingPlaybook, setPendingPlaybook] = useState(null);
   const [playbookMetadata, setPlaybookMetadata] = useState({});
   const [selectedModel, setSelectedModel] = useState(() => localStorage.getItem("hf_model") || "deepseek-ai/DeepSeek-R1:novita");
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
 
   useEffect(() => {
     const fetchCatalog = async () => {
@@ -415,8 +417,29 @@ export default function AiChat() {
     <div className="min-h-full bg-linear-to-br from-[#F8FAFC] to-[#D1D5DB] p-8 font-sans">
       <PlaybookStagingGate playbook={pendingPlaybook} onApprove={handleStagingGateApprove} onReject={handleStagingGateReject} isOpen={!!pendingPlaybook} />
 
-      <h1 className="text-[30px] font-extrabold tracking-tight text-[#0F172A] drop-shadow-sm">AI Chat Console</h1>
-      <p className="mb-6 text-base font-medium text-[#64748B]">Natural language network management and configuration</p>
+      {showApiKeyModal && (
+        <ApiKeyModal
+          onClose={() => setShowApiKeyModal(false)}
+          onSave={() => {
+            // Optional: Refresh anything if needed
+          }}
+        />
+      )}
+
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <h1 className="text-[30px] font-extrabold tracking-tight text-[#0F172A] drop-shadow-sm">AI Chat Console</h1>
+          <p className="text-base font-medium text-[#64748B]">Natural language network management and configuration</p>
+        </div>
+        <button
+          onClick={() => setShowApiKeyModal(true)}
+          className="flex items-center gap-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 font-medium text-sm transition-all shadow-md hover:shadow-lg"
+          title="Manage Hugging Face API Key"
+        >
+          <Settings size={18} />
+          <span>API Key</span>
+        </button>
+      </div>
 
       <div className="mb-8">
         <h2 className="mb-4 text-lg font-bold text-[#0F172A]">Quick Actions</h2>

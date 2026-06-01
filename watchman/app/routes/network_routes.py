@@ -4,6 +4,8 @@ import json
 import os
 import math
 import re
+import sys
+import subprocess
 
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, status
 from typing import List, Optional
@@ -267,6 +269,77 @@ async def get_network_devices():
         devices_by_id[serialized["id"]] = serialized
 
     return [NetworkDevice(**device) for device in devices_by_id.values()]
+
+
+@router.get("/active-devices")
+async def get_active_devices():
+    """Load active devices from nmap_output/active_devices.json"""
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+    active_devices_path = os.path.join(repo_root, "nmap_output", "active_devices.json")
+    
+    try:
+        if os.path.exists(active_devices_path):
+            with open(active_devices_path, "r", encoding="utf-8") as fh:
+                data = json.load(fh)
+                return data.get("devices", [])
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to load active devices: {str(e)}"
+        )
+    
+    return []
+
+
+@router.post("/active-devices/scan")
+async def trigger_nmap_scan():
+    """Trigger nmap scan to discover active devices"""
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+    nmap_script = os.path.join(repo_root, "watchman", "scripts", "nmap_scan.py")
+    
+    if not os.path.exists(nmap_script):
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="nmap_scan.py script not found"
+        )
+    
+    try:
+        # Run the nmap scan script
+        result = await asyncio.create_task(asyncio.to_thread(
+            subprocess.run,
+            [sys.executable, nmap_script],
+            capture_output=True,
+            text=True,
+            timeout=180
+        ))
+        
+        if result.returncode != 0:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Nmap scan failed: {result.stderr}"
+            )
+        
+        # Return updated devices
+        active_devices_path = os.path.join(repo_root, "nmap_output", "active_devices.json")
+        with open(active_devices_path, "r", encoding="utf-8") as fh:
+            data = json.load(fh)
+        
+        return {
+            "status": "success",
+            "message": result.stdout,
+            "devices_count": len(data.get("devices", []))
+        }
+        
+    except subprocess.TimeoutExpired:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Nmap scan timed out (exceeded 3 minutes)"
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to run nmap scan: {str(e)}"
+        )
 
 
 @router.post("/devices", response_model=NetworkDevice, status_code=status.HTTP_201_CREATED)

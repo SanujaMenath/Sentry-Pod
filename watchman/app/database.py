@@ -19,3 +19,4 @@ db = client.sentry_pod_db
 devices_collection = db.get_collection("devices")
 logs_collection = db.get_collection("logs")
 device_configurations_collection = db.get_collection("device_configurations")
+api_keys_collection = db.get_collection("api_keys")

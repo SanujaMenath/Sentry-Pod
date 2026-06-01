@@ -14,6 +14,7 @@ const navItems = [
   // { icon: ShieldAlert, label: 'Staging Gate', id: 'staging', path: '/staging' },
   { icon: Server, label: 'Network Devices', id: 'network', path: '/network-devices' },
   { icon: ClipboardList, label: 'Audit Logs', id: 'audit', path: '/audit-logs' }, 
+  { icon: ShieldAlert, label: 'Drift Reports', id: 'drift', path: '/drift-reports' },
   { icon: Users, label: 'Users', id: 'users', path: '/users' },
   { icon: ShieldAlert, label: 'Playbook Manage', id: 'playbooks', path: '/playbooks' },
   { icon: UserCircle, label: 'Profile', id: 'profile', path: '/profile' },

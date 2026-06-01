@@ -1,17 +1,33 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   PlusCircle, Shield, Router, Server, 
   Settings2, Activity, Info 
 } from 'lucide-react';
 
-const devices = [
-  { id: 1, name: 'core-sw-01', ip: '192.168.1.1', status: 'online', model: 'Cisco Catalyst 9300', version: '17.6.3', uptime: '45d', cpu: 35, memory: 62, type: 'switch' },
-  { id: 2, name: 'router-edge-01', ip: '10.0.0.1', status: 'online', model: 'Cisco ISR 4451', version: '16.12.5', uptime: '12d', cpu: 87, memory: 71, type: 'router' },
-  { id: 3, name: 'access-sw-02', ip: '192.168.1.12', status: 'online', model: 'Cisco Catalyst 2960X', version: '15.2(7)', uptime: '89d', cpu: 28, memory: 45, type: 'switch' },
-  { id: 4, name: 'dist-sw--03', ip: '192.168.1.13', status: 'online', model: 'Cisco Catalyst 2960X', version: '15.2(7)', uptime: '89d', cpu: 28, memory: 45, type: 'switch' },
-  { id: 5, name: 'access-sw-15', ip: '192.168.3.25', status: 'offline', model: 'Cisco Catalyst 2960', version: '15.0(21)', uptime: 'N/A', cpu: null, memory: null, type: 'switch' },
-  { id: 6, name: 'firewall-01', ip: '10.0.0.254', status: 'online', model: 'Cisco ASA 5525-X', version: '9.16(3)', uptime: '156d', cpu: 55, memory: 68, type: 'firewall' },
-];
+const NetworkDevices = () => {
+  const [devices, setDevices] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchDevices = async () => {
+      try {
+        setLoading(true);
+        const response = await fetch('http://127.0.0.1:8000/api/network/active-devices');
+        if (!response.ok) throw new Error('Failed to fetch devices');
+        const data = await response.json();
+        setDevices(data || []);
+      } catch (err) {
+        console.error('Error fetching devices:', err);
+        setError(err.message);
+        setDevices([]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDevices();
+  }, []);
 
 const getStatusStyles = (status) => {
   return status === 'online' 
@@ -110,7 +126,6 @@ const DeviceCard = ({ device }) => {
   );
 };
 
-export default function NetworkDevices() {
   return (
     <div className="p-8 space-y-8 font-sans min-h-screen bg-linear-to-br from-[#F8FAFC] to-[#D1D5DB]">
       {/* Header Area */}
@@ -130,12 +145,31 @@ export default function NetworkDevices() {
         </button>
       </div>
 
+      {/* Loading State */}
+      {loading && (
+        <div className="flex items-center justify-center py-20">
+          <div className="text-center">
+            <Activity className="w-12 h-12 text-blue-400 animate-spin mx-auto mb-3" />
+            <p className="text-[#475569]">Loading devices...</p>
+          </div>
+        </div>
+      )}
+
+      {/* Error State */}
+      {error && !loading && (
+        <div className="bg-rose-500/10 border border-rose-500/20 rounded-lg p-4 text-rose-400">
+          <p className="text-sm">Error loading devices: {error}</p>
+        </div>
+      )}
+
       {/* Device Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
-        {devices.map(device => (
-          <DeviceCard key={device.id} device={device} />
-        ))}
-      </div>
+      {!loading && !error && (
+        <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-6">
+          {devices.map(device => (
+            <DeviceCard key={device.id} device={device} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,8 +1,9 @@
 import React from 'react';
 
-const StatCard = ({ title, value, subValue, icon: Icon, iconBg, iconColor }) => (
+const StatCard = ({ title, value, subValue, icon: Icon, iconBg, iconColor, onClick }) => (
   <div 
-    className="p-6 rounded-3xl border border-slate-700/50 shadow-[0_5px_15px_rgba(0,0,0,0.6)] flex justify-between items-center relative overflow-hidden bg-[#1D293DED] font-sans"
+    onClick={onClick}
+    className={`p-6 rounded-3xl border border-slate-700/50 shadow-[0_5px_15px_rgba(0,0,0,0.6)] flex justify-between items-center relative overflow-hidden bg-[#1D293DED] font-sans ${onClick ? 'cursor-pointer hover:shadow-lg transition-shadow' : ''}`}
   >
     <div className="z-10">
       <p className="text-slate-400 text-sm font-medium mb-2">{title}</p>
