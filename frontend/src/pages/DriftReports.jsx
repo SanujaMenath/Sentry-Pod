@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import PageHeader from '../components/PageHeader';
+import DiffViewer from '../components/DiffViewer';
 import { Link } from 'react-router-dom';
 
 const DriftReports = () => {
@@ -28,41 +29,28 @@ const DriftReports = () => {
       {loading ? (
         <div className="text-slate-400">Loading...</div>
       ) : (
-        <div className="grid gap-4">
+        <div className="grid gap-6">
           {reports.length === 0 && <div className="text-slate-400">No drifts detected</div>}
           {reports.map((r) => (
-            <div key={r.hostname} className="p-4 rounded-lg bg-slate-900 border border-slate-800">
-              <div className="flex justify-between">
+            <div key={r.hostname} className="rounded-lg bg-slate-900 border border-slate-800 overflow-hidden">
+              {/* Header */}
+              <div className="p-4 border-b border-slate-800 flex justify-between items-start">
                 <div>
-                  <h4 className="text-slate-200 font-bold">{r.hostname}</h4>
-                  <div className="text-slate-500 text-sm">Updated {new Date(r.mtime * 1000).toLocaleString()}</div>
+                  <h4 className="text-slate-200 font-bold text-lg">{r.hostname}</h4>
+                  <div className="text-slate-500 text-sm mt-1">Updated {new Date(r.mtime * 1000).toLocaleString()}</div>
                 </div>
-                <div className="text-sm text-slate-400">Added: {r.additions.length} • Removed: {r.removals.length}</div>
-              </div>
-              <div className="mt-3">
-                <Link to={`/drift-reports/${r.hostname}`} className="text-xs text-amber-300 underline">View full diff</Link>
+                <Link to={`/drift-reports/${r.hostname}`} className="text-xs text-amber-300 hover:text-amber-200 underline whitespace-nowrap ml-4">
+                  View full report →
+                </Link>
               </div>
 
-              <div className="mt-3 grid grid-cols-2 gap-4 text-[12px] font-mono">
-                <div className="bg-slate-800 p-3 rounded">
-                  <div className="text-emerald-400 text-xs mb-2">Additions</div>
-                  <div className="max-h-48 overflow-auto">
-                    {r.additions.length === 0 && <div className="text-slate-500">(none)</div>}
-                    {r.additions.map((l, i) => (
-                      <div key={i} className="text-emerald-300 mb-1">+ {l}</div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="bg-slate-800 p-3 rounded">
-                  <div className="text-rose-400 text-xs mb-2">Removals</div>
-                  <div className="max-h-48 overflow-auto">
-                    {r.removals.length === 0 && <div className="text-slate-500">(none)</div>}
-                    {r.removals.map((l, i) => (
-                      <div key={i} className="text-rose-300 mb-1">- {l}</div>
-                    ))}
-                  </div>
-                </div>
+              {/* Compact Diff Preview */}
+              <div className="p-4">
+                {r.diff_content ? (
+                  <DiffViewer diffContent={r.diff_content} compact={true} maxLines={8} />
+                ) : (
+                  <div className="text-slate-400 text-sm">Diff content unavailable</div>
+                )}
               </div>
             </div>
           ))}

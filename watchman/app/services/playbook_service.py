@@ -4,6 +4,7 @@ import yaml
 import logging
 import subprocess
 import platform
+import re
 from pathlib import Path
 from typing import List, Tuple, Generator
 from fastapi import HTTPException, status
@@ -16,6 +17,9 @@ BASE_DIR = Path(__file__).parent.parent.parent
 PLAYBOOKS_DIR = BASE_DIR / "playbooks"
 HOSTS_INI_PATH = PLAYBOOKS_DIR / "hosts.ini"
 CATALOG_PATH = PLAYBOOKS_DIR / "catalog.json"
+
+# ANSI escape code pattern
+ANSI_ESCAPE = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
 # Podman container configuration
 PODMAN_CONTAINER_IMAGE = "sentry-ansible"
@@ -299,8 +303,13 @@ def get_playbook_files() -> List[str]:
 def parse_config_drift_reports() -> List[dict]:
     """Parse config drift diff files saved by the Ansible playbook.
 
-    Returns a list of summaries: {hostname, path, mtime, additions, removals, summary}
+    Returns a list of summaries with full diff content and structured change info:
+    {hostname, path, mtime, diff_content, additions, removals, summary}
     """
+    def strip_ansi(text: str) -> str:
+        """Remove ANSI escape codes from text."""
+        return ANSI_ESCAPE.sub('', text)
+    
     drift_dir = PLAYBOOKS_DIR / "configDrift"
     results: List[dict] = []
 
@@ -311,6 +320,8 @@ def parse_config_drift_reports() -> List[dict]:
         try:
             hostname = path.name.replace('DRIFT_', '').replace('.diff', '')
             text = path.read_text(encoding='utf-8', errors='ignore')
+            # Strip ANSI color codes from diff output
+            text = strip_ansi(text)
             lines = text.splitlines()
 
             additions = []
@@ -334,8 +345,9 @@ def parse_config_drift_reports() -> List[dict]:
                 "hostname": hostname,
                 "path": str(path.relative_to(BASE_DIR)),
                 "mtime": int(path.stat().st_mtime),
-                "additions": additions,
-                "removals": removals,
+                "diff_content": text,  # Full diff for structured parsing in frontend
+                "additions": additions,  # Keep for backward compatibility
+                "removals": removals,    # Keep for backward compatibility
                 "summary": summary,
             })
         except Exception:
@@ -347,11 +359,16 @@ def parse_config_drift_reports() -> List[dict]:
 
 def read_config_drift_file(hostname: str) -> str:
     """Return the raw diff file contents for a given hostname (DRIFT_<hostname>.diff)"""
+    def strip_ansi(text: str) -> str:
+        """Remove ANSI escape codes from text."""
+        return ANSI_ESCAPE.sub('', text)
+    
     drift_dir = PLAYBOOKS_DIR / "configDrift"
     target = drift_dir / f"DRIFT_{hostname}.diff"
     if not target.exists():
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Drift report not found")
     try:
-        return target.read_text(encoding='utf-8', errors='ignore')
+        text = target.read_text(encoding='utf-8', errors='ignore')
+        return strip_ansi(text)
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

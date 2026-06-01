@@ -21,6 +21,7 @@ import {
 
 import logo from "../images/logo.png";
 import StatCard from "../components/StatCard";
+import DiffViewer from "../components/DiffViewer";
 import { getAllHostsDeviceCount } from "../services/inventoryService";
 import NetworkTrafficChart from "../components/NetworkTrafficChart";
 import PageHeader from "../components/PageHeader";
@@ -394,103 +395,41 @@ const Dashboard = () => {
               className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]"
               style={styles.card}
             >
-              <div className="flex justify-between items-center mb-8">
+              <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-2 text-amber-500">
                   <Network size={20} />
                   <h4 className="text-base font-bold text-slate-200">
-                    Drift Detection
+                    Configuration Drift
                   </h4>
                 </div>
-                <div>
-                  <a href="/drift-reports" className="text-xs text-amber-300 underline">View all</a>
-                </div>
                 <span className="text-[10px] bg-amber-500/10 text-amber-500 px-3 py-1 rounded-lg border border-amber-500/20 font-bold">
-                  {driftReports.length} Drifts Detected
+                  {driftReports.length} Alert{driftReports.length !== 1 ? 's' : ''}
                 </span>
               </div>
 
-              <div className="flex justify-between text-[11px] text-slate-500 mb-4 px-1">
-                  <span>
-                    Device: {driftReports[0]?.hostname ?? '—'}
-                  </span>
-                  <span>
-                    Updated {driftReports[0] ? new Date(driftReports[0].mtime * 1000).toLocaleString() : '—'}
-                  </span>
-              </div>
-
-              {/* Side-by-Side Comparison Area */}
-              <div className="grid grid-cols-2 gap-4 mb-6">
-                <div className="space-y-2">
-                  <p className="text-[10px] text-slate-500 font-medium ml-1">
-                    Baseline Configuration
-                  </p>
-                  <div className="bg-[#0D121F] rounded-xl p-4 font-mono text-[10px] leading-relaxed text-slate-400 border border-slate-800 h-56 overflow-hidden">
-                    {driftReports[0] ? (
-                      <div className="space-y-1">
-                        {driftReports[0].additions.slice(0,10).map((l, idx) => (
-                          <p key={"a"+idx} className="text-emerald-500/80">+ {l}</p>
-                        ))}
-                      </div>
-                    ) : (
-                      <>
-                        <p>interface</p>
-                        <p>GigabitEthernet1/0/1</p>
-                      </>
-                    )}
-                    <p className="pl-2">switchport mode</p>
-                    <p className="pl-2">access</p>
-                    <p className="pl-2 text-emerald-500 bg-emerald-500/5">
-                      switchport access
-                    </p>
-                    <p className="pl-2 text-emerald-500 bg-emerald-500/5 font-bold">
-                      vlan 10
-                    </p>
-                    <p className="pl-2">spanning-tree</p>
-                    <p className="pl-2">portfast</p>
+              {driftReports.length > 0 ? (
+                <>
+                  <div className="mb-4 text-xs text-slate-400">
+                    Latest: <span className="text-slate-300 font-semibold">{driftReports[0]?.hostname}</span>
+                    {' • '}
+                    Updated {driftReports[0] ? new Date(driftReports[0].mtime * 1000).toLocaleTimeString() : '—'}
                   </div>
-                </div>
-                <div className="space-y-2">
-                  <p className="text-[10px] text-slate-500 font-medium ml-1">
-                    Current Configuration
-                  </p>
-                  <div className="bg-[#0D121F] rounded-xl p-4 font-mono text-[10px] leading-relaxed text-slate-400 border border-slate-800 h-56 overflow-hidden">
-                    {driftReports[0] ? (
-                      <div className="space-y-1">
-                        {driftReports[0].removals.slice(0,10).map((l, idx) => (
-                          <p key={"r"+idx} className="text-rose-400/90">- {l}</p>
-                        ))}
-                      </div>
-                    ) : (
-                      <>
-                        <p>interface</p>
-                        <p>GigabitEthernet1/0/1</p>
-                      </>
+                  
+                  <div className="mb-4 max-h-64 overflow-hidden">
+                    {driftReports[0]?.diff_content && (
+                      <DiffViewer diffContent={driftReports[0].diff_content} compact={true} maxLines={12} />
                     )}
-                    <p className="pl-2">switchport mode</p>
-                    <p className="pl-2">access</p>
-                    <p className="pl-2 text-rose-400 bg-rose-500/10">
-                      switchport access
-                    </p>
-                    <p className="pl-2 text-rose-400 bg-rose-500/10 font-bold">
-                      vlan 20
-                    </p>
-                    <p className="pl-2">spanning-tree</p>
-                    <p className="pl-2">portfast</p>
                   </div>
-                </div>
-              </div>
 
-              {/* Drift Summary Banner */}
-              <div className="bg-[#2A2D35] border border-slate-700/50 rounded-xl p-4 flex items-center gap-4">
-                <div className="bg-amber-500/20 text-amber-500 text-[9px] font-black px-2 py-1 rounded">
-                  DRIFT
+                  <a href="/drift-reports" className="inline-block text-xs text-amber-300 hover:text-amber-200 underline font-medium">
+                    View all drift reports →
+                  </a>
+                </>
+              ) : (
+                <div className="text-slate-400 text-sm py-8 text-center">
+                  No configuration drift detected
                 </div>
-                <div className="text-[12px] text-slate-300">
-                  VLAN assignment changed:{" "}
-                  <span className="text-rose-400 ml-2">- vlan 10</span>{" "}
-                  <span className="text-emerald-400 ml-1">→ + vlan 20</span>
-                </div>
-              </div>
+              )}
             </div>
 
             {/* 2. SYSLOG INTELLIGENCE CARD */}
