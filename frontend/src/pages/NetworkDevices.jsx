@@ -19,6 +19,7 @@ import {
   getNetworkTerminalSocketUrl,
   saveDeviceConfiguration,
 } from "../services/networkService";
+import PageHeader from "../components/PageHeader";
 
 const normalizeDevice = (device) => ({
   ...device,
