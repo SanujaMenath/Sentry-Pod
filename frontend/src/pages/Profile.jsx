@@ -114,8 +114,8 @@ export default function Profile() {
         {/* Header */}
         <div className="flex items-start justify-between">
            <PageHeader 
-            title="Playbook Management" 
-             description="Network automated configurations and core code blueprints" 
+            title="Profile Settings" 
+             description="Manage your profile information and security settings" 
              isSmallSubtext={true}
         />
         </div>
