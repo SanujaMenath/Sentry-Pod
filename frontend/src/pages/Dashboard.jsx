@@ -40,6 +40,8 @@ const Dashboard = () => {
   const [isRefreshingDrift, setIsRefreshingDrift] = useState(false);
   const [baselineCount, setBaselineCount] = useState(0);
   const [isRefreshingBaseline, setIsRefreshingBaseline] = useState(false);
+  const [isRefreshingGraph, setIsRefreshingGraph] = useState(false);
+  const [graphRefreshKey, setGraphRefreshKey] = useState(0);
 
 
   const handleApprove = (e) => {
@@ -176,6 +178,25 @@ const Dashboard = () => {
     }
   };
 
+  const handleRefreshGraph = async () => {
+    setIsRefreshingGraph(true);
+    try {
+      const response = await fetch('http://127.0.0.1:8000/playbooks/baseline-graph/refresh', {
+        method: 'POST'
+      });
+      if (response.ok) {
+        // Bump the refresh key so NetworkTrafficChart re-fetches its data
+        setGraphRefreshKey((prev) => prev + 1);
+      } else {
+        console.error('Baseline graph refresh failed:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error triggering baseline graph refresh:', error);
+    } finally {
+      setIsRefreshingGraph(false);
+    }
+  };
+
   const styles = {
     sidebar: {
       backgroundColor: "#020618ED",
@@ -285,7 +306,7 @@ const Dashboard = () => {
             >
               <div className="flex justify-between items-center mb-4">
                 <div className="z-10">
-                  <p className="text-slate-400 text-sm font-medium mb-2">Network Baselines</p>
+                  <p className="text-slate-400 text-sm font-medium mb-2">Network Baselines (via Ansible)</p>
                   <h3 className="text-4xl font-extrabold text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] tracking-tight">
                     {isRefreshingBaseline ? "..." : String(baselineCount)}
                   </h3>
@@ -312,7 +333,11 @@ const Dashboard = () => {
           <div className="grid lg:grid-cols-2 gap-6">
          
           {/* Traffic Section */}
-            <NetworkTrafficChart />
+            <NetworkTrafficChart
+              onRefresh={handleRefreshGraph}
+              isRefreshing={isRefreshingGraph}
+              refreshKey={graphRefreshKey}
+            />
 
             {/* AI Console Section */}
             <div

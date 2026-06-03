@@ -225,6 +225,55 @@ async def refresh_network_baselines():
             detail=str(e)
         )
 
+@router.post("/baseline-graph/refresh")
+async def refresh_baseline_graph():
+    """Run SNMP collection + parsing in container and return the refreshed host count.
+
+    Drives the Network Baseline graph card on the dashboard.
+    """
+    import json
+    try:
+        returncode, output = playbook_service.run_baseline_refresh()
+
+        # Count unique telemetried hosts from per_interface_metrics.json
+        host_count = 0
+        metrics_path = playbook_service.PLAYBOOKS_DIR / "snmp_output" / "per_interface_metrics.json"
+        if metrics_path.exists():
+            try:
+                data = json.loads(metrics_path.read_text(encoding='utf-8'))
+                host_count = len({i.get("host") for i in data.get("interfaces", []) if i.get("host")})
+            except Exception:
+                host_count = 0
+
+        # Record audit log entry
+        try:
+            audit_col = db.get_collection("audit_logs")
+            audit_entry = {
+                "action_name": "baseline_graph_refresh",
+                "status": "success" if returncode == 0 else "failed",
+                "output": output,
+                "username": "System",
+                "host_count": host_count,
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+            }
+            await audit_col.insert_one(audit_entry)
+        except Exception:
+            pass
+
+        return {
+            "status": "success" if returncode == 0 else "failed",
+            "host_count": host_count,
+            "output": output,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
 @router.post("/suggest")
 async def suggest_playbooks(request: PlaybookRequest):
     """Find playbook suggestions matching a user prompt"""

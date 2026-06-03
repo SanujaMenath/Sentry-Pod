@@ -6,6 +6,11 @@ from datetime import datetime
 INPUT_DIR = "watchman/playbooks/snmp_output"
 OUTPUT_REPORT = "watchman/playbooks/snmp_output/per_interface_metrics.json"
 
+# Container fallback: when scripts/ is mounted at /scripts/ and playbooks/ at /ansible/
+if not os.path.exists(INPUT_DIR) and os.path.exists("/ansible/snmp_output"):
+    INPUT_DIR = "/ansible/snmp_output"
+    OUTPUT_REPORT = "/ansible/snmp_output/per_interface_metrics.json"
+
 def clean_interface_name(val_str):
     """Cleans up SNMP string formatting from interface names."""
     # Removes 'String: ', quotes, or hex indicators if present

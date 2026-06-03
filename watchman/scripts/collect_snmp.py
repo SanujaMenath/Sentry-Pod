@@ -15,6 +15,11 @@ IFOPER_OID = ".1.3.6.1.2.1.2.2.1.8"
 OIDS = [MAC_OID, IFDESCR_OID, IFADMIN_OID, IFOPER_OID]
 OUTPUT_DIR = os.path.join(REPO_ROOT, "playbooks", "snmp_output")
 
+# Container fallback: when scripts/ is mounted at /scripts/ and playbooks/ at /ansible/
+if not os.path.exists(HOSTS_FILE) and os.path.exists("/ansible/hosts.ini"):
+    HOSTS_FILE = "/ansible/hosts.ini"
+    OUTPUT_DIR = "/ansible/snmp_output"
+
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 def parse_ansible_all_hosts(filepath):
