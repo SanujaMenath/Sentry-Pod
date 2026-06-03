@@ -4,6 +4,7 @@ import { logAction } from "../services/auditService";
 import { generateText } from "../services/llmService";
 import PlaybookStagingGate from "../components/PlaybookStagingGate";
 import ApiKeyModal from "../components/ApiKeyModal";
+import PageHeader from "../components/PageHeader";
 
 const mocha = {
   base: "#1e1e2e",
@@ -427,10 +428,11 @@ export default function AiChat() {
       )}
 
       <div className="flex items-start justify-between mb-6">
-        <div>
-          <h1 className="text-[30px] font-extrabold tracking-tight text-[#0F172A] drop-shadow-sm">AI Chat Console</h1>
-          <p className="text-base font-medium text-[#64748B]">Natural language network management and configuration</p>
-        </div>
+                    <PageHeader 
+                        title="AI Chat Console" 
+                        description="Interact with your AI Network Assistant. Ask questions, run commands, and manage your network with natural language!" 
+                        isSmallSubtext={true}
+                    />
         <button
           onClick={() => setShowApiKeyModal(true)}
           className="flex items-center gap-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 font-medium text-sm transition-all shadow-md hover:shadow-lg"
