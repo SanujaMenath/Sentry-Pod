@@ -258,6 +258,132 @@ def run_playbook(playbook_name: str) -> Tuple[int, str]:
             detail="Podman not found. Ensure Podman is installed and in PATH"
         )
 
+def run_drift_analysis() -> Tuple[int, str]:
+    """Executes run_drift_analysis.sh inside the sentry-ansible container."""
+    system = platform.system()
+    playbooks_abs_path = PLAYBOOKS_DIR.resolve()
+    scripts_abs_path = (BASE_DIR / "scripts").resolve()
+    
+    cmd = ["podman", "run", "--rm"]
+    if system == "Linux":
+        cmd.append("--network=host")
+        
+    cmd.extend([
+        "-v", f"{playbooks_abs_path}:{PODMAN_ANSIBLE_DIR}:Z",
+        "-v", f"{scripts_abs_path}:/scripts:Z",
+        PODMAN_CONTAINER_IMAGE,
+        "/bin/bash", f"{PODMAN_ANSIBLE_DIR}/run_drift_analysis.sh"
+    ])
+    
+    logger.debug(f"Running drift analysis command: {' '.join(cmd)}")
+    
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=300
+        )
+        return result.returncode, result.stdout + result.stderr
+    except subprocess.TimeoutExpired:
+        raise HTTPException(
+            status_code=status.HTTP_408_REQUEST_TIMEOUT,
+            detail="Drift analysis execution timeout (300s)"
+        )
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Podman not found. Ensure Podman is installed and in PATH"
+        )
+
+def get_baselined_devices() -> List[str]:
+    """Get list of hostnames that have golden state files saved."""
+    golden_dir = PLAYBOOKS_DIR / "goldenState"
+    devices = []
+    if golden_dir.exists() and golden_dir.is_dir():
+        for path in golden_dir.glob("GS_*.txt"):
+            hostname = path.name.replace("GS_", "").replace(".txt", "")
+            devices.append(hostname)
+    return sorted(devices)
+
+def run_baseline_collection() -> Tuple[int, str]:
+    """Executes run_baseline_collection.sh inside the sentry-ansible container."""
+    system = platform.system()
+    playbooks_abs_path = PLAYBOOKS_DIR.resolve()
+
+    cmd = ["podman", "run", "--rm"]
+    if system == "Linux":
+        cmd.append("--network=host")
+
+    cmd.extend([
+        "-v", f"{playbooks_abs_path}:{PODMAN_ANSIBLE_DIR}:Z",
+        PODMAN_CONTAINER_IMAGE,
+        "/bin/bash", f"{PODMAN_ANSIBLE_DIR}/run_baseline_collection.sh"
+    ])
+
+    logger.debug(f"Running baseline collection command: {' '.join(cmd)}")
+
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=300
+        )
+        return result.returncode, result.stdout + result.stderr
+    except subprocess.TimeoutExpired:
+        raise HTTPException(
+            status_code=status.HTTP_408_REQUEST_TIMEOUT,
+            detail="Baseline collection execution timeout (300s)"
+        )
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Podman not found. Ensure Podman is installed and in PATH"
+        )
+
+def run_baseline_refresh() -> Tuple[int, str]:
+    """Executes run_baseline_refresh.sh inside the sentry-ansible container.
+
+    Re-runs SNMP bulkwalk collection and metric parsing to refresh
+    the per_interface_metrics.json file consumed by the Network Baseline graph.
+    """
+    system = platform.system()
+    playbooks_abs_path = PLAYBOOKS_DIR.resolve()
+    scripts_abs_path = (BASE_DIR / "scripts").resolve()
+
+    cmd = ["podman", "run", "--rm"]
+    if system == "Linux":
+        cmd.append("--network=host")
+
+    cmd.extend([
+        "-v", f"{playbooks_abs_path}:{PODMAN_ANSIBLE_DIR}:Z",
+        "-v", f"{scripts_abs_path}:/scripts:Z",
+        PODMAN_CONTAINER_IMAGE,
+        "/bin/bash", f"{PODMAN_ANSIBLE_DIR}/run_baseline_refresh.sh"
+    ])
+
+    logger.debug(f"Running baseline refresh command: {' '.join(cmd)}")
+
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=300
+        )
+        return result.returncode, result.stdout + result.stderr
+    except subprocess.TimeoutExpired:
+        raise HTTPException(
+            status_code=status.HTTP_408_REQUEST_TIMEOUT,
+            detail="Baseline refresh execution timeout (300s)"
+        )
+    except FileNotFoundError:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Podman not found. Ensure Podman is installed and in PATH"
+        )
+
 def run_playbook_stream_generator(playbook_name: str) -> Generator[str, None, None]:
     """Starts the Podman subprocess and yields SSE formatted event payloads data."""
     playbook_path = validate_playbook_path(playbook_name)

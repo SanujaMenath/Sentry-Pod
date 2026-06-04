@@ -37,6 +37,11 @@ const Dashboard = () => {
 
   const [showNotifications, setShowNotifications] = useState(false);
   const [driftReports, setDriftReports] = useState([]);
+  const [isRefreshingDrift, setIsRefreshingDrift] = useState(false);
+  const [baselineCount, setBaselineCount] = useState(0);
+  const [isRefreshingBaseline, setIsRefreshingBaseline] = useState(false);
+  const [isRefreshingGraph, setIsRefreshingGraph] = useState(false);
+  const [graphRefreshKey, setGraphRefreshKey] = useState(0);
 
 
   const handleApprove = (e) => {
@@ -81,6 +86,20 @@ const Dashboard = () => {
   }, []);
 
   useEffect(() => {
+    const fetchBaseline = async () => {
+      try {
+        const res = await fetch("http://127.0.0.1:8000/playbooks/baseline");
+        const data = await res.json();
+        if (data && data.devices) setBaselineCount(data.devices.length);
+      } catch (e) {
+        console.error("Failed to load baseline count:", e);
+      }
+    };
+
+    fetchBaseline();
+  }, []);
+
+  useEffect(() => {
     const fetchActiveDevices = async () => {
       try {
         const response = await fetch('http://127.0.0.1:8000/api/network/active-devices');
@@ -112,6 +131,69 @@ const Dashboard = () => {
       console.error('Error triggering nmap scan:', error);
     } finally {
       setIsScanning(false);
+    }
+  };
+
+  const handleRefreshDrift = async (e) => {
+    if (e) e.stopPropagation();
+    setIsRefreshingDrift(true);
+    try {
+      const response = await fetch('http://127.0.0.1:8000/playbooks/drift/refresh', {
+        method: 'POST'
+      });
+      if (response.ok) {
+        const result = await response.json();
+        if (result && result.reports) {
+          setDriftReports(result.reports);
+        }
+      } else {
+        console.error('Drift refresh failed:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error triggering drift analysis:', error);
+    } finally {
+      setIsRefreshingDrift(false);
+    }
+  };
+
+  const handleRefreshBaseline = async (e) => {
+    if (e) e.stopPropagation();
+    setIsRefreshingBaseline(true);
+    try {
+      const response = await fetch('http://127.0.0.1:8000/playbooks/baseline/refresh', {
+        method: 'POST'
+      });
+      if (response.ok) {
+        const result = await response.json();
+        if (result && result.devices) {
+          setBaselineCount(result.devices.length);
+        }
+      } else {
+        console.error('Baseline refresh failed:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error triggering baseline collection:', error);
+    } finally {
+      setIsRefreshingBaseline(false);
+    }
+  };
+
+  const handleRefreshGraph = async () => {
+    setIsRefreshingGraph(true);
+    try {
+      const response = await fetch('http://127.0.0.1:8000/playbooks/baseline-graph/refresh', {
+        method: 'POST'
+      });
+      if (response.ok) {
+        // Bump the refresh key so NetworkTrafficChart re-fetches its data
+        setGraphRefreshKey((prev) => prev + 1);
+      } else {
+        console.error('Baseline graph refresh failed:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error triggering baseline graph refresh:', error);
+    } finally {
+      setIsRefreshingGraph(false);
     }
   };
 
@@ -189,32 +271,73 @@ const Dashboard = () => {
               </button>
             </div>
              {/* Config Drift */}
-            <StatCard
-              title="Configuration Drift Alerts"
-              value={String(driftReports.length || 0)}
-              subValue={driftReports.length > 0 ? "Updated recently (via Ansible)" : "No drift detected (via Ansible)"}
-              icon={ShieldAlert}
-              iconBg="bg-[#3E2C23]"
-              iconColor="text-[#EAB308]"
+            <div 
               onClick={() => navigate('/drift-reports')}
-            />
+              className="bg-[#1D293DED] border border-slate-700/50 rounded-3xl p-6 shadow-[0_5px_15px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col cursor-pointer hover:shadow-lg transition-shadow"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <div className="z-10">
+                  <p className="text-slate-400 text-sm font-medium mb-2">Configuration Drift Alerts</p>
+                  <h3 className="text-4xl font-extrabold text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] tracking-tight">
+                    {isRefreshingDrift ? "..." : String(driftReports.length || 0)}
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-2 font-medium">
+                    {driftReports.length > 0 ? "Updated recently (via Ansible)" : "No drift detected (via Ansible)"}
+                  </p>
+                </div>
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-[#3E2C23] text-[#EAB308] border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]">
+                  <ShieldAlert size={32} strokeWidth={1.5} />
+                </div>
+              </div>
+              <button
+                onClick={handleRefreshDrift}
+                disabled={isRefreshingDrift}
+                className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-lg bg-[#3E2C23] hover:bg-[#4E3C33] text-[#EAB308] text-xs font-bold disabled:opacity-50 transition-all active:scale-95"
+              >
+                <RefreshCw size={14} className={isRefreshingDrift ? 'animate-spin' : ''} />
+                {isRefreshingDrift ? 'Running Drift Analysis...' : 'Refresh'}
+              </button>
+            </div>
             
             
-            <StatCard
-              title="Security Status"
-              value="Secure"
-              subValue="All policies active"
-              icon={ShieldAlert}
-              iconBg="bg-cyan-600/20"
-              iconColor="text-cyan-400"
-            />
+             {/* Network Baselines */}
+            <div 
+              className="bg-[#1D293DED] border border-slate-700/50 rounded-3xl p-6 shadow-[0_5px_15px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col"
+            >
+              <div className="flex justify-between items-center mb-4">
+                <div className="z-10">
+                  <p className="text-slate-400 text-sm font-medium mb-2">Network Baselines (via Ansible)</p>
+                  <h3 className="text-4xl font-extrabold text-white drop-shadow-[0_2px_2px_rgba(0,0,0,0.8)] tracking-tight">
+                    {isRefreshingBaseline ? "..." : String(baselineCount)}
+                  </h3>
+                  <p className="text-xs text-slate-500 mt-2 font-medium">
+                    {baselineCount > 0 ? `${baselineCount} devices baselined` : "No devices baselined"}
+                  </p>
+                </div>
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center bg-cyan-600/20 text-cyan-400 border border-white/10 shadow-[inset_0_1px_1px_rgba(255,255,255,0.2)]">
+                  <ClipboardList size={32} strokeWidth={1.5} />
+                </div>
+              </div>
+              <button
+                onClick={handleRefreshBaseline}
+                disabled={isRefreshingBaseline}
+                className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-400 text-xs font-bold disabled:opacity-50 transition-all active:scale-95"
+              >
+                <RefreshCw size={14} className={isRefreshingBaseline ? 'animate-spin' : ''} />
+                {isRefreshingBaseline ? 'Baselining devices...' : 'Refresh'}
+              </button>
+            </div>
           </div>
 
           {/* ROW TRAFFIC & AI  */}
           <div className="grid lg:grid-cols-2 gap-6">
          
           {/* Traffic Section */}
-            <NetworkTrafficChart />
+            <NetworkTrafficChart
+              onRefresh={handleRefreshGraph}
+              isRefreshing={isRefreshingGraph}
+              refreshKey={graphRefreshKey}
+            />
 
             {/* AI Console Section */}
             <div

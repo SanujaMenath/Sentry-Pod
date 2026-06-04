@@ -3,6 +3,8 @@ import re
 
 # Define the path where Ansible saves the drift reports
 DRIFT_DIR = "../playbooks/configDrift"
+if not os.path.exists(DRIFT_DIR) and os.path.exists("/ansible/configDrift"):
+    DRIFT_DIR = "/ansible/configDrift"
 
 def clean_ansi_codes(text):
     """Removes ANSI escape sequences to make the output human-readable."""
