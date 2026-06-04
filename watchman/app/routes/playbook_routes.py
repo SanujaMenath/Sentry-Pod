@@ -1,3 +1,4 @@
+from bson import ObjectId
 from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import StreamingResponse
 from datetime import datetime
@@ -5,6 +6,8 @@ from datetime import datetime
 from app.models.playbook import PlaybookRequest, PlaybookResponse
 import app.services.playbook_service as playbook_service
 from app.database import db
+from pydantic import BaseModel
+from bson import ObjectId
 
 router = APIRouter(prefix="/playbooks", tags=["Playbooks"])
 
@@ -169,4 +172,106 @@ async def get_all_hosts_count():
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
+        )
+    
+class AddPlaybookRequest(BaseModel):
+    name: str
+    engine_type: str
+    subnet_scope: str
+    pipeline_status: str
+
+
+@router.post("/add", status_code=status.HTTP_201_CREATED)
+async def add_new_playbook(request: AddPlaybookRequest):
+    """Save a new registered automation blueprint directly to MongoDB"""
+    try:
+        playbooks_col = db.get_collection("playbooks")
+        
+        new_blueprint_doc = {
+            "name": request.name,
+            "engine_type": request.engine_type,
+            "subnet_scope": request.subnet_scope,
+            "pipeline_status": request.pipeline_status,
+            "last_executed": "Never Executed",
+            "timestamp_created": datetime.utcnow().isoformat() + "Z"
+        }
+        
+        await playbooks_col.insert_one(new_blueprint_doc)
+        return {"status": "success", "message": f"Successfully committed blueprint: {request.name}"}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database commit failed: {str(e)}"
+        )
+    
+@router.get("/dashboard")
+async def get_playbook_dashboard_data():
+    """Return unified playbook metrics and active blueprints directly from MongoDB"""
+    try:
+        # 1. Connect directly to your live MongoDB playbooks collection
+        playbooks_col = db.get_collection("playbooks")
+        cursor = playbooks_col.find({})
+        
+        catalog = []
+        async for doc in cursor:
+            
+            doc["id"] = str(doc["_id"])
+            del doc["_id"]
+            catalog.append(doc)
+        
+        total = len(catalog)
+        
+        #Dynamically calculate your metric cards using your live database documents
+        verified = sum(1 for p in catalog if str(p.get("pipeline_status", "")).strip().lower() in ["verified", "production ready"])
+        failed = sum(1 for p in catalog if str(p.get("pipeline_status", "")).strip().lower() in ["failed", "error state"])
+        draft = sum(1 for p in catalog if str(p.get("pipeline_status", "")).strip().lower() in ["draft", "restricted execution"])
+
+        return {
+            "status": "success",
+            "total_playbooks": total,
+            "verified_pipeline": verified,
+            "failed_run_alerts": failed,
+            "draft_tasks": draft,
+            "blueprints": catalog  
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Dashboard database fetch failed: {str(e)}"
+        )
+    
+    
+
+@router.delete("/delete/{playbook_id}")
+async def delete_playbook_entry(playbook_id: str):
+    """Permanently delete an automated blueprint record out of MongoDB by its unique hex ID"""
+    try:
+        playbooks_col = db.get_collection("playbooks")
+        
+
+        try:
+            mongo_id = ObjectId(playbook_id)
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Provided blueprint asset tracking ID format is completely invalid."
+            )
+            
+        
+        result = await playbooks_col.delete_one({"_id": mongo_id})
+        
+        if result.deleted_count == 0:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Target configuration entry could not be located in database layer."
+            )
+            
+        return {"status": "success", "detail": "Blueprint document successfully dropped from cluster data."}
+        
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database deletion transaction failure: {str(e)}"
         )
