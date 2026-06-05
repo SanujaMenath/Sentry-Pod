@@ -1,202 +1,131 @@
-# Configuration Drift Reports - Clean Git-Diff Implementation
+# Configuration Drift Reports — Git-Style Diff Viewer
 
 ## Overview
-Implemented a clean, production-grade configuration drift viewer that uses structured git-style diff parsing instead of flat lists of additions/removals.
+
+A clean, production-grade configuration drift viewer that parses unified diff output from Ansible playbooks into structured hunks with context lines, rendered as a git-style diff in the React frontend. This replaced a flat list of additions/removals with a display that preserves surrounding context for each change.
+
+## What Changed
+
+### Created
+- `frontend/src/utils/diffParser.js` — Unified diff parser that produces structured `DiffLine`, `DiffHunk`, and `ParsedDiff` objects
+- `frontend/src/components/DiffViewer.jsx` — Reusable React component for rendering git-style diffs with color-coded additions/removals/context
+
+### Modified
+- `watchman/app/services/playbook_service.py` — `parse_config_drift_reports()` now includes the full `diff_content` field in API responses (backward compatible, legacy `additions`/`removals` arrays preserved)
+- `frontend/src/pages/DriftReports.jsx` — Uses DiffViewer in compact mode for report previews
+- `frontend/src/pages/DriftReportDetail.jsx` — Uses DiffViewer with copy-diff action
+- `frontend/src/pages/Dashboard.jsx` — Drift card shows compact DiffViewer preview (max 12 lines)
 
 ## Architecture
 
-### 1. **Diff Parser Utility** (`frontend/src/utils/diffParser.js`)
-- **Purpose**: Parse unified diff format into structured hunks with context lines
-- **Classes**:
-  - `DiffLine`: Individual diff line with type (addition, removal, context) and content
-  - `DiffHunk`: Collection of lines representing a single change chunk with header (@@ lines @@)
-  - `ParsedDiff`: Complete diff with file headers and all hunks
-- **Key Features**:
-  - Parses standard unified diff format (--- before, +++ after, @@ hunks @@)
-  - Preserves context lines (lines without + or -)
-  - Extracts statistics (added/removed line counts per hunk and total)
-  - Returns structured data suitable for rendering
+```
+┌─────────────────────────────────────────────────────┐
+│  Ansible Playbook (sentry-ansible container)         │
+│  Outputs: DRIFT_<hostname>.diff (unified format)     │
+└────────────────┬────────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────────┐
+│  Backend: parse_config_drift_reports()              │
+│  Returns: { hostname, path, mtime,                  │
+│             diff_content (full unified diff),       │
+│             additions, removals (legacy compat) }   │
+└────────────────┬────────────────────────────────────┘
+                 │  /api/network/drift/reports
+                 ▼
+┌─────────────────────────────────────────────────────┐
+│  Frontend: diffParser.js                            │
+│  Parses unified diff → DiffHunk[] (lazy, memoized)  │
+└────────────────┬────────────────────────────────────┘
+                 │
+                 ▼
+┌─────────────────────────────────────────────────────┐
+│  Frontend: DiffViewer.jsx                           │
+│  Renders color-coded git-style diff with context    │
+│  ├── DriftReports.jsx (compact card preview)        │
+│  ├── DriftReportDetail.jsx (full report page)       │
+│  └── Dashboard.jsx (compact widget, 12 lines max)   │
+└─────────────────────────────────────────────────────┘
+```
 
-### 2. **DiffViewer Component** (`frontend/src/components/DiffViewer.jsx`)
-- **Purpose**: Reusable, production-ready diff display component
-- **Features**:
-  - **Summary Header**: Shows total additions/removals and hunk count
-  - **File Headers**: Displays before/after file names with visual indicators
-  - **Hunk Display**: 
-    - Each hunk has sticky header with location and stats
-    - Context lines shown with neutral styling
-    - Additions highlighted in green
-    - Removals highlighted in red
-    - Line prefixes (+ − space) for quick scanning
-  - **Compact Mode**: Supports `maxLines` prop to limit display (useful for dashboard previews)
-  - **Line Wrapping**: Handles long config lines with proper text wrapping
+## File-by-File Detail
 
-### 3. **Backend Changes** (`watchman/app/services/playbook_service.py`)
-- **Function**: `parse_config_drift_reports()`
-- **Changes**:
-  - Now includes full `diff_content` field in response
-  - Maintains backward compatibility with existing `additions`/`removals` arrays
-  - Sends raw diff to frontend for structured parsing
-  - Benefits: Single source of truth, more flexible client-side rendering
+### 1. `frontend/src/utils/diffParser.js`
 
-### 4. **Frontend Pages**
+Three classes in a pure utility:
 
-#### **DriftReports.jsx** (List View)
-- Grid of drift reports with compact diff previews
-- Each card shows:
-  - Device hostname
-  - Last update timestamp
-  - Preview of first 8 lines of diff using DiffViewer (compact mode)
-  - Link to full report
+- **`DiffLine`** — single diff line with `type` (`addition`, `removal`, `context`) and `content`
+- **`DiffHunk`** — a change chunk with `header` (`@@ -n,m +n,m @@`), stats, and `DiffLine[]`
+- **`ParsedDiff`** — file-level headers (`---`/`+++`) and `DiffHunk[]`
 
-#### **DriftReportDetail.jsx** (Full View)
-- Full-page diff viewer with actions:
-  - Back button to drift reports list
-  - Copy diff button with feedback
-  - Full DiffViewer showing all hunks
-- Clean, professional layout
+Parses standard unified diff format. No external dependencies.
 
-#### **Dashboard.jsx** (Preview Widget)
-- Updated drift detection card to show:
-  - Latest drift device name
-  - Compact diff preview (max 12 lines)
-  - Link to view all drift reports
-  - "No drift detected" message when empty
+### 2. `frontend/src/components/DiffViewer.jsx`
+
+Props: `diffContent` (string), `compact` (boolean), `maxLines` (number).
+
+Renders:
+- Summary header — total additions/removals and hunk count
+- File headers — before/after filenames with visual indicators
+- Hunks — sticky header with location and stats, green additions, red removals, neutral context
+- Supports `maxLines` truncation for dashboard previews
+- Handles long config lines with text wrapping
+
+### 3. `watchman/app/services/playbook_service.py`
+
+`parse_config_drift_reports()` reads `.diff` files from the filesystem. Previously returned only aggregated `additions`/`removals` counts. Now also returns the raw `diff_content` string so the frontend has a single source of truth for rendering.
 
 ## Data Flow
 
 ```
-┌─────────────────────────────────────────────────────┐
-│  Ansible Playbook (watchman)                        │
-│  Generates: DRIFT_<hostname>.diff (unified format)  │
-└────────────────┬────────────────────────────────────┘
-                 │
-                 ↓
-┌─────────────────────────────────────────────────────┐
-│  Backend: parse_config_drift_reports()              │
-│  Returns: {                                         │
-│    hostname, path, mtime,                           │
-│    diff_content (full),         ← NEW              │
-│    additions, removals (legacy) ← backward compat   │
-│  }                                                  │
-└────────────────┬────────────────────────────────────┘
-                 │
-                 ↓ API Response
-┌─────────────────────────────────────────────────────┐
-│  Frontend: DiffViewer Component                     │
-│  Input: diff_content (unified diff string)          │
-│         ↓ (using diffParser.js)                    │
-│  Output: Structured hunks with context             │
-│         ↓ (React rendering)                        │
-│  Display: Git-style diff with colors & context     │
-└─────────────────────────────────────────────────────┘
+Ansible playbook executes in sentry-ansible container
+        │
+        ▼
+Writes DRIFT_<hostname>.diff to watchman/playbooks/drift_reports/
+        │
+        ▼
+Backend reads .diff files → parse_config_drift_reports()
+        │  JSON response: { diff_content, additions, removals }
+        ▼
+Frontend API call → diffParser.js parses unified diff
+        │  → DiffHunk[] with context lines
+        ▼
+DiffViewer component renders color-coded git-style view
 ```
 
-## Usage Examples
+## Usage
 
-### In Dashboard Widget
-```jsx
-{driftReports[0]?.diff_content && (
-  <DiffViewer 
-    diffContent={driftReports[0].diff_content} 
-    compact={true} 
-    maxLines={12} 
-  />
-)}
+### From the UI
+
+1. Navigate to **Drift Reports** page from the sidebar
+2. Each card shows the device hostname, timestamp, and a compact diff preview
+3. Click a card to see the full diff report
+4. Use the **Copy** button on the detail page to copy the diff
+
+### From the CLI
+
+```bash
+# Trigger drift analysis
+python watchman/scripts/container_manager.py run configDrift.yml
+
+# View raw diff files
+ls watchman/playbooks/drift_reports/
+cat watchman/playbooks/drift_reports/DRIFT_ESW10.diff
 ```
 
-### In Full Report Page
-```jsx
-{content && <DiffViewer diffContent={content} />}
+### Via the API
+
+```bash
+# List drift reports
+curl http://localhost:8000/playbooks/drift/refresh
+
+# Get full report details
+curl http://localhost:8000/api/network/drift/reports
 ```
 
-## Key Benefits
+## Design Notes
 
-1. **Clean Separation of Concerns**
-   - Parser: Pure utility function (testable)
-   - Component: Pure React component (reusable)
-   - Pages: Thin integration layers
-
-2. **Context Preservation**
-   - Shows surrounding lines for each change
-   - Makes it clear what changed and why
-   - Follows git diff conventions
-
-3. **Backward Compatibility**
-   - Legacy `additions`/`removals` arrays still present in API
-   - Existing code can continue using them
-   - New code uses cleaner diff format
-
-4. **Performance**
-   - Lazy parsing (only when rendered)
-   - Memoized diff parsing to avoid recalculation
-   - `maxLines` prop for efficient previews
-
-5. **Extensibility**
-   - DiffViewer can easily support:
-     - Syntax highlighting by config type
-     - Collapsible hunks
-     - Side-by-side diff view
-     - Unified/split view toggle
-     - Search/filter functionality
-
-## Visual Example
-
-```
-Summary: +45 −3 • 2 changes
-
-− a/DRIFT_ESW10.diff
-+ b/DRIFT_ESW10.diff
-
-@@ -1,9 +1,8 @@  +1−1
-
- Building configuration...
- 
--Current configuration : 3074 bytes        ← Removal (red)
-+Current configuration : 5508 bytes        ← Addition (green)
- !
- ! No configuration change since last restart
--! NVRAM config last updated at 22:45:57   ← Removal
- !
- version 12.4
- service timestamps debug datetime msec
- 
-@@ -158,6 +157,69 @@  +1−0
-
- logging host 192.168.122.1 transport udp port 10514
-+snmp-server community sentryPod RO         ← Addition
-+snmp-server enable traps snmp              ← Addition
- [... more context lines ...]
-```
-
-## Testing Checklist
-
-- ✅ Python syntax: No errors
-- ✅ Frontend build: Successful (2496 modules)
-- ✅ No TypeScript/JSX errors in components
-- ✅ Diff parser handles standard unified format
-- ✅ DiffViewer renders cleanly with proper colors
-- ✅ Dashboard preview shows first N lines
-- ✅ Full report page shows complete diff
-- ✅ Backward compatibility maintained
-
-## Files Modified/Created
-
-### Created
-- `frontend/src/utils/diffParser.js` - Diff parsing utility
-- `frontend/src/components/DiffViewer.jsx` - Reusable diff viewer component
-
-### Modified
-- `watchman/app/services/playbook_service.py` - Added `diff_content` to API response
-- `frontend/src/pages/DriftReports.jsx` - Updated to use DiffViewer
-- `frontend/src/pages/DriftReportDetail.jsx` - Updated to use DiffViewer with icons
-- `frontend/src/pages/Dashboard.jsx` - Updated drift card to show compact diff preview
-
-## Next Steps (Optional Enhancements)
-
-1. **Syntax Highlighting**: Color config commands by type (interface, vlan, routing, etc.)
-2. **Diff Comparison**: Side-by-side baseline vs current view
-3. **Advanced Filtering**: Hide certain change types or match patterns
-4. **Export**: Download diff as text, JSON, or formatted document
-5. **History**: Maintain diff history with timestamps
-6. **Approval Workflow**: Integrate with staging gate for drift approval/rejection
+- **Backward compatibility retained:** The legacy `additions`/`removals` arrays still exist in the API response. Existing code that reads them continues to work. New code should use `diff_content`.
+- **Lazy parsing:** The diff parser runs only when the DiffViewer component renders. Parsed output is memoized to avoid recalculation on re-renders.
+- **Compact mode:** `maxLines` prop enables efficient preview rendering (used in DriftReports cards and Dashboard widget) without parsing the entire diff.
+- **Extensibility:** The DiffViewer component can be extended for syntax highlighting, collapsible hunks, side-by-side view, or search/filter without changes to the parser.
