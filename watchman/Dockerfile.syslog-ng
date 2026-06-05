@@ -1,0 +1,15 @@
+FROM ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y syslog-ng curl \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY playbooks/gns3_lab.conf /etc/syslog-ng/conf.d/gns3_lab.conf
+COPY scripts/syslog_listener.sh /usr/local/bin/syslog_listener.sh
+RUN chmod +x /usr/local/bin/syslog_listener.sh
+
+EXPOSE 10514/udp
+
+CMD ["syslog-ng", "-F", "-f", "/etc/syslog-ng/syslog-ng.conf", "--stderr"]

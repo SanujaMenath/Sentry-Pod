@@ -44,6 +44,7 @@ const Dashboard = () => {
   const [graphRefreshKey, setGraphRefreshKey] = useState(0);
   const [networkStatus, setNetworkStatus] = useState({ devices: [], online_count: 0, offline_count: 0, degraded_count: 0, total_count: 0, scan_timestamp: null });
   const [isRefreshingNetStatus, setIsRefreshingNetStatus] = useState(false);
+  const [syslogAlerts, setSyslogAlerts] = useState([]);
 
 
   const handleApprove = (e) => {
@@ -127,6 +128,20 @@ const Dashboard = () => {
       }
     };
     fetchNetworkStatus();
+  }, []);
+
+  useEffect(() => {
+    const fetchSyslogAlerts = async () => {
+      try {
+        const res = await fetch('http://127.0.0.1:8000/api/syslog/alerts');
+        if (res.ok) setSyslogAlerts(await res.json());
+      } catch (e) {
+        console.error('Failed to load syslog alerts:', e);
+      }
+    };
+    fetchSyslogAlerts();
+    const interval = setInterval(fetchSyslogAlerts, 5000);
+    return () => clearInterval(interval);
   }, []);
 
   const handleRefreshDevices = async () => {
@@ -641,94 +656,56 @@ const Dashboard = () => {
               className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]"
               style={styles.card}
             >
-              <div className="flex items-center gap-2 mb-8 text-orange-500">
+              <div className="flex items-center gap-2 mb-6 text-orange-500">
                 <AlertTriangle size={20} />
                 <h4 className="text-base font-bold text-slate-200">
                   Syslog Intelligence
                 </h4>
+                <span className="ml-auto text-[10px] text-slate-500 font-medium">
+                  {syslogAlerts.length > 0
+                    ? `${syslogAlerts.length} alert${syslogAlerts.length !== 1 ? 's' : ''}`
+                    : 'Listening...'}
+                </span>
               </div>
 
-              <div className="space-y-4">
-                {/* Alert 1 */}
-                <div className="bg-rose-500/5 border border-rose-500/10 rounded-2xl p-5 flex gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center shrink-0 border border-rose-500/20">
-                    <ShieldAlert className="text-rose-500" size={20} />
+              <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+                {syslogAlerts.length === 0 ? (
+                  <div className="text-slate-500 text-sm text-center py-8">
+                    No critical syslog messages received yet.<br />
+                    <span className="text-[10px]">Flap an interface on a device to trigger an alert.</span>
                   </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[9px] font-black bg-rose-500/20 text-rose-500 px-2 py-0.5 rounded border border-rose-500/20">
-                        CRITICAL
-                      </span>
-                      <span className="text-[10px] text-slate-500">
-                        2 min ago
-                      </span>
-                    </div>
-                    <p className="text-[13px] font-bold text-slate-200 mb-1">
-                      Port Security Violation Detected
-                    </p>
-                    <p className="text-[11px] text-slate-400 leading-relaxed mb-2">
-                      Multiple MAC addresses detected on port Gi1/0/24. Port has
-                      been automatically disabled.
-                    </p>
-                    <p className="text-[10px] text-slate-500 font-medium">
-                      Device: access-sw-02
-                    </p>
-                  </div>
-                </div>
-
-                {/* Alert 2 */}
-                <div className="bg-amber-500/5 border border-amber-500/10 rounded-2xl p-5 flex gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-amber-500/10 flex items-center justify-center shrink-0 border border-amber-500/20">
-                    <AlertTriangle className="text-amber-500" size={20} />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[9px] font-black bg-amber-500/20 text-amber-500 px-2 py-0.5 rounded border border-amber-500/20">
-                        WARNING
-                      </span>
-                      <span className="text-[10px] text-slate-500">
-                        15 min ago
-                      </span>
-                    </div>
-                    <p className="text-[13px] font-bold text-slate-200 mb-1">
-                      High CPU Utilization
-                    </p>
-                    <p className="text-[11px] text-slate-400 leading-relaxed mb-2">
-                      Core router CPU usage reached 87% for 5 consecutive
-                      minutes.
-                    </p>
-                    <p className="text-[10px] text-slate-500 font-medium">
-                      Device: router-edge-01
-                    </p>
-                  </div>
-                </div>
-
-                {/* Alert 3 */}
-                <div className="bg-rose-500/5 border border-rose-500/10 rounded-2xl p-5 flex gap-4">
-                  <div className="w-10 h-10 rounded-xl bg-rose-500/10 flex items-center justify-center shrink-0 border border-rose-500/20">
-                    <ShieldAlert className="text-rose-500" size={20} />
-                  </div>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[9px] font-black bg-rose-500/20 text-rose-500 px-2 py-0.5 rounded border border-rose-500/20">
-                        CRITICAL
-                      </span>
-                      <span className="text-[10px] text-slate-500">
-                        28 min ago
-                      </span>
-                    </div>
-                    <p className="text-[13px] font-bold text-slate-200 mb-1">
-                      Spanning Tree Topology Change
-                    </p>
-                    <p className="text-[11px] text-slate-400 leading-relaxed mb-2">
-                      Root bridge election occurred. New root bridge is
-                      core-sw-01.
-                    </p>
-                    <p className="text-[10px] text-slate-500 font-medium">
-                      Device: Multiple devices
-                    </p>
-                  </div>
-                </div>
+                ) : (
+                  syslogAlerts.map((alert, idx) => {
+                    const sevColor = alert.severity <= 1
+                      ? { bg: 'bg-rose-500/5', border: 'border-rose-500/10', icon: 'bg-rose-500/10', iconBorder: 'border-rose-500/20', text: 'text-rose-500', badge: 'bg-rose-500/20 text-rose-500 border-rose-500/20' }
+                      : alert.severity <= 3
+                      ? { bg: 'bg-orange-500/5', border: 'border-orange-500/10', icon: 'bg-orange-500/10', iconBorder: 'border-orange-500/20', text: 'text-orange-500', badge: 'bg-orange-500/20 text-orange-500 border-orange-500/20' }
+                      : { bg: 'bg-amber-500/5', border: 'border-amber-500/10', icon: 'bg-amber-500/10', iconBorder: 'border-amber-500/20', text: 'text-amber-500', badge: 'bg-amber-500/20 text-amber-500 border-amber-500/20' };
+                    const ago = Math.floor((Date.now() - new Date(alert.timestamp).getTime()) / 60000);
+                    return (
+                      <div key={idx} className={`${sevColor.bg} ${sevColor.border} rounded-2xl p-4 flex gap-3`}>
+                        <div className={`w-9 h-9 rounded-xl ${sevColor.icon} flex items-center justify-center shrink-0 ${sevColor.iconBorder} border`}>
+                          <ShieldAlert className={sevColor.text} size={18} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+                            <span className={`text-[9px] font-black ${sevColor.badge} px-2 py-0.5 rounded border`}>
+                              {alert.severity_name.toUpperCase()}
+                            </span>
+                            <span className="text-[10px] text-slate-500 font-medium">{alert.device}</span>
+                            <span className="text-[10px] text-slate-600 ml-auto">{ago}m ago</span>
+                          </div>
+                          <p className="text-[12px] text-slate-300 font-medium mb-0.5 truncate">
+                            {alert.mnemonic}
+                          </p>
+                          <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-2">
+                            {alert.message}
+                          </p>
+                        </div>
+                      </div>
+                    );
+                  })
+                )}
               </div>
             </div>
           </div>
