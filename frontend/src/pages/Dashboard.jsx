@@ -42,6 +42,8 @@ const Dashboard = () => {
   const [isRefreshingBaseline, setIsRefreshingBaseline] = useState(false);
   const [isRefreshingGraph, setIsRefreshingGraph] = useState(false);
   const [graphRefreshKey, setGraphRefreshKey] = useState(0);
+  const [networkStatus, setNetworkStatus] = useState({ devices: [], online_count: 0, offline_count: 0, degraded_count: 0, total_count: 0, scan_timestamp: null });
+  const [isRefreshingNetStatus, setIsRefreshingNetStatus] = useState(false);
 
 
   const handleApprove = (e) => {
@@ -115,6 +117,18 @@ const Dashboard = () => {
     fetchActiveDevices();
   }, []);
 
+  useEffect(() => {
+    const fetchNetworkStatus = async () => {
+      try {
+        const res = await fetch('http://127.0.0.1:8000/api/network/device-status');
+        if (res.ok) setNetworkStatus(await res.json());
+      } catch (e) {
+        console.error('Failed to load network status:', e);
+      }
+    };
+    fetchNetworkStatus();
+  }, []);
+
   const handleRefreshDevices = async () => {
     setIsScanning(true);
     try {
@@ -131,6 +145,18 @@ const Dashboard = () => {
       console.error('Error triggering nmap scan:', error);
     } finally {
       setIsScanning(false);
+    }
+  };
+
+  const handleRefreshNetStatus = async () => {
+    setIsRefreshingNetStatus(true);
+    try {
+      const res = await fetch('http://127.0.0.1:8000/api/network/device-status/scan', { method: 'POST' });
+      if (res.ok) setNetworkStatus(await res.json());
+    } catch (e) {
+      console.error('Error refreshing network status:', e);
+    } finally {
+      setIsRefreshingNetStatus(false);
     }
   };
 
@@ -438,21 +464,56 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {/* ROW TABLE */}
+          {/* ROW TABLE - Real-Time Network Status */}
           <div
             className="rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] overflow-hidden"
             style={styles.card}
           >
-            <div className="p-6 border-b border-slate-800/50">
+            <div className="p-6 border-b border-slate-800/50 flex items-center justify-between">
               <h4 className="text-sm font-medium text-slate-300">
                 Real-Time Network Status
               </h4>
+              <div className="flex items-center gap-3">
+                {networkStatus.total_count > 0 && (
+                  <span className="text-[11px] text-slate-500 font-medium">
+                    <span className="text-emerald-400">{networkStatus.online_count}</span>
+                    {' / '}
+                    <span className="text-slate-400">{networkStatus.total_count}</span>
+                    {' online'}
+                    {networkStatus.degraded_count > 0 && (
+                      <>
+                        {' · '}
+                        <span className="text-amber-400">{networkStatus.degraded_count} degraded</span>
+                      </>
+                    )}
+                    {networkStatus.tier_summary && (
+                      Object.values(networkStatus.tier_summary).filter(t => !t.healthy).length > 0 && (
+                        <>
+                          {' · '}
+                          <span className="text-amber-400">
+                            {Object.values(networkStatus.tier_summary).filter(t => !t.healthy).length} tier{Object.values(networkStatus.tier_summary).filter(t => !t.healthy).length > 1 ? 's' : ''} down
+                          </span>
+                        </>
+                      )
+                    )}
+                  </span>
+                )}
+                <button
+                  onClick={handleRefreshNetStatus}
+                  disabled={isRefreshingNetStatus}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 text-xs font-bold disabled:opacity-50 transition-all active:scale-95"
+                >
+                  <RefreshCw size={12} className={isRefreshingNetStatus ? 'animate-spin' : ''} />
+                  {isRefreshingNetStatus ? 'Scanning...' : 'Refresh'}
+                </button>
+              </div>
             </div>
             <div className="overflow-x-auto px-6 pb-6">
               <table className="w-full text-left">
                 <thead className="text-slate-500 text-[12px] font-medium border-b border-slate-800/30">
                   <tr>
                     <th className="py-5 font-normal">Hostname</th>
+                    <th className="py-5 font-normal">Tier</th>
                     <th className="py-5 font-normal">IP Address</th>
                     <th className="py-5 font-normal">Status</th>
                     <th className="py-5 font-normal">Model</th>
@@ -460,57 +521,72 @@ const Dashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="text-[13px]">
-                  {[
-                    {
-                      h: "core-sw-01",
-                      ip: "192.168.1.1",
-                      s: "online",
-                      m: "Cisco Catalyst 9300",
-                      t: "2 min ago",
-                    },
-                    {
-                      h: "access-sw-02",
-                      ip: "192.168.1.12",
-                      s: "online",
-                      m: "Cisco Catalyst 2960X",
-                      t: "5 min ago",
-                    },
-                    {
-                      h: "access-sw-15",
-                      ip: "192.168.1.25",
-                      s: "offline",
-                      m: "Cisco Catalyst 2960",
-                      t: "45 min ago",
-                    },
-                  ].map((row, i) => (
-                    <tr
-                      key={i}
-                      className="border-b border-slate-800/30 hover:bg-slate-800/20 transition-colors last:border-0"
-                    >
-                      <td className="py-4 font-bold text-slate-200">{row.h}</td>
-                      <td className="py-4 text-slate-400 font-medium">
-                        {row.ip}
-                      </td>
-                      <td className="py-4">
-                        <div
-                          className={`inline-flex items-center gap-2 px-3 py-1 rounded-lg border ${row.s === "online" ? "bg-emerald-500/10 border-emerald-500/20 text-emerald-400" : "bg-rose-500/10 border-rose-500/20 text-rose-400"}`}
-                        >
-                          <span
-                            className={`w-1.5 h-1.5 rounded-full ${row.s === "online" ? "bg-emerald-500" : "bg-rose-500"}`}
-                          />
-                          <span className="text-[11px] font-bold capitalize">
-                            {row.s}
-                          </span>
-                        </div>
-                      </td>
-                      <td className="py-4 text-slate-400 font-medium">
-                        {row.m}
-                      </td>
-                      <td className="py-4 text-slate-500 font-medium">
-                        {row.t}
+                  {networkStatus.devices.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="py-8 text-center text-slate-500 text-sm">
+                        No devices loaded. Click Refresh to scan the network.
                       </td>
                     </tr>
-                  ))}
+                  ) : (
+                    [...networkStatus.devices]
+                      .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
+                      .map((device) => {
+                        const tierColors = {
+                          edge: "bg-purple-500/10 text-purple-400 border-purple-500/20",
+                          core: "bg-blue-500/10 text-blue-400 border-blue-500/20",
+                          distribution: "bg-cyan-500/10 text-cyan-400 border-cyan-500/20",
+                          access: "bg-slate-500/10 text-slate-400 border-slate-500/20",
+                        };
+                        const statusStyles = {
+                          online: "bg-emerald-500/10 border-emerald-500/20 text-emerald-400",
+                          offline: "bg-rose-500/10 border-rose-500/20 text-rose-400",
+                          degraded: "bg-amber-500/10 border-amber-500/20 text-amber-400 border-dashed",
+                        };
+                        const dotStyles = {
+                          online: "bg-emerald-500",
+                          offline: "bg-rose-500",
+                          degraded: "bg-amber-500",
+                        };
+                        const status = device.effective_status || (device.online ? "online" : "offline");
+                        return (
+                          <tr
+                            key={device.id}
+                            className="border-b border-slate-800/30 hover:bg-slate-800/20 transition-colors last:border-0"
+                          >
+                            <td className="py-4 font-bold text-slate-200">{device.name}</td>
+                            <td className="py-4">
+                              <span className={`inline-block text-[10px] font-bold px-2 py-0.5 rounded border ${tierColors[device.tier] || tierColors.access}`}>
+                                {device.tier ? device.tier.charAt(0).toUpperCase() + device.tier.slice(1) : "—"}
+                              </span>
+                            </td>
+                            <td className="py-4 text-slate-400 font-medium">
+                              {device.ip}
+                            </td>
+                            <td className="py-4">
+                              <div className="flex flex-col gap-1">
+                                <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg border ${statusStyles[status]}`}>
+                                  <span className={`w-1 h-1 rounded-full ${dotStyles[status]}`} />
+                                  <span className="text-[10px] font-bold uppercase">{status === "degraded" ? "DEG" : status === "offline" ? "DOWN" : "UP"}</span>
+                                </div>
+                                {device.status_reason && (
+                                  <span className="text-[10px] text-amber-500/70 max-w-[160px] leading-tight">
+                                    {device.status_reason}
+                                  </span>
+                                )}
+                              </div>
+                            </td>
+                            <td className="py-4 text-slate-400 font-medium">
+                              {device.model}
+                            </td>
+                            <td className="py-4 text-slate-500 font-medium">
+                              {networkStatus.scan_timestamp
+                                ? new Date(networkStatus.scan_timestamp).toLocaleTimeString()
+                                : "Never"}
+                            </td>
+                          </tr>
+                        );
+                      })
+                  )}
                 </tbody>
               </table>
             </div>

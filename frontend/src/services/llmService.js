@@ -1,16 +1,20 @@
-export async function generateText(prompt, model) {
-  // Call backend proxy with the selected HF Router model
+export async function generateText(prompt, model, sessionId = null) {
   const url = `http://localhost:8000/llm/chat`;
+
+  const body = {
+    prompt: prompt,
+    model: model,
+  };
+  if (sessionId) {
+    body.session_id = sessionId;
+  }
 
   const res = await fetch(url, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
-    body: JSON.stringify({
-      prompt: prompt,
-      model: model,
-    }),
+    body: JSON.stringify(body),
   });
 
   if (!res.ok) {
@@ -20,12 +24,12 @@ export async function generateText(prompt, model) {
 
   const data = await res.json();
 
-  // Backend returns { text: "...", reasoning: "..." or null, model: "...", playbook_suggestions: [...] }
   if (data.text) {
     return {
       text: data.text,
       reasoning: data.reasoning || null,
       model: data.model || null,
+      session_id: data.session_id || null,
       playbook_suggestions: data.playbook_suggestions || [],
     };
   }

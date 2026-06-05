@@ -136,16 +136,14 @@ def main():
     
     # Run nmap scan
     scan_result = run_nmap(hosts_file)
-    if not scan_result["online"]:
-        print("ERROR: No online hosts found or nmap failed")
-        return 1
-    
-    # Build and save active devices
+
+    # Build and save active devices (even when 0 hosts are up — overwrites stale data)
     active_devices = build_active_devices(scan_result["online"])
     if not save_active_devices(active_devices, output_file):
         return 1
-    
-    print(f"Successfully scanned {len(active_devices['devices'])} devices")
+
+    count = len(active_devices["devices"])
+    print(f"Scan complete: {count} device{'s' if count != 1 else ''} online")
     return 0
 
 
