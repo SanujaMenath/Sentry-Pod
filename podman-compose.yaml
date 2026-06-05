@@ -25,6 +25,19 @@ services:
     volumes:
       - ./watchman:/app:Z
 
+  syslog-ng:
+    build:
+      context: ./watchman
+      dockerfile: Dockerfile.syslog-ng
+    container_name: sentry-pod_syslog-ng_1
+    restart: always
+    ports:
+      - "10514:10514/udp"
+    volumes:
+      - ./watchman/playbooks/gns3_lab.conf:/etc/syslog-ng/conf.d/gns3_lab.conf:Z
+      - ./watchman/scripts/syslog_listener.sh:/usr/local/bin/syslog_listener.sh:Z
+      - ./watchman/playbooks/syslog/:/var/log/syslog/:z
+
   command-center:
     image: fresh-command-center
     restart: always

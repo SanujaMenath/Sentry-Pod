@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Cable,
   Pencil,
@@ -195,13 +195,25 @@ function DeviceCard({ device, onConfigure, onEdit }) {
 }
 
 function TerminalDeviceModal({ device, onClose }) {
-  const prompt = getPrompt(device);
   const [command, setCommand] = useState("");
   const [connected, setConnected] = useState(false);
   const [socket, setSocket] = useState(null);
   const [lines, setLines] = useState([
     `Opening terminal for ${device.name} (${device.ip})...`,
   ]);
+  const [commandHistory, setCommandHistory] = useState([]);
+  const [historyIndex, setHistoryIndex] = useState(-1);
+  const preRef = useRef(null);
+
+  useEffect(() => {
+    preRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    if (preRef.current) {
+      preRef.current.scrollTop = preRef.current.scrollHeight;
+    }
+  }, [lines, command]);
 
   useEffect(() => {
     const terminalSocket = new WebSocket(getNetworkTerminalSocketUrl(device.id));
@@ -229,50 +241,94 @@ function TerminalDeviceModal({ device, onClose }) {
     };
   }, [device.id]);
 
-  const submitCommand = async (event) => {
-    event.preventDefault();
-    const nextCommand = command;
+  const handleKeyDown = (e) => {
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (commandHistory.length > 0 && historyIndex < commandHistory.length - 1) {
+        const newIndex = historyIndex + 1;
+        setHistoryIndex(newIndex);
+        setCommand(commandHistory[commandHistory.length - 1 - newIndex]);
+      }
+      return;
+    }
 
-    if (!nextCommand || socket?.readyState !== WebSocket.OPEN) return;
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (historyIndex > 0) {
+        const newIndex = historyIndex - 1;
+        setHistoryIndex(newIndex);
+        setCommand(commandHistory[commandHistory.length - 1 - newIndex]);
+      } else if (historyIndex === 0) {
+        setHistoryIndex(-1);
+        setCommand("");
+      }
+      return;
+    }
 
-    setCommand("");
-    socket.send(`${nextCommand}\r`);
+    if (e.key === "Enter") {
+      e.preventDefault();
+      if (command && socket?.readyState === WebSocket.OPEN) {
+        setCommandHistory((prev) => [...prev, command]);
+        setHistoryIndex(-1);
+        socket.send(`${command}\r`);
+        setCommand("");
+      } else if (socket?.readyState === WebSocket.OPEN) {
+        socket.send("\r");
+      }
+      return;
+    }
+
+    if (e.key === " " && !command && socket?.readyState === WebSocket.OPEN) {
+      e.preventDefault();
+      socket.send(" ");
+      return;
+    }
+
+    if (e.key === "Backspace") {
+      e.preventDefault();
+      setCommand((prev) => prev.slice(0, -1));
+      return;
+    }
+
+    if (e.key.length === 1) {
+      e.preventDefault();
+      setCommand((prev) => prev + e.key);
+    }
   };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
       <div className="flex h-[min(720px,calc(100vh-32px))] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-slate-700 bg-[#17182b] shadow-2xl">
         <div className="flex items-center justify-between border-b border-slate-700/70 bg-[#202136] px-5 py-3">
-          <div>
-            <h2 className="text-sm font-bold text-slate-100">Terminal - {device.name}</h2>
-            <p className="text-xs font-mono text-slate-400">{device.ip}</p>
+          <div className="flex items-center gap-3">
+            <div>
+              <h2 className="text-sm font-bold text-slate-100">Terminal - {device.name}</h2>
+              <p className="text-xs font-mono text-slate-400">{device.ip}</p>
+            </div>
+            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider ${connected ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"}`}>
+              {connected ? "Connected" : "Disconnected"}
+            </span>
           </div>
           <button type="button" onClick={onClose} className="text-slate-500 hover:text-white">
             <X size={18} />
           </button>
         </div>
 
-        <pre className="flex-1 overflow-auto whitespace-pre-wrap bg-[#1f2034] p-5 font-mono text-[15px] leading-6 text-slate-200">
-          {lines.join("")}
+        <pre
+          ref={preRef}
+          tabIndex={0}
+          onKeyDown={handleKeyDown}
+          className="flex flex-1 min-h-0 cursor-text overflow-auto whitespace-pre-wrap bg-[#1f2034] p-5 font-mono text-[15px] leading-6 text-slate-200 terminal-scrollbar focus:outline-none"
+        >
+          {lines.join("")}{connected ? command : ""}{connected ? <Cursor /> : ""}
         </pre>
-
-        <form onSubmit={submitCommand} className="flex items-center gap-2 border-t border-slate-700/70 bg-[#1f2034] px-5 py-4 font-mono">
-          <span className="text-slate-200">{connected ? prompt : "..."}</span>
-          <input
-            value={command}
-            onChange={(event) => setCommand(event.target.value)}
-            className="min-w-0 flex-1 bg-transparent text-slate-100 outline-none"
-            autoFocus
-            spellCheck={false}
-            disabled={!connected}
-          />
-          <button type="submit" className="rounded-lg bg-blue-600 px-4 py-2 text-xs font-bold text-white disabled:bg-slate-700" disabled={!connected}>
-            Run
-          </button>
-        </form>
       </div>
     </div>
   );
+}
+
+function Cursor() {
+  return <span className="terminal-cursor" />;
 }
 
 function getPrompt(device) {

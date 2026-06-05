@@ -1,6 +1,7 @@
 # app/route/llm_routes.py
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel
+from bson import ObjectId
 import httpx  # type: ignore
 import os
 import logging
@@ -11,6 +12,7 @@ from pathlib import Path
 # Import playbook matching utilities
 from . import playbook_routes
 import app.services.playbook_service as playbook_service
+from app.core.dependencies import get_current_user
 
 logger = logging.getLogger(__name__)
 
@@ -21,6 +23,7 @@ HF_API_URL = "https://router.huggingface.co/v1/chat/completions"
 RETRYABLE_STATUS_CODES = {429, 500, 502, 503, 504}
 MAX_HF_RETRIES = 3
 MAX_RETRY_DELAY_SECONDS = 10
+MAX_HISTORY_MESSAGES = 10
 
 SYSTEM_PROMPT_BASE = """You are SentryPod's network operations assistant.
 
@@ -52,13 +55,14 @@ If the user's request matches one or more existing playbooks, prioritize recomme
 2. [Playbook Name 2] ([filename]) - [description]
 Would you like me to help you execute one of these?"
 Only generate new commands if no suitable playbook exists or if the user explicitly requests something different.
-If no playbooks match the request, proceed with generating new commands as normal.
+If no playbooks match the request, proceed with generating new commands as usual.
 
 """
 
 class ChatRequest(BaseModel):
     prompt: str
     model: str = "deepseek-ai/DeepSeek-R1:novita"
+    session_id: str | None = None
 
 
 SUPPORTED_MODELS = {
@@ -121,6 +125,24 @@ def update_env_file(api_key: str):
 
 
 # ============================================================
+# HELPER: Load / Save Conversations
+# ============================================================
+
+async def load_conversation(session_id: str):
+    from app.database import conversations_collection
+    doc = await conversations_collection.find_one({"_id": ObjectId(session_id)})
+    return doc
+
+
+async def save_conversation(session_id: str, messages: list):
+    from app.database import conversations_collection
+    await conversations_collection.update_one(
+        {"_id": ObjectId(session_id)},
+        {"$set": {"messages": messages, "updated_at": datetime.utcnow()}}
+    )
+
+
+# ============================================================
 # CHAT ENDPOINT
 # ============================================================
 
@@ -128,14 +150,13 @@ def update_env_file(api_key: str):
 async def chat(request: ChatRequest):
     """
     Proxy request to Hugging Face Router API with supported chat models.
-    Uses chat completions endpoint for better conversational responses.
-    Keeps API key safe on backend, avoids CORS issues.
-    Also searches for and suggests matching playbooks before generating new responses.
+    Supports session memory: persists conversation history and sends
+    the last MAX_HISTORY_MESSAGES exchanges as context to the LLM.
     """
     # Try to get the stored API key first, fall back to env var
     stored_key = await get_stored_api_key()
     api_key = stored_key or HF_API_KEY
-    
+
     if not api_key:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -152,7 +173,7 @@ async def chat(request: ChatRequest):
 
     # Find playbook suggestions
     suggestions = playbook_service.find_playbook_suggestions(request.prompt, top_k=3)
-    
+
     # Build system prompt with playbook suggestions
     system_prompt = SYSTEM_PROMPT_BASE
     if suggestions:
@@ -164,26 +185,53 @@ async def chat(request: ChatRequest):
             if suggestion.playbook_preview:
                 system_prompt += f"\n   Details: {suggestion.playbook_preview}"
             system_prompt += f"\n   Match reason: {suggestion.reason} (score: {suggestion.match_score:.1%})"
-    
+
+    # --- Session Memory ---
+    from app.database import conversations_collection
+
+    conversation = None
+    session_id = request.session_id
+
+    if session_id:
+        conversation = await load_conversation(session_id)
+        if not conversation:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Session {session_id} not found",
+            )
+    else:
+        # Auto-create a new conversation
+        title = request.prompt[:60] + ("..." if len(request.prompt) > 60 else "")
+        result = await conversations_collection.insert_one({
+            "title": title,
+            "messages": [],
+            "created_at": datetime.utcnow(),
+            "updated_at": datetime.utcnow(),
+        })
+        session_id = str(result.inserted_id)
+        conversation = {"messages": []}
+
+    # Build history list for the LLM (last MAX_HISTORY_MESSAGES exchanges)
+    history = conversation.get("messages", [])
+    trimmed_history = history[-MAX_HISTORY_MESSAGES:]
+
+    messages_for_llm = [
+        {"role": "system", "content": system_prompt},
+    ]
+    for msg in trimmed_history:
+        messages_for_llm.append({"role": msg["role"], "content": msg["content"]})
+    messages_for_llm.append({"role": "user", "content": request.prompt})
+
     headers = {
         "Authorization": f"Bearer {api_key}",
         "Content-Type": "application/json",
     }
     payload = {
-        "messages": [
-            {
-                "role": "system",
-                "content": system_prompt,
-            },
-            {
-                "role": "user",
-                "content": request.prompt,
-            }
-        ],
+        "messages": messages_for_llm,
         "model": model,
     }
 
-    logger.info(f"Calling HF Router API with model: {model}")
+    logger.info(f"Calling HF Router API with model: {model}, session: {session_id}, history messages: {len(trimmed_history)}")
     if suggestions:
         logger.info(f"Found {len(suggestions)} playbook suggestions for prompt")
 
@@ -255,15 +303,29 @@ async def chat(request: ChatRequest):
         # Handle chat completions response format
         if "choices" in data and len(data["choices"]) > 0:
             message_data = data["choices"][0].get("message", {})
-            
+
             # Extract reasoning (thinking phase) if available
             reasoning = message_data.get("reasoning_content", None)
             content = message_data.get("content", "")
+
+            # --- Persist both messages to conversation ---
+            user_msg = {"role": "user", "content": request.prompt, "created_at": datetime.utcnow().isoformat()}
+            assistant_msg = {
+                "role": "assistant",
+                "content": content,
+                "reasoning": reasoning,
+                "model": model,
+                "playbook_suggestions": [s.dict() if hasattr(s, 'dict') else s for s in suggestions] if suggestions else [],
+                "created_at": datetime.utcnow().isoformat(),
+            }
+            updated_messages = history + [user_msg, assistant_msg]
+            await save_conversation(session_id, updated_messages)
 
             return {
                 "text": content,
                 "reasoning": reasoning,
                 "model": model,
+                "session_id": session_id,
                 "playbook_suggestions": suggestions,
             }
 
@@ -279,6 +341,7 @@ async def chat(request: ChatRequest):
             "text": str(data),
             "reasoning": None,
             "model": model,
+            "session_id": session_id,
             "playbook_suggestions": suggestions,
         }
 
@@ -296,6 +359,118 @@ async def chat(request: ChatRequest):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Unexpected error: {str(e)}",
         )
+
+
+# ============================================================
+# SESSION MANAGEMENT ENDPOINTS
+# ============================================================
+
+@router.get("/sessions")
+async def list_sessions(current_user: dict = Depends(get_current_user)):
+    """List all conversations for the current user, sorted by most recent."""
+    from app.database import conversations_collection
+    
+    cursor = conversations_collection.aggregate([
+        {"$sort": {"updated_at": -1}},
+        {"$project": {
+            "title": 1,
+            "created_at": 1,
+            "updated_at": 1,
+            "message_count": {"$size": {"$ifNull": ["$messages", []]}}
+        }}
+    ])
+    
+    sessions = []
+    async for doc in cursor:
+        sessions.append({
+            "session_id": str(doc["_id"]),
+            "title": doc.get("title", "New Chat"),
+            "created_at": doc["created_at"].isoformat() if isinstance(doc.get("created_at"), datetime) else str(doc.get("created_at", "")),
+            "updated_at": doc["updated_at"].isoformat() if isinstance(doc.get("updated_at"), datetime) else str(doc.get("updated_at", "")),
+            "message_count": doc.get("message_count", 0),
+        })
+    
+    return {"sessions": sessions}
+
+
+@router.get("/sessions/{session_id}")
+async def get_session(session_id: str, current_user: dict = Depends(get_current_user)):
+    """Get full conversation for a session."""
+    conversation = await load_conversation(session_id)
+    if not conversation:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Session not found",
+        )
+    
+    return {
+        "session_id": session_id,
+        "title": conversation.get("title", "New Chat"),
+        "messages": conversation.get("messages", []),
+        "created_at": conversation["created_at"].isoformat() if isinstance(conversation.get("created_at"), datetime) else str(conversation.get("created_at", "")),
+        "updated_at": conversation["updated_at"].isoformat() if isinstance(conversation.get("updated_at"), datetime) else str(conversation.get("updated_at", "")),
+    }
+
+
+@router.post("/sessions")
+async def create_session(current_user: dict = Depends(get_current_user)):
+    """Create a new empty conversation."""
+    from app.database import conversations_collection
+    
+    result = await conversations_collection.insert_one({
+        "title": "New Chat",
+        "messages": [],
+        "created_at": datetime.utcnow(),
+        "updated_at": datetime.utcnow(),
+    })
+    
+    return {
+        "session_id": str(result.inserted_id),
+        "title": "New Chat",
+        "messages": [],
+    }
+
+
+@router.put("/sessions/{session_id}")
+async def update_session(session_id: str, body: dict, current_user: dict = Depends(get_current_user)):
+    """Update session title."""
+    from app.database import conversations_collection
+    
+    title = body.get("title", "").strip()
+    if not title:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Title cannot be empty",
+        )
+    
+    result = await conversations_collection.update_one(
+        {"_id": ObjectId(session_id)},
+        {"$set": {"title": title, "updated_at": datetime.utcnow()}}
+    )
+    
+    if result.matched_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Session not found",
+        )
+    
+    return {"status": "success", "title": title}
+
+
+@router.delete("/sessions/{session_id}")
+async def delete_session(session_id: str, current_user: dict = Depends(get_current_user)):
+    """Delete a conversation."""
+    from app.database import conversations_collection
+    
+    result = await conversations_collection.delete_one({"_id": ObjectId(session_id)})
+    
+    if result.deleted_count == 0:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Session not found",
+        )
+    
+    return {"status": "success", "message": "Session deleted"}
 
 
 # ============================================================

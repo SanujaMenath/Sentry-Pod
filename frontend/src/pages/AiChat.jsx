@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from "react";
-import { Bot, Send, Zap, Shield, Wrench, BarChart3, ChevronDown, ChevronUp, Copy, Check, Play, Settings } from "lucide-react";
+import React, { useEffect, useState, useCallback } from "react";
+import { Bot, Send, Zap, Shield, Wrench, BarChart3, ChevronDown, ChevronUp, Copy, Check, Play, Settings, MessageSquare } from "lucide-react";
 import { logAction } from "../services/auditService";
 import { generateText } from "../services/llmService";
+import { listSessions, getSession, createSession, deleteSession } from "../services/sessionService";
 import PlaybookStagingGate from "../components/PlaybookStagingGate";
 import ApiKeyModal from "../components/ApiKeyModal";
 import PageHeader from "../components/PageHeader";
+import SessionSidebar from "../components/SessionSidebar";
 
 const mocha = {
   base: "#1e1e2e",
@@ -183,6 +185,10 @@ export default function AiChat() {
   const [playbookMetadata, setPlaybookMetadata] = useState({});
   const [selectedModel, setSelectedModel] = useState(() => localStorage.getItem("hf_model") || "deepseek-ai/DeepSeek-R1:novita");
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [sessions, setSessions] = useState([]);
+  const [activeSessionId, setActiveSessionId] = useState(() => localStorage.getItem("active_session_id") || null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loadingSession, setLoadingSession] = useState(false);
 
   useEffect(() => {
     const fetchCatalog = async () => {
@@ -209,6 +215,34 @@ export default function AiChat() {
     };
 
     fetchCatalog();
+  }, []);
+
+  useEffect(() => {
+    const fetchSessions = async () => {
+      try {
+        const sessionList = await listSessions();
+        setSessions(sessionList);
+
+        // Determine which session to load
+        let targetId = activeSessionId;
+        if (targetId && !sessionList.some((s) => s.session_id === targetId)) {
+          targetId = null;
+        }
+        if (!targetId && sessionList.length > 0) {
+          targetId = sessionList[0].session_id;
+        }
+
+        if (targetId) {
+          await loadSessionMessages(targetId);
+        } else {
+          setActiveSessionId(null);
+          localStorage.removeItem("active_session_id");
+        }
+      } catch (err) {
+        console.error("Failed to fetch sessions:", err);
+      }
+    };
+    fetchSessions();
   }, []);
 
   const hfModels = [
@@ -368,6 +402,74 @@ export default function AiChat() {
     setMessages((prevMessages) => [...prevMessages, { role: "ai", text: "Deployment cancelled.", time: "Now" }]);
   };
 
+  const loadSessionMessages = useCallback(async (sessionId) => {
+    setLoadingSession(true);
+    try {
+      const session = await getSession(sessionId);
+      const loaded = (session.messages || []).map((msg, idx) => {
+        if (msg.role === "user") {
+          return { role: "user", text: msg.content, time: msg.created_at || "Now" };
+        }
+        return {
+          role: "ai",
+          text: msg.content,
+          reasoning: msg.reasoning || null,
+          model: msg.model || null,
+          playbook_suggestions: msg.playbook_suggestions || [],
+          time: msg.created_at || "Now",
+        };
+      });
+      setMessages(loaded.length > 0 ? loaded : [{ role: "ai", text: "Hello! I'm your AI Network Assistant. I can help you configure devices, analyze logs, troubleshoot issues, and answer questions about your network. What would you like to do today?", time: "Now" }]);
+      setActiveSessionId(sessionId);
+      localStorage.setItem("active_session_id", sessionId);
+    } catch (err) {
+      console.error("Failed to load session:", err);
+    } finally {
+      setLoadingSession(false);
+    }
+  }, []);
+
+  const handleSelectSession = async (sessionId) => {
+    setSidebarOpen(false);
+    await loadSessionMessages(sessionId);
+  };
+
+  const handleNewSession = async () => {
+    try {
+      const newSession = await createSession();
+      setActiveSessionId(newSession.session_id);
+      localStorage.setItem("active_session_id", newSession.session_id);
+      setMessages([
+        { role: "ai", text: "Hello! I'm your AI Network Assistant. I can help you configure devices, analyze logs, troubleshoot issues, and answer questions about your network. What would you like to do today?", time: "Now" },
+      ]);
+      setSidebarOpen(false);
+      // Refresh session list
+      const updatedSessions = await listSessions();
+      setSessions(updatedSessions);
+    } catch (err) {
+      console.error("Failed to create session:", err);
+    }
+  };
+
+  const handleDeleteSession = async (sessionId) => {
+    try {
+      await deleteSession(sessionId);
+      const updatedSessions = sessions.filter((s) => s.session_id !== sessionId);
+      setSessions(updatedSessions);
+
+      if (activeSessionId === sessionId) {
+        if (updatedSessions.length > 0) {
+          await loadSessionMessages(updatedSessions[0].session_id);
+        } else {
+          // Create a new session automatically
+          await handleNewSession();
+        }
+      }
+    } catch (err) {
+      console.error("Failed to delete session:", err);
+    }
+  };
+
   const sendMessage = async () => {
     if (!input.trim()) return;
     const userText = input.trim();
@@ -376,8 +478,19 @@ export default function AiChat() {
     setInput("");
 
     try {
-      const response = await generateText(userText, selectedModel);
+      const response = await generateText(userText, selectedModel, activeSessionId);
       const cleanText = normalizeAssistantText(response.text);
+
+      // Save the session_id from the response if we didn't have one
+      if (response.session_id && response.session_id !== activeSessionId) {
+        setActiveSessionId(response.session_id);
+        localStorage.setItem("active_session_id", response.session_id);
+        // Refresh session list to show the new session
+        try {
+          const updatedSessions = await listSessions();
+          setSessions(updatedSessions);
+        } catch (_) {}
+      }
 
       setMessages((prev) => {
         const updated = [...prev];
@@ -427,127 +540,160 @@ export default function AiChat() {
         />
       )}
 
-      <div className="flex items-start justify-between mb-6">
-                    <PageHeader 
-                        title="AI Chat Console" 
-                        description="Interact with your AI Network Assistant. Ask questions, run commands, and manage your network with natural language!" 
-                        isSmallSubtext={true}
-                    />
-        <button
-          onClick={() => setShowApiKeyModal(true)}
-          className="flex items-center gap-2 rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 font-medium text-sm transition-all shadow-md hover:shadow-lg"
-          title="Manage Hugging Face API Key"
-        >
-          <Settings size={18} />
-          <span>API Key</span>
-        </button>
-      </div>
+      <SessionSidebar
+        sessions={sessions}
+        activeSessionId={activeSessionId}
+        onSelectSession={handleSelectSession}
+        onNewSession={handleNewSession}
+        onDeleteSession={handleDeleteSession}
+        isOpen={sidebarOpen}
+        onToggle={() => setSidebarOpen(!sidebarOpen)}
+      />
 
-      <div className="mb-8">
-        <h2 className="mb-4 text-lg font-bold text-[#0F172A]">Quick Actions</h2>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {quickActions.map((action) => {
-            const Icon = action.icon;
-            return (
-              <button
-                key={action.id}
-                onClick={() => executeAction(action)}
-                disabled={executingAction !== null}
-                className={`flex flex-col items-start rounded-2xl border p-5 ${action.color} backdrop-blur-sm transition-all duration-200 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50`}
-              >
-                <div className={`mb-3 rounded-lg p-3 ${action.color.split(" ")[0]}`}>
-                  <Icon className={action.iconColor} size={24} />
-                </div>
-                <h3 className="mb-1 text-sm font-bold text-[#0F172A]">{action.name}</h3>
-                <p className="text-xs leading-relaxed text-[#64748B]">{action.description}</p>
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="flex min-h-131.25 flex-col overflow-hidden rounded-3xl border border-slate-700/50 bg-[#1D293DED] shadow-lg">
-        <div className="flex-1 space-y-5 p-6">
-          {messages.map((message, index) => (
-            <div key={index} className={`flex gap-4 ${message.role === "user" ? "justify-end" : ""}`}>
-              {message.role === "ai" && (
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-violet-600 text-white">
-                  <Bot size={20} />
-                </div>
-              )}
-
-              <div className={`max-w-4xl rounded-2xl px-5 py-4 text-sm leading-relaxed ${message.role === "user" ? "bg-blue-600 text-white" : "bg-[#0F172A] text-slate-300"}`}>
-                {message.role === "ai" && (
-                  <div className="mb-2 flex items-center gap-2">
-                    <span className="rounded-lg bg-blue-600/30 px-2 py-1 text-xs font-bold text-blue-200">
-                      {message.model === "google/gemma-4-31B-it:novita" ? "Gemma 4 31B" : "AI Assistant"}
-                    </span>
-                    <span className="text-xs text-slate-500">{message.time}</span>
-                  </div>
-                )}
-
-                {message.reasoning && (
-                  <div className="mb-4 rounded-lg border border-purple-500/30 bg-purple-900/20 p-3">
-                    <p className="mb-2 text-xs font-semibold text-purple-300">Thinking Process:</p>
-                    <p className="text-xs text-purple-200/80">{message.reasoning}</p>
-                  </div>
-                )}
-
-                <div className={message.role === "ai" ? "whitespace-pre-wrap wrap-break-words" : "wrap-break-words"}>
-                  {message.text}
-                </div>
-
-                {message.output && <ExpandableOutput output={message.output} />}
-                {message.playbook_suggestions && message.playbook_suggestions.length > 0 && (
-                  <PlaybookSuggestions suggestions={message.playbook_suggestions} onExecute={handleExecuteSuggestedPlaybook} />
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="border-t border-slate-700/50 bg-[#314157] p-5">
-          <div className="mb-4 flex flex-wrap items-center gap-3">
-            <label className="text-sm font-semibold text-slate-300">Model:</label>
-            <select
-              value={selectedModel}
-              onChange={(event) => handleModelChange(event.target.value)}
-              className="rounded-lg border border-slate-600 bg-[#0F172A] px-3 py-2 text-sm text-slate-200 outline-none hover:border-slate-500 focus:border-blue-500"
-            >
-              {hfModels.map((model) => (
-                <option key={model.id} value={model.id}>
-                  {model.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="mb-5 flex flex-wrap gap-3">
-            {["High CPU devices", "Configure VLAN", "Security analysis"].map((prompt) => (
-              <button
-                key={prompt}
-                onClick={() => setInput(prompt)}
-                className="rounded-xl border border-slate-600 bg-slate-700/40 px-4 py-2 text-sm text-slate-200"
-              >
-                {prompt}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex gap-3">
-            <input
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              onKeyDown={(event) => event.key === "Enter" && sendMessage()}
-              placeholder="Type your command or question... (Press Enter to send)"
-              className="flex-1 rounded-xl bg-[#0F172A] px-4 text-sm text-slate-200 outline-none placeholder:text-slate-500"
-            />
+      {/* Main content area — shifts right when sidebar is open on large screens */}
+      <div className={`transition-all duration-300 ${sidebarOpen ? "lg:ml-72" : "ml-0"}`}>
+        <div className="flex items-start justify-between mb-6">
+          <PageHeader 
+            title="AI Chat Console" 
+            description="Interact with your AI Network Assistant. Ask questions, run commands, and manage your network with natural language!" 
+            isSmallSubtext={true}
+          />
+          <div className="flex items-center gap-3">
             <button
-              onClick={sendMessage}
-              className="grid h-14 w-14 place-items-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-600/25"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className={`flex items-center gap-2 rounded-xl border px-4 py-2 font-medium text-sm transition-all shadow-md hover:shadow-lg ${
+                sidebarOpen
+                  ? "border-blue-500/50 bg-blue-600/20 text-blue-300 hover:bg-blue-600/30"
+                  : "border-slate-600 bg-[#1D293D] text-slate-300 hover:bg-[#2A3A52] hover:text-white"
+              }`}
+              title="Toggle sessions panel"
             >
-              <Send size={20} />
+              <MessageSquare size={18} />
+              <span>Sessions</span>
             </button>
+            <button
+              onClick={() => setShowApiKeyModal(true)}
+              className="flex items-center gap-2 rounded-xl border border-slate-600 bg-[#1D293D] px-4 py-2 font-medium text-sm text-slate-300 transition-all shadow-md hover:bg-[#2A3A52] hover:text-white hover:shadow-lg"
+              title="Manage Hugging Face API Key"
+            >
+              <Settings size={18} />
+              <span>API Key</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="mb-8">
+          <h2 className="mb-4 text-lg font-bold text-[#0F172A]">Quick Actions</h2>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {quickActions.map((action) => {
+              const Icon = action.icon;
+              return (
+                <button
+                  key={action.id}
+                  onClick={() => executeAction(action)}
+                  disabled={executingAction !== null}
+                  className={`flex flex-col items-start rounded-2xl border p-5 ${action.color} backdrop-blur-sm transition-all duration-200 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50`}
+                >
+                  <div className={`mb-3 rounded-lg p-3 ${action.color.split(" ")[0]}`}>
+                    <Icon className={action.iconColor} size={24} />
+                  </div>
+                  <h3 className="mb-1 text-sm font-bold text-[#0F172A]">{action.name}</h3>
+                  <p className="text-xs leading-relaxed text-[#64748B]">{action.description}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="flex min-h-131.25 flex-col overflow-hidden rounded-3xl border border-slate-700/50 bg-[#1D293DED] shadow-lg">
+          <div className="flex-1 space-y-5 p-6">
+            {loadingSession ? (
+              <div className="flex items-center justify-center py-20 text-slate-400">
+                <div className="animate-pulse text-sm">Loading session...</div>
+              </div>
+            ) : (
+              messages.map((message, index) => (
+                <div key={index} className={`flex gap-4 ${message.role === "user" ? "justify-end" : ""}`}>
+                  {message.role === "ai" && (
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-violet-600 text-white">
+                      <Bot size={20} />
+                    </div>
+                  )}
+
+                  <div className={`max-w-4xl rounded-2xl px-5 py-4 text-sm leading-relaxed ${message.role === "user" ? "bg-blue-600 text-white" : "bg-[#0F172A] text-slate-300"}`}>
+                    {message.role === "ai" && (
+                      <div className="mb-2 flex items-center gap-2">
+                        <span className="rounded-lg bg-blue-600/30 px-2 py-1 text-xs font-bold text-blue-200">
+                          {message.model === "google/gemma-4-31B-it:novita" ? "Gemma 4 31B" : "AI Assistant"}
+                        </span>
+                        <span className="text-xs text-slate-500">{message.time}</span>
+                      </div>
+                    )}
+
+                    {message.reasoning && (
+                      <div className="mb-4 rounded-lg border border-purple-500/30 bg-purple-900/20 p-3">
+                        <p className="mb-2 text-xs font-semibold text-purple-300">Thinking Process:</p>
+                        <p className="text-xs text-purple-200/80">{message.reasoning}</p>
+                      </div>
+                    )}
+
+                    <div className={message.role === "ai" ? "whitespace-pre-wrap wrap-break-words" : "wrap-break-words"}>
+                      {message.text}
+                    </div>
+
+                    {message.output && <ExpandableOutput output={message.output} />}
+                    {message.playbook_suggestions && message.playbook_suggestions.length > 0 && (
+                      <PlaybookSuggestions suggestions={message.playbook_suggestions} onExecute={handleExecuteSuggestedPlaybook} />
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="border-t border-slate-700/50 bg-[#314157] p-5">
+            <div className="mb-4 flex flex-wrap items-center gap-3">
+              <label className="text-sm font-semibold text-slate-300">Model:</label>
+              <select
+                value={selectedModel}
+                onChange={(event) => handleModelChange(event.target.value)}
+                className="rounded-lg border border-slate-600 bg-[#0F172A] px-3 py-2 text-sm text-slate-200 outline-none hover:border-slate-500 focus:border-blue-500"
+              >
+                {hfModels.map((model) => (
+                  <option key={model.id} value={model.id}>
+                    {model.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="mb-5 flex flex-wrap gap-3">
+              {["High CPU devices", "Configure VLAN", "Security analysis"].map((prompt) => (
+                <button
+                  key={prompt}
+                  onClick={() => setInput(prompt)}
+                  className="rounded-xl border border-slate-600 bg-slate-700/40 px-4 py-2 text-sm text-slate-200"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-3">
+              <input
+                value={input}
+                onChange={(event) => setInput(event.target.value)}
+                onKeyDown={(event) => event.key === "Enter" && sendMessage()}
+                placeholder="Type your command or question... (Press Enter to send)"
+                className="flex-1 rounded-xl bg-[#0F172A] px-4 text-sm text-slate-200 outline-none placeholder:text-slate-500"
+              />
+              <button
+                onClick={sendMessage}
+                className="grid h-14 w-14 place-items-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-600/25"
+              >
+                <Send size={20} />
+              </button>
+            </div>
           </div>
         </div>
       </div>

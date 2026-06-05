@@ -88,6 +88,102 @@ def load_host_aliases() -> dict:
     return aliases
 
 
+def load_devices_from_inventory() -> list:
+    """Parse hosts.ini into device dicts with type inferred from group.
+
+    Only processes typed groups (Edge_routers, Core_Switches,
+    Distribution_Switches, Access_Switches), skipping the flat
+    [allHosts] list so every device gets the correct type.
+    """
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    inventory_path = os.path.join(repo_root, "playbooks", "hosts.ini")
+
+    group_type_map = {
+        "edge_routers": "router",
+        "core_switches": "switch",
+        "distribution_switches": "switch",
+        "access_switches": "switch",
+    }
+
+    if not os.path.exists(inventory_path):
+        return []
+
+    devices = []
+    seen_names = set()
+    current_section = None
+    host_re = re.compile(r"^(?P<name>\S+)\s+.*?ansible_host=(?P<ip>\S+)")
+
+    try:
+        with open(inventory_path, "r", encoding="utf-8") as fh:
+            for line in fh:
+                stripped = line.strip()
+                if not stripped or stripped.startswith("#"):
+                    continue
+
+                if stripped.startswith("[") and stripped.endswith("]"):
+                    section = stripped.strip("[]").lower().partition(":")[0]
+                    current_section = group_type_map.get(section)
+                    continue
+
+                if current_section is None:
+                    continue
+
+                match = host_re.search(stripped)
+                if match and match.group("name") not in seen_names:
+                    seen_names.add(match.group("name"))
+                    devices.append({
+                        "id": slugify(match.group("name")),
+                        "name": match.group("name"),
+                        "ip": match.group("ip"),
+                        "type": current_section,
+                        "model": "Cisco IOS Device",
+                        "version": "Unknown",
+                        "uptime": "N/A",
+                        "cpu": 0,
+                        "memory": 0,
+                        "online": True,
+                    })
+    except Exception:
+        return devices
+
+    return devices
+
+
+def load_hosts_ini_credentials() -> dict:
+    """Read [allHosts:vars] from hosts.ini for default SSH credentials."""
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    inventory_path = os.path.join(repo_root, "playbooks", "hosts.ini")
+
+    if not os.path.exists(inventory_path):
+        return {}
+
+    credentials = {}
+    in_vars_section = False
+
+    try:
+        with open(inventory_path, "r", encoding="utf-8") as fh:
+            for line in fh:
+                stripped = line.strip()
+                if not stripped or stripped.startswith("#"):
+                    continue
+
+                if stripped.startswith("[") and stripped.endswith("]"):
+                    in_vars_section = stripped[1:-1].lower() == "allhosts:vars"
+                    continue
+
+                if in_vars_section and "=" in stripped:
+                    key, _, value = stripped.partition("=")
+                    stripped_key = key.strip()
+                    if stripped_key == "ansible_user":
+                        credentials["username"] = value.strip()
+                    elif stripped_key == "ansible_password":
+                        credentials["password"] = value.strip()
+    except Exception:
+        return credentials
+
+    return credentials
+
+
 def get_host_sort_key(host: str, host_aliases: dict) -> tuple:
     alias = host_aliases.get(host, {})
     label = alias.get("name", host).lower()
@@ -261,9 +357,15 @@ async def get_telemetry_hosts():
 
 @router.get("/devices", response_model=List[NetworkDevice])
 async def get_network_devices():
-    stored_devices = await devices_collection.find({}).to_list(length=100)
-    devices_by_id = {device["id"]: dict(device) for device in DEFAULT_DEVICES}
+    # Base layer: devices from hosts.ini (lowest priority)
+    devices_by_id = {d["id"]: d for d in load_devices_from_inventory()}
 
+    # Middle layer: hardcoded defaults (fill in gaps & demo values)
+    for device in DEFAULT_DEVICES:
+        devices_by_id[device["id"]] = dict(device)
+
+    # Top layer: user-saved devices from MongoDB (highest priority)
+    stored_devices = await devices_collection.find({}).to_list(length=100)
     for device in stored_devices:
         serialized = serialize_device(device)
         devices_by_id[serialized["id"]] = serialized
@@ -339,6 +441,181 @@ async def trigger_nmap_scan():
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Failed to run nmap scan: {str(e)}"
+        )
+
+
+# Four-tier hierarchy matching hosts.ini groups
+DEVICE_TIER = {
+    "R1": "edge", "R2": "edge",
+    "ESW1": "core", "ESW2": "core",
+    "ESW3": "distribution", "ESW4": "distribution",
+    "ESW5": "distribution", "ESW6": "distribution",
+    "ESW7": "access", "ESW8": "access", "ESW9": "access", "ESW10": "access",
+    "ESW11": "access", "ESW12": "access", "ESW13": "access", "ESW14": "access",
+}
+
+TIER_ORDER = ["edge", "core", "distribution", "access"]
+
+TIER_LABELS = {
+    "edge": "Edge/WAN",
+    "core": "Core",
+    "distribution": "Distribution",
+    "access": "Access",
+}
+
+STATUS_REASON_LABELS = {
+    "edge_layer_down": "Edge/WAN layer is fully down — lower tiers cannot route out",
+    "core_layer_down": "Core layer is fully down — distribution and access are isolated",
+    "distribution_layer_down": "Distribution layer is fully down — access switches isolated",
+}
+
+
+def _build_device_status() -> dict:
+    """
+    Cross-reference hosts.ini devices with nmap results, then apply
+    four-tier cascading logic.
+
+    OSPF with redundant links means a single device failure in an upper
+    tier does NOT cascade.  The cascade triggers only when *every* device
+    in a tier is offline — at that point all lower tiers are marked
+    ``degraded`` because even if nmap shows them responding, the network
+    path is broken.
+    """
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+    all_devices = load_devices_from_inventory()
+    active_devices_path = os.path.join(repo_root, "nmap_output", "active_devices.json")
+
+    active_ips = set()
+    active_device_map = {}
+    scan_timestamp = None
+
+    try:
+        if os.path.exists(active_devices_path):
+            with open(active_devices_path, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                for d in data.get("devices", []):
+                    ip = d["ip"]
+                    active_ips.add(ip)
+                    active_device_map[ip] = d
+                scan_timestamp = data.get("scan_timestamp")
+    except Exception:
+        pass
+
+    # Step 1: raw nmap status + enrichment
+    for device in all_devices:
+        ip = device["ip"]
+        is_online = ip in active_ips
+        device["online"] = is_online
+        device["tier"] = DEVICE_TIER.get(device["name"], "access")
+        if is_online:
+            nmap_device = active_device_map.get(ip, {})
+            if nmap_device.get("model") and nmap_device["model"] != "Cisco IOS Device":
+                device["model"] = nmap_device["model"]
+            if nmap_device.get("version"):
+                device["version"] = nmap_device["version"]
+            if nmap_device.get("uptime"):
+                device["uptime"] = nmap_device["uptime"]
+
+    # Step 2: four-tier cascade
+    cascade_down = False
+    cascade_reason = None
+
+    for tier in TIER_ORDER:
+        tier_devices = [d for d in all_devices if d.get("tier") == tier]
+        if not tier_devices:
+            continue
+
+        tier_online_count = sum(1 for d in tier_devices if d.get("online"))
+
+        if cascade_down:
+            for d in tier_devices:
+                d["effective_status"] = "degraded"
+                d["status_reason"] = cascade_reason
+        elif tier_online_count == 0:
+            for d in tier_devices:
+                d["effective_status"] = "offline"
+                d["status_reason"] = None
+            cascade_down = True
+            cascade_reason = f"{tier}_layer_down"
+        else:
+            for d in tier_devices:
+                d["effective_status"] = "online" if d.get("online") else "offline"
+                d["status_reason"] = None
+
+    total = len(all_devices)
+    online_count = sum(1 for d in all_devices if d.get("effective_status") == "online")
+    degraded_count = sum(1 for d in all_devices if d.get("effective_status") == "degraded")
+
+    # Step 3: build tier summary
+    tier_summary = {}
+    for tier in TIER_ORDER:
+        tier_devices = [d for d in all_devices if d.get("tier") == tier]
+        if tier_devices:
+            tier_online = sum(1 for d in tier_devices if d.get("online"))
+            tier_summary[tier] = {
+                "total": len(tier_devices),
+                "online": tier_online,
+                "healthy": tier_online > 0,
+                "label": TIER_LABELS.get(tier, tier),
+            }
+
+    return {
+        "devices": all_devices,
+        "online_count": online_count,
+        "offline_count": total - online_count - degraded_count,
+        "degraded_count": degraded_count,
+        "total_count": total,
+        "scan_timestamp": scan_timestamp,
+        "tier_summary": tier_summary,
+    }
+
+
+@router.get("/device-status")
+async def get_device_status():
+    """Return all inventory devices with online/offline status from nmap scan"""
+    return _build_device_status()
+
+
+@router.post("/device-status/scan")
+async def trigger_device_status_scan():
+    """Trigger nmap scan and return updated device status"""
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+    nmap_script = os.path.join(repo_root, "watchman", "scripts", "nmap_scan.py")
+
+    if not os.path.exists(nmap_script):
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="nmap_scan.py script not found",
+        )
+
+    try:
+        result = await asyncio.create_task(asyncio.to_thread(
+            subprocess.run,
+            [sys.executable, nmap_script],
+            capture_output=True,
+            text=True,
+            timeout=180,
+        ))
+
+        if result.returncode != 0:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Nmap scan failed: {result.stderr}",
+            )
+
+        return _build_device_status()
+
+    except subprocess.TimeoutExpired:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Nmap scan timed out (exceeded 3 minutes)",
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to run nmap scan: {str(e)}",
         )
 
 
@@ -471,6 +748,11 @@ async def network_terminal_ws(websocket: WebSocket, device_id: str):
     ssh_port = int(saved_config.get("ssh_port") or 22)
 
     if not password:
+        hosts_creds = load_hosts_ini_credentials()
+        username = hosts_creds.get("username", username)
+        password = hosts_creds.get("password")
+
+    if not password:
         await websocket.send_text(
             "Missing SSH password. Open Edit, save SSH credentials, then configure again.\r\n"
         )
@@ -514,6 +796,49 @@ async def network_terminal_ws(websocket: WebSocket, device_id: str):
             username=username,
             password=password,
             known_hosts=None,
+            kex_algs=[
+                "diffie-hellman-group1-sha1",
+                "curve25519-sha256",
+                "curve25519-sha256@libssh.org",
+                "ecdh-sha2-nistp256",
+                "ecdh-sha2-nistp384",
+                "ecdh-sha2-nistp521",
+                "diffie-hellman-group-exchange-sha256",
+                "diffie-hellman-group14-sha256",
+                "diffie-hellman-group15-sha512",
+                "diffie-hellman-group16-sha512",
+                "diffie-hellman-group17-sha512",
+                "diffie-hellman-group18-sha512",
+                "diffie-hellman-group14-sha1",
+            ],
+            encryption_algs=[
+                "aes128-cbc",
+                "aes192-cbc",
+                "aes256-cbc",
+                "aes128-ctr",
+                "aes192-ctr",
+                "aes256-ctr",
+                "aes128-gcm@openssh.com",
+                "aes256-gcm@openssh.com",
+                "chacha20-poly1305@openssh.com",
+            ],
+            mac_algs=[
+                "hmac-sha1",
+                "hmac-sha1-96",
+                "hmac-md5",
+                "hmac-md5-96",
+                "hmac-sha2-256",
+                "hmac-sha2-512",
+            ],
+            server_host_key_algs=[
+                "ssh-rsa",
+                "rsa-sha2-256",
+                "rsa-sha2-512",
+                "ecdsa-sha2-nistp256",
+                "ecdsa-sha2-nistp384",
+                "ecdsa-sha2-nistp521",
+                "ssh-ed25519",
+            ],
         )
         process = await conn.create_process(term_type="xterm", term_size=(120, 34))
         await websocket.send_text("SSH authenticated. Interactive shell ready.\r\n")
@@ -602,7 +927,17 @@ async def find_device(device_id: str):
     if device:
         return serialize_device(device)
 
-    return next((device for device in DEFAULT_DEVICES if device["id"] == device_id or device["name"] == device_id), None)
+    device = next(
+        (device for device in DEFAULT_DEVICES if device["id"] == device_id or device["name"] == device_id),
+        None,
+    )
+    if device:
+        return dict(device)
+
+    return next(
+        (device for device in load_devices_from_inventory() if device["id"] == device_id or device["name"] == device_id),
+        None,
+    )
 
 
 def serialize_device(device: dict) -> dict:

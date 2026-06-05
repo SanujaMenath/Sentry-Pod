@@ -1,0 +1,4 @@
+Jun  5 08:53:44 10.89.0.58 <189>97: ESW4: Jun  5 13:57:30: %SYS-5-CONFIG_I: Configured from console by console
+Jun  5 08:53:53 10.89.0.58 <189>78: Jun  5 13:29:11: %LINK-5-CHANGED: Interface FastEthernet1/7, changed state to administratively down
+Jun  5 08:54:28 10.89.0.58 <189>98: ESW4: Jun  5 14:24:27: %LINK-5-CHANGED: Interface FastEthernet1/7, changed state to administratively down
+Jun  5 08:54:33 10.89.0.58 <187>99: ESW4: Jun  5 14:24:32: %LINK-3-UPDOWN: Interface FastEthernet1/7, changed state to up

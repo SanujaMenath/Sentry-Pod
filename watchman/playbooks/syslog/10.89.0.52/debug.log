@@ -1,0 +1,7 @@
+Jun  5 07:52:39 10.89.0.52 DTEST 1780645959 192.168.122.252 %LINEPROTO-5-UPDOWN: debug test
+Jun  5 07:31:00 10.89.0.52 %LINEPROTO-5-UPDOWN: FastEthernet0/1 link down
+Jun  5 07:53:03 10.89.0.52 192.168.122.252 %OSPF-5-ADJCHG: Process 1, Nbr 10.0.0.1 to FULL
+Jun  5 07:31:00 10.89.0.52 %LINEPROTO-5-UPDOWN: FastEthernet0/1 link down
+Jun  5 07:53:25 10.89.0.52 192.168.122.252 %OSPF-5-ADJCHG: Process 1, Nbr 10.0.0.1 to FULL
+Jun  5 07:53:42 10.89.0.52 R1TEST 192.168.122.252 %SYS-5-CONFIG_I: Configured from console by admin
+Jun  5 07:31:00 10.89.0.52 %SYS-5-CONFIG_I: Configured from console
