@@ -16,6 +16,8 @@ import { Network } from "lucide-react";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicRoute from "./routes/PublicRoute";
 import PlaybookManagement from "./pages/PlaybookManagement";
+import DriftReports from "./pages/DriftReports";
+import DriftReportDetail from "./pages/DriftReportDetail";
 
 function App() {
   return (
@@ -48,6 +50,8 @@ function App() {
           <Route path="/profile" element={<Profile />} />
           <Route path="/settings" element={<SettingsPage />} />
           <Route path="/playbooks" element={<PlaybookManagement />} />
+          <Route path="/drift-reports" element={<DriftReports />} />
+          <Route path="/drift-reports/:hostname" element={<DriftReportDetail />} />
           
         </Route>
       </Routes>

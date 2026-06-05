@@ -10,7 +10,7 @@ load_dotenv()
 MONGO_URI = os.getenv("MONGO_URI") or settings.MONGO_URI
 
 # Initialize the client
-client = AsyncIOMotorClient(MONGO_URI)
+client = AsyncIOMotorClient(MONGO_URI, tz_aware=True)
 
 # Access your specific database
 db = client.sentry_pod_db
@@ -19,3 +19,7 @@ db = client.sentry_pod_db
 devices_collection = db.get_collection("devices")
 logs_collection = db.get_collection("logs")
 device_configurations_collection = db.get_collection("device_configurations")
+api_keys_collection = db.get_collection("api_keys")
+playbooks_collection = db.get_collection("playbooks")
+conversations_collection = db.get_collection("conversations")
+syslog_alerts_collection = db.get_collection("syslog_alerts")

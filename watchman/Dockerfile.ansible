@@ -1,22 +1,30 @@
 FROM ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
+ENV ANSIBLE_CONFIG=/ansible/ansible.cfg
 
-# Install dependencies and native openssh client
+# Install system dependencies, ssh client, sshpass, snmpwalk, and nmap
 RUN apt-get update && apt-get install -y \
     software-properties-common \
     python3-pip \
     build-essential \
     openssh-client \
-    crypto-policies \
+    sshpass \
+    snmp \
+    nmap \
     && add-apt-repository --yes --update ppa:ansible/ansible \
     && apt-get install -y ansible \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
-# This cleanly forces the native OpenSSH client to allow old group1-sha1 KEX methods
-RUN update-crypto-policies --set LEGACY
+# Configure native SSH client inside the container to allow legacy key exchange and host key algorithms
+RUN mkdir -p /etc/ssh/ssh_config.d && \
+    echo "Host *\n    HostKeyAlgorithms +ssh-rsa\n    PubkeyAcceptedAlgorithms +ssh-rsa\n    KexAlgorithms +diffie-hellman-group1-sha1,diffie-hellman-group14-sha1" > /etc/ssh/ssh_config.d/legacy.conf
 
-RUN ansible-galaxy collection install containers.podman
+# Install required python packages for network connections (using paramiko for legacy cipher support)
+RUN pip3 install --no-cache-dir --break-system-packages paramiko
+
+# Install the Cisco IOS Ansible collection
+RUN ansible-galaxy collection install cisco.ios
 
 WORKDIR /ansible
