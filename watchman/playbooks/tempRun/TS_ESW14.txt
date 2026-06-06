@@ -1,6 +1,6 @@
 Building configuration...
 
-Current configuration : 5508 bytes
+Current configuration : 5518 bytes
 !
 ! No configuration change since last restart
 !
@@ -106,6 +106,7 @@ interface FastEthernet1/6
  speed 100
 !
 interface FastEthernet1/7
+ shutdown
  duplex full
  speed 100
 !
