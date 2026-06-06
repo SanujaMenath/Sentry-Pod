@@ -10,16 +10,16 @@ from app.core.security import get_password_hash
 
 async def create_first_admin():
     # Use the same URL from your podman-compose
-    # Since this script runs on Windows, use 'localhost' instead of 'vault'
-    MONGO_URL = "mongodb://sentry_pod:Admin123@localhost:27017/sentry_nms?authSource=admin"
+    # Since this script runs on the host, use 'localhost' instead of 'vault'
+    MONGO_URL = "mongodb://sentry_pod:Admin123@localhost:27017/sentry_pod_db?authSource=admin"
     client = AsyncIOMotorClient(MONGO_URL)
-    db = client.sentry_nms
+    db = client.sentry_pod_db
 
     admin_data = {
         "username": "admin",
         "email": "admin@sentrypod.io",
         "full_name": "System Administrator",
-        "password_hash": get_password_hash("SentrySecure2026"),
+        "password": get_password_hash("SentrySecure2026"),
         "role": "admin",
         "is_active": True,
         "created_at": datetime.now(),

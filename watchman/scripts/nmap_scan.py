@@ -37,9 +37,9 @@ DEFAULT_METRICS = {
 
 
 def get_repo_root():
-    """Get the repo root directory"""
+    """Get the watchman directory (contains nmap_output/ and scripts/)"""
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    return os.path.abspath(os.path.join(script_dir, "..", ".."))
+    return os.path.abspath(os.path.join(script_dir, ".."))
 
 
 def run_nmap(hosts_file: str) -> dict:

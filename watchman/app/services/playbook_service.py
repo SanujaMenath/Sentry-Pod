@@ -55,9 +55,9 @@ def get_podman_command(playbook_name: str) -> List[str]:
     if system == "Linux":
         cmd.append("--network=host")
     
-    # Add volume mount
-    # On Windows, Podman may need different path handling, but the :Z flag should help
-    cmd.extend(["-v", f"{playbooks_abs_path}:{PODMAN_ANSIBLE_DIR}:Z"])
+    # Add volume mount (SELinux :Z flag is Linux-only)
+    vol_flag = f"{playbooks_abs_path}:{PODMAN_ANSIBLE_DIR}:Z" if system == "Linux" else f"{playbooks_abs_path}:{PODMAN_ANSIBLE_DIR}"
+    cmd.extend(["-v", vol_flag])
     
     # Container image
     cmd.append(PODMAN_CONTAINER_IMAGE)
@@ -268,9 +268,11 @@ def run_drift_analysis() -> Tuple[int, str]:
     if system == "Linux":
         cmd.append("--network=host")
         
+    vol_pb = f"{playbooks_abs_path}:{PODMAN_ANSIBLE_DIR}:Z" if system == "Linux" else f"{playbooks_abs_path}:{PODMAN_ANSIBLE_DIR}"
+    vol_scripts = f"{scripts_abs_path}:/scripts:Z" if system == "Linux" else f"{scripts_abs_path}:/scripts"
     cmd.extend([
-        "-v", f"{playbooks_abs_path}:{PODMAN_ANSIBLE_DIR}:Z",
-        "-v", f"{scripts_abs_path}:/scripts:Z",
+        "-v", vol_pb,
+        "-v", vol_scripts,
         PODMAN_CONTAINER_IMAGE,
         "/bin/bash", f"{PODMAN_ANSIBLE_DIR}/run_drift_analysis.sh"
     ])
@@ -315,8 +317,9 @@ def run_baseline_collection() -> Tuple[int, str]:
     if system == "Linux":
         cmd.append("--network=host")
 
+    vol_flag = f"{playbooks_abs_path}:{PODMAN_ANSIBLE_DIR}:Z" if system == "Linux" else f"{playbooks_abs_path}:{PODMAN_ANSIBLE_DIR}"
     cmd.extend([
-        "-v", f"{playbooks_abs_path}:{PODMAN_ANSIBLE_DIR}:Z",
+        "-v", vol_flag,
         PODMAN_CONTAINER_IMAGE,
         "/bin/bash", f"{PODMAN_ANSIBLE_DIR}/run_baseline_collection.sh"
     ])
@@ -356,9 +359,11 @@ def run_baseline_refresh() -> Tuple[int, str]:
     if system == "Linux":
         cmd.append("--network=host")
 
+    vol_pb = f"{playbooks_abs_path}:{PODMAN_ANSIBLE_DIR}:Z" if system == "Linux" else f"{playbooks_abs_path}:{PODMAN_ANSIBLE_DIR}"
+    vol_scripts = f"{scripts_abs_path}:/scripts:Z" if system == "Linux" else f"{scripts_abs_path}:/scripts"
     cmd.extend([
-        "-v", f"{playbooks_abs_path}:{PODMAN_ANSIBLE_DIR}:Z",
-        "-v", f"{scripts_abs_path}:/scripts:Z",
+        "-v", vol_pb,
+        "-v", vol_scripts,
         PODMAN_CONTAINER_IMAGE,
         "/bin/bash", f"{PODMAN_ANSIBLE_DIR}/run_baseline_refresh.sh"
     ])

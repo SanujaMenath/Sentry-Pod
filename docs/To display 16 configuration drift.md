@@ -1,5 +1,7 @@
 To display **16 configuration drift alerts** on the Dashboard widget, the system goes through a five-phase, step-by-step process starting from the physical devices up to the React UI component.
 
+> **Note**: This document was written to trace the data flow for displaying 16 drifts. A bug was later fixed where `configDrift.yml` unconditionally created `DRIFT_*.diff` files for all devices even when empty, and `parse_drift.py` counted all files regardless of content. The flow below remains accurate in principle — the count now reflects only devices with actual diff content (non-empty files with `+`/`-` lines).
+
 Here is the exact step-by-step data lifecycle:
 
 ---

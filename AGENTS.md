@@ -37,6 +37,12 @@ python watchman/scripts/container_manager.py build   # build sentry-ansible imag
 python watchman/scripts/container_manager.py run <playbook>   # run playbook
 python watchman/scripts/container_manager.py shell   # interactive container shell
 python watchman/scripts/container_manager.py check   # verify setup
+
+# Smoke test (full stack health check)
+python watchman/scripts/smoke_test.py               # full test
+python watchman/scripts/smoke_test.py --quick        # skip nmap + frontend server check
+python watchman/scripts/smoke_test.py --backend-only # backend + containers only
+python watchman/scripts/smoke_test.py --frontend-only # frontend only
 ```
 
 ## Architecture notes
@@ -74,6 +80,43 @@ HUGGINGFACE_API_KEY=<hf_token>
 - Playbook catalog at `watchman/playbooks/catalog.json` drives the suggestion engine and UI.
 - `host_key_checking = False` in ansible.cfg.
 - Add new playbooks: write `.yml` in `playbooks/`, add entry in `catalog.json`.
+
+## TODO: Fix hardcoded API URLs in frontend
+
+**9 files, 22 locations** hardcode `http://localhost:8000` / `http://127.0.0.1:8000` instead of using `VITE_API_BASE_URL` or the centralized `api.js` axios instance.
+
+**How to fix each file:**
+
+1. **Services** (`auditService.js`, `userService.js`): Replace `axios.create({baseURL: 'http://localhost:8000'})` with `import api from './api'` and use `api.get/post` calls (the centralized instance already uses `VITE_API_BASE_URL`).
+
+2. **Raw `fetch()` calls** (Dashboard.jsx, DriftReports.jsx, DriftReportDetail.jsx, ApiKeyModal.jsx): Add at top of file:
+   ```js
+   const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+   ```
+   Then replace `fetch("http://127.0.0.1:8000/...")` with `` fetch(`${API_BASE}/...`) ``.
+   
+   For Dashboard.jsx specifically, the 9 fetch calls should be migrated to use the imported `api` axios instance where possible.
+
+3. **SSE streams** (AiChat.jsx line 270: `EventSource(...)`): Pass the env-var-based URL instead of hardcoded. Axios doesn't support SSE, so use the `API_BASE` constant approach.
+
+4. **llmService.js**: Replace hardcoded URL with `import.meta.env.VITE_API_BASE_URL`.
+
+**Files involved:**
+| File | Lines | Approach |
+|---|---|---|
+| `frontend/src/services/auditService.js` | 3 | Use `api` import |
+| `frontend/src/services/userService.js` | 3 | Use `api` import |
+| `frontend/src/services/llmService.js` | 2 | Use `API_BASE` constant |
+| `frontend/src/pages/Dashboard.jsx` | 83,97,111,127,139,153,172,185,207 | Use `api` import |
+| `frontend/src/pages/AiChat.jsx` | 196,270 | Use `API_BASE` constant |
+| `frontend/src/pages/DriftReports.jsx` | 13 | Use `API_BASE` constant |
+| `frontend/src/pages/DriftReportDetail.jsx` | 18 | Use `API_BASE` constant |
+| `frontend/src/components/ApiKeyModal.jsx` | 18,43,77,109 | Use `API_BASE` constant |
+
+## Fixed during audit
+
+- **`frontend/package.json`**: Added `eslint-plugin-react@^7.37.5` to `devDependencies` (was missing, broke `npm run lint`).
+- **`podman-compose.yaml`**: Renamed `DATABASE_URL` → `MONGO_URI` to match what `database.py` reads; changed DB name from `sentry_nms` → `sentry_pod_db` to match the code.
 
 ## Repo style
 

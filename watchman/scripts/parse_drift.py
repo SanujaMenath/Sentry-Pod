@@ -16,7 +16,6 @@ def analyze_drift():
         print(f"[-] Directory '{DRIFT_DIR}' does not exist. Run the Ansible playbook first.")
         return
 
-    # Filter out files that match your naming convention and aren't empty
     drift_files = [f for f in os.listdir(DRIFT_DIR) if f.startswith("DRIFT_") and f.endswith(".diff")]
     
     total_drifted_devices = len(drift_files)
@@ -43,16 +42,15 @@ def analyze_drift():
             content = file.read()
             clean_content = clean_ansi_codes(content)
             
-            # Print just the lines showing additions or removals to keep it brief
             lines = clean_content.splitlines()
             change_count = 0
             for line in lines:
-                # Target lines starting with + or - but ignore the header lines (--- or +++)
-               if (line.startswith('+') or line.startswith('-')) and not (line.startswith('+++') or line.startswith('---')):
-        # Skip the verbose default sub-traps to keep the summary concise
-                if "enable traps" in line and not any(core in line for core in ["syslog", "hsrp", "snmp "]):
-                 continue
-                    
+                if (line.startswith('+') or line.startswith('-')) and not (line.startswith('+++') or line.startswith('---')):
+                    if "enable traps" in line and not any(core in line for core in ["syslog", "hsrp", "snmp "]):
+                        continue
+                    print(f"       {line}")
+                    change_count += 1
+
             if change_count == 0:
                 print("     (File contains metadata or timestamp differences only)")
 
