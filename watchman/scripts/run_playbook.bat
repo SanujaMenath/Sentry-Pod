@@ -47,7 +47,7 @@ REM Run the playbook
 echo 🚀 Running playbook '!PLAYBOOK!' in container...
 cd /d "%PLAYBOOKS_DIR%"
 podman run --rm -it ^
-    -v "%PLAYBOOKS_DIR%:/ansible:Z" ^
+    -v "%PLAYBOOKS_DIR%:/ansible" ^
     %CONTAINER_NAME% ^
     ansible-playbook "/ansible/!PLAYBOOK!" -i "/ansible/!INVENTORY!"
 

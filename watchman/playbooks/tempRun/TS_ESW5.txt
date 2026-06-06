@@ -305,7 +305,7 @@ line vty 0 4
  login local
  transport input ssh
 !
-ntp clock-period 17179799
+ntp clock-period 17179811
 ntp max-associations 1
 ntp server 192.168.122.1
 !
