@@ -58,11 +58,11 @@ export default function NetworkDevices() {
   return (
     <div className="min-h-full bg-gradient-to-br from-[#F8FAFC] to-[#D1D5DB] p-8 font-sans">
       <div className="mb-8 flex items-start justify-between">
-  <PageHeader 
-    title="Network Devices" 
-    description="Monitor and manage all network devices" 
-    isSmallSubtext={true}
-  />
+        <PageHeader 
+          title="Network Devices" 
+          description="Monitor and manage all network devices" 
+          isSmallSubtext={true}
+        />
 
         <button
           onClick={() => setShowAddModal(true)}
@@ -134,7 +134,8 @@ function DeviceCard({ device, onConfigure, onEdit }) {
   const Icon = device.type === "router" ? Router : device.type === "firewall" ? Shield : Server;
 
   return (
-    <div className="bg-[#1D293DED] border border-slate-700/50 rounded-lg p-6 flex flex-col h-full transition-all duration-300 ease-out hover:border-blue-500/50 hover:-translate-y-0.5 hover:shadow-[0_20px_40px_rgba(0,0,0,0.4),0_0_15px_rgba(59,130,246,0.1)]">
+    /* UPDATED: Rounded depth to rounded-3xl and appended custom dashboard drop-shadow string */
+    <div className="bg-[#1D293DED] border border-slate-700/50 rounded-3xl p-6 flex flex-col h-full transition-all duration-300 ease-out hover:border-blue-500/50 hover:-translate-y-1 shadow-[0_5px_15px_rgba(0,0,0,0.6)] hover:shadow-[0_8px_25px_rgba(0,0,0,0.7)]">
       <div className="flex justify-between items-start mb-6">
         <div className="flex gap-4">
           <div className={`w-12 h-12 rounded-xl flex items-center justify-center border border-white/5 shadow-inner ${isOffline ? "bg-rose-500/10 text-rose-500" : "bg-blue-600/20 text-blue-400"}`}>

@@ -523,8 +523,8 @@ export default function AiChat() {
     }
   };
   const handleModelChange = (modelId) => {
-  setSelectedModel(modelId);
-  localStorage.setItem("hf_model", modelId);
+    setSelectedModel(modelId);
+    localStorage.setItem("hf_model", modelId);
   };
 
   return (
@@ -605,7 +605,8 @@ export default function AiChat() {
           </div>
         </div>
 
-        <div className="flex min-h-131.25 flex-col overflow-hidden rounded-3xl border border-slate-700/50 bg-[#1D293DED] shadow-lg">
+        {/* LARGE GRAY CHAT BOX (Updated shadow classes here) */}
+        <div className="flex min-h-131.25 flex-col overflow-hidden rounded-3xl border border-slate-700/50 bg-[#1D293DED] shadow-2xl shadow-black/50">
           <div className="flex-1 space-y-5 p-6">
             {loadingSession ? (
               <div className="flex items-center justify-center py-20 text-slate-400">

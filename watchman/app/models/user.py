@@ -16,6 +16,8 @@ class UserResponse(BaseModel):
     email: EmailStr
     username: str
     role: str
+    phone: Optional[str] = Field(None, example="+1 (555) 000-0000") 
+    bio: Optional[str] = Field(None, example="Security Administrator")
 
 class Token(BaseModel):
     access_token: str

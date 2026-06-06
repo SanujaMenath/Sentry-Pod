@@ -21,7 +21,7 @@ const staticRoleMetadata = [
   { name: "Auditor", desc: "View logs and reports", color: "text-yellow-400" },
   { name: "Read Only", desc: "View-only access", color: "text-gray-400" },
   {
-    name: "pending",
+    name: "Pending",
     desc: "Awaiting Administrator Activation",
     color: "text-rose-400",
   },
