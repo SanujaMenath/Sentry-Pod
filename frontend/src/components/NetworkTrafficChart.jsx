@@ -68,14 +68,14 @@ export default function NetworkTrafficChart({ onRefresh, isRefreshing = false, r
 
   if (loading) {
     return (
-      <div className="p-6 rounded-3xl bg-[#1D293DED] min-h-[300px] flex items-center justify-center text-slate-400 font-medium">
+      <div className="p-6 rounded-3xl bg-[#1D293DED] border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] h-full flex items-center justify-center text-slate-400 font-medium">
         Loading Network Baseline...
       </div>
     );
   }
 
   return (
-    <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] bg-[#1D293DED] font-sans">
+    <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] bg-[#1D293DED] font-sans h-full flex flex-col justify-between">
       <div className="flex flex-wrap items-center gap-3 mb-6">
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-blue-600/20 text-blue-400 border border-blue-500/20">
