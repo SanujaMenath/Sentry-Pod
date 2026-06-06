@@ -30,32 +30,32 @@ GNS3 Lab
     │  syslog UDP 10514
     │  (logging origin-id hostname configured on each device)
     ▼
-┌──────────────────────────────────────────────┐
-│ Host (virbr0: 192.168.122.1)                  │
-│  rootlessport (PID) listens on *:10514/udp    │
-│  ┌── podman network (10.89.0.0/24) ──────┐   │
-│  │  syslog-ng container (10.89.0.x)       │   │
-│  │    source s_gns3_network (UDP :10514)  │   │
-│  │       │                                 │   │
-│  │       ├──► d_gns3_nodes                 │   │
-│  │       │    file /var/log/syslog/$HOST/  │   │
-│  │       │         debug.log               │   │
-│  │       │                                 │   │
-│  │       └──► d_listener                   │   │
-│  │            program() ──► bash listener  │   │
-│  │                │                        │   │
+┌────────────────────────────────────────────── ──┐
+│ Host (virbr0: 192.168.122.1)                    │
+│  rootlessport (PID) listens on *:10514/udp      │
+│  ┌── podman network (10.89.0.0/24)  ────────┐   │
+│  │  syslog-ng container (10.89.0.x)         │   │
+│  │    source s_gns3_network (UDP :10514)    │   │
+│  │       │                                  │   │
+│  │       ├──► d_gns3_nodes                  │   │
+│  │       │    file /var/log/syslog/$HOST/   │   │
+│  │       │         debug.log                │   │
+│  │       │                                  │   │
+│  │       └──► d_listener                    │   │
+│  │            program() ──► bash listener   │   │
+│  │                │                         │   │
 │  │                │ POST /api/syslog/alerts │   │
-│  │                ▼                        │   │
+│  │                ▼                         │   │
 │  │         Watchman API (FastAPI)           │   │
-│  │                │                        │   │
+│  │                │                         │   │
 │  │                │ insert                  │   │
-│  │                ▼                        │   │
+│  │                ▼                         │   │
 │  │         MongoDB (syslog_alerts)          │   │
 │  └──────────────────────────────────────────┘   │
-│                │ GET /api/syslog/alerts (poll)   │
-│                ▼                                 │
-│         Frontend Dashboard                       │
-└──────────────────────────────────────────────┘
+│                │ GET /api/syslog/alerts (poll)  │
+│                ▼                                │
+│         Frontend Dashboard                      │
+└──────────────────────────────────────────────── ┘
 ```
 
 ## Key Discovery: Rootlessport Source IP Rewriting
