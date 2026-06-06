@@ -25,6 +25,7 @@ import DiffViewer from "../components/DiffViewer";
 import { getAllHostsDeviceCount } from "../services/inventoryService";
 import NetworkTrafficChart from "../components/NetworkTrafficChart";
 import PageHeader from "../components/PageHeader";
+import api from "../services/api";
 
 //  MAIN DASHBOARD
 const Dashboard = () => {
@@ -40,6 +41,8 @@ const Dashboard = () => {
   const [isRefreshingDrift, setIsRefreshingDrift] = useState(false);
   const [baselineCount, setBaselineCount] = useState(0);
   const [isRefreshingBaseline, setIsRefreshingBaseline] = useState(false);
+  const [showBaselineConfirm, setShowBaselineConfirm] = useState(false);
+  const [baselineConfirmChecked, setBaselineConfirmChecked] = useState(false);
   const [isRefreshingGraph, setIsRefreshingGraph] = useState(false);
   const [graphRefreshKey, setGraphRefreshKey] = useState(0);
   const [networkStatus, setNetworkStatus] = useState({ devices: [], online_count: 0, offline_count: 0, degraded_count: 0, total_count: 0, scan_timestamp: null });
@@ -197,8 +200,8 @@ const Dashboard = () => {
     }
   };
 
-  const handleRefreshBaseline = async (e) => {
-    if (e) e.stopPropagation();
+  const handleRefreshBaseline = async () => {
+    setShowBaselineConfirm(false);
     setIsRefreshingBaseline(true);
     try {
       const response = await fetch('http://127.0.0.1:8000/playbooks/baseline/refresh', {
@@ -222,10 +225,8 @@ const Dashboard = () => {
   const handleRefreshGraph = async () => {
     setIsRefreshingGraph(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/playbooks/baseline-graph/refresh', {
-        method: 'POST'
-      });
-      if (response.ok) {
+      const response = await api.post('/playbooks/baseline-graph/refresh');
+      if (response.status === 200) {
         // Bump the refresh key so NetworkTrafficChart re-fetches its data
         setGraphRefreshKey((prev) => prev + 1);
       } else {
@@ -268,6 +269,7 @@ const Dashboard = () => {
     },
   };
   return (
+    <>
     <div className="flex min-h-screen" style={styles.main}>
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* DASHBOARD CONTENT */}
@@ -360,7 +362,7 @@ const Dashboard = () => {
                 </div>
               </div>
               <button
-                onClick={handleRefreshBaseline}
+                onClick={() => setShowBaselineConfirm(true)}
                 disabled={isRefreshingBaseline}
                 className="flex items-center justify-center gap-2 w-full py-2 px-3 rounded-lg bg-cyan-600/20 hover:bg-cyan-600/30 text-cyan-400 text-xs font-bold disabled:opacity-50 transition-all active:scale-95"
               >
@@ -712,6 +714,73 @@ const Dashboard = () => {
         </div>
       </main>
     </div>
+      {/* Baseline Refresh Confirmation Modal */}
+          {showBaselineConfirm && (
+      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div className="w-full max-w-lg rounded-2xl bg-[#1D293DED] border border-slate-700/50 shadow-2xl">
+          {/* Header */}
+          <div className="border-b border-slate-700/50 p-6 bg-amber-600/20 border-amber-600/50 text-amber-300 rounded-t-2xl">
+            <div className="flex items-center gap-3">
+              <AlertTriangle size={28} className="text-amber-400" />
+              <div>
+                <p className="text-sm font-semibold opacity-80">Warning</p>
+                <p className="text-lg font-bold">DESTRUCTIVE ACTION</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Content */}
+          <div className="p-6 space-y-5">
+            <p className="text-sm text-slate-300">
+              This will overwrite all golden state baselines with the current device configurations. Any previously saved baselines will be lost permanently.
+            </p>
+
+            <div className="rounded-lg border border-amber-600/50 bg-amber-600/10 p-4">
+              <p className="text-sm font-semibold text-slate-200 mb-2">Impact of this action:</p>
+              <ul className="space-y-2 text-sm text-slate-300 list-disc list-inside">
+                <li>Golden state baselines will be replaced with current device configurations</li>
+                <li>Previous baselines cannot be recovered automatically</li>
+                <li>Drift detection will reset — all devices will show as matching baseline</li>
+              </ul>
+            </div>
+
+            <div className="rounded-lg bg-amber-900/20 border border-amber-600/30 p-4">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={baselineConfirmChecked}
+                  onChange={(e) => setBaselineConfirmChecked(e.target.checked)}
+                  className="mt-1 w-4 h-4 rounded border-slate-500 bg-slate-700"
+                />
+                <span className="text-sm text-slate-300">
+                  I understand this will overwrite all golden state baselines <span className="font-bold text-amber-300">forever</span>
+                </span>
+              </label>
+            </div>
+          </div>
+
+          {/* Actions */}
+          <div className="border-t border-slate-700/50 bg-slate-800/20 p-6 flex gap-3">
+            <button
+              onClick={() => { setShowBaselineConfirm(false); setBaselineConfirmChecked(false); }}
+              className="flex-1 flex items-center justify-center gap-2 rounded-lg border border-slate-600 bg-slate-700/40 px-4 py-3 text-sm font-bold text-slate-200 transition-colors hover:bg-slate-700/60"
+            >
+              <X size={18} />
+              Cancel
+            </button>
+            <button
+              onClick={handleRefreshBaseline}
+              disabled={!baselineConfirmChecked}
+              className="flex-1 flex items-center justify-center gap-2 rounded-lg bg-amber-600/20 border border-amber-600/50 px-4 py-3 text-sm font-bold text-amber-300 transition-colors hover:bg-amber-600/30 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <RefreshCw size={18} />
+              Continue
+            </button>
+          </div>
+        </div>
+      </div>
+    )}
+    </>
   );
 };
 

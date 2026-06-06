@@ -376,7 +376,7 @@ async def get_network_devices():
 @router.get("/active-devices")
 async def get_active_devices():
     """Load active devices from nmap_output/active_devices.json"""
-    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
     active_devices_path = os.path.join(repo_root, "nmap_output", "active_devices.json")
     
     try:
@@ -396,8 +396,8 @@ async def get_active_devices():
 @router.post("/active-devices/scan")
 async def trigger_nmap_scan():
     """Trigger nmap scan to discover active devices"""
-    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
-    nmap_script = os.path.join(repo_root, "watchman", "scripts", "nmap_scan.py")
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    nmap_script = os.path.join(repo_root, "scripts", "nmap_scan.py")
     
     if not os.path.exists(nmap_script):
         raise HTTPException(
@@ -481,7 +481,7 @@ def _build_device_status() -> dict:
     ``degraded`` because even if nmap shows them responding, the network
     path is broken.
     """
-    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
     all_devices = load_devices_from_inventory()
     active_devices_path = os.path.join(repo_root, "nmap_output", "active_devices.json")
 
@@ -579,8 +579,8 @@ async def get_device_status():
 @router.post("/device-status/scan")
 async def trigger_device_status_scan():
     """Trigger nmap scan and return updated device status"""
-    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", ".."))
-    nmap_script = os.path.join(repo_root, "watchman", "scripts", "nmap_scan.py")
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
+    nmap_script = os.path.join(repo_root, "scripts", "nmap_scan.py")
 
     if not os.path.exists(nmap_script):
         raise HTTPException(

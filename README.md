@@ -111,7 +111,6 @@ sentry-pod/
 │   └── TEMPLATE.md
 │
 ├── podman-compose.yaml          # Compose stack definition
-├── requirements.txt             # Python dependencies
 ├── AGENTS.md                    # Developer reference
 └── NetworkDevices.jsx           # Legacy component
 ```
@@ -123,10 +122,13 @@ sentry-pod/
 - **Python 3.11+** — For running `container_manager.py` on the host
 - **Git** — To clone the repo
 
+> **Windows users:** Use **PowerShell**, **Git Bash**, or **WSL** for the commands below — Command Prompt (CMD) does not accept forward-slash paths. Install Python from [python.org](https://python.org) and ensure it is in your PATH.
+
 Verify:
-```bash
+```powershell
 podman --version
 podman-compose --version
+python --version
 ```
 
 ## Quick Start
@@ -135,23 +137,19 @@ podman-compose --version
 # 1. Clone and enter the project
 git clone <repo-url> && cd Sentry-Pod
 
-# 2. Install podman-compose
-pip install podman-compose
-
-# 3. Build all container images (one-time, ~5-10 min)
+# 2. Build all container images (one-time, ~5-10 min)
 python watchman/scripts/container_manager.py build all
 
-# 4. Start the full stack
+# 3. Start the full stack
 python watchman/scripts/container_manager.py up
 
-# 5. Check everything is running
+# 4. Check everything is running
 python watchman/scripts/container_manager.py status
-
-# 6. Verify with a test playbook
-python watchman/scripts/container_manager.py run get_facts.yml
 ```
 
 The UI is available at **http://localhost:3000** (command-center) or **http://localhost:5173** (frontend dev mode).
+
+> **First-time setup:** After starting the stack, configure your network devices in `watchman/playbooks/hosts.ini` and set `HUGGINGFACE_API_KEY` in `watchman/.env` (or via the UI) for AI features. See [Configuration](#configuration) and [SSH / Credential Setup](#ssh--credential-setup) below.
 
 ## Services
 
@@ -311,6 +309,10 @@ cd command-center && npm run lint
 | AI chat returns errors | Set `HUGGINGFACE_API_KEY` in `.env` or via the UI |
 | SELinux volume mount errors (Linux) | Ensure `:Z` flag is present on volume mounts in compose file |
 | Permission denied running podman (Linux) | `sudo usermod -aG podman $USER` then log out and back in |
+| `python` not found (Windows) | Install Python from python.org and check "Add Python to PATH" during install |
+| Forward-slash paths fail (Windows CMD) | Use **PowerShell**, **Git Bash**, or **WSL** instead of Command Prompt |
+| Podman Desktop VM not starting | Ensure WSL2 is installed and at least 2 GB RAM allocated to the VM (Podman Desktop Settings → Resources) |
+| `podman-compose` fails with `:Z` flag errors | Already handled automatically by `container_manager.py` — run commands through it, not raw `podman` |
 
 ## Extending
 

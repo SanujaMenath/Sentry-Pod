@@ -20,6 +20,7 @@
         content: "{{ config_drift.diff.prepared }}"
         dest: "./configDrift/DRIFT_{{ inventory_hostname }}.diff"
       delegate_to: localhost
+      when: config_drift.changed
 
     - name: Alert if Drift is Found
       debug:

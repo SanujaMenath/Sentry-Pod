@@ -27,4 +27,8 @@ RUN pip3 install --no-cache-dir --break-system-packages paramiko
 # Install the Cisco IOS Ansible collection
 RUN ansible-galaxy collection install cisco.ios
 
+# Copy ansible.cfg to /etc/ansible/ so Ansible always finds it
+# regardless of world-writable directory warnings
+COPY ansible.cfg /etc/ansible/ansible.cfg
+
 WORKDIR /ansible
