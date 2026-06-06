@@ -9,6 +9,7 @@ from app.database import db
 from app.core.dependencies import get_current_user
 from pydantic import BaseModel
 from bson import ObjectId
+import re
 
 router = APIRouter(prefix="/playbooks", tags=["Playbooks"])
 

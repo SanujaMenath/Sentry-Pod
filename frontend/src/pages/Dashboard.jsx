@@ -373,19 +373,21 @@ const Dashboard = () => {
           </div>
 
           {/* ROW TRAFFIC & AI  */}
-          <div className="grid lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch content-stretch">
          
           {/* Traffic Section */}
-            <NetworkTrafficChart
-              onRefresh={handleRefreshGraph}
-              isRefreshing={isRefreshingGraph}
-              refreshKey={graphRefreshKey}
-            />
+            <div className="flex flex-col flex-1 min-h-0">
+              <NetworkTrafficChart
+                onRefresh={handleRefreshGraph}
+                isRefreshing={isRefreshingGraph}
+                refreshKey={graphRefreshKey}
+              />
+            </div>
 
             {/* AI Console Section */}
             <div
               onClick={() => navigate("/ai-chat")}
-              className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] relative overflow-hidden"
+              className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] relative overflow-hidden flex flex-col justify-between flex-1 min-h-0 cursor-pointer hover:shadow-lg transition-shadow"
               style={styles.card}
             >
               <div className="flex items-center justify-between mb-8 text-slate-300">
@@ -398,7 +400,7 @@ const Dashboard = () => {
               </span>
               </div>
 
-              <div className="space-y-6">
+              <div className="space-y-6 flex-1">
                 <div className="flex items-start gap-4">
                   <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0 shadow-lg shadow-blue-600/20">
                     AD
