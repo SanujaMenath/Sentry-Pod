@@ -8,6 +8,7 @@ import app.services.playbook_service as playbook_service
 from app.database import db
 from pydantic import BaseModel
 from bson import ObjectId
+import re
 
 router = APIRouter(prefix="/playbooks", tags=["Playbooks"])
 
