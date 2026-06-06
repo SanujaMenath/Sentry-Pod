@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { User, Lock, ShieldCheck, CheckCircle2, Loader2 } from 'lucide-react';
 import { getUserProfile, updateProfile, updatePassword } from '../services/profileService';
 import PageHeader from "../components/PageHeader";
+import api from '../services/api';
 
 export default function Profile() {
   const [name, setName] = useState('');
@@ -9,6 +10,13 @@ export default function Profile() {
   const [phone, setPhone] = useState('');
   const [bio, setBio] = useState('');
   const [role, setRole] = useState('User');
+
+  const [cardSummary, setCardSummary] = useState({
+    role_title: 'Super Admin',
+    is_verified: true,
+    two_factor_auth: true,
+    role_permissions: 'Full Access'
+  });
 
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -28,8 +36,11 @@ export default function Profile() {
         setPhone(data.phone || '');
         setBio(data.bio || '');
         setRole(data.role || 'User');
+
+        const summaryResponse = await api.get('/users/profile-cards-summary');
+        setCardSummary(summaryResponse.data);
       } catch (err) {
-        setError(err);
+        setError(err.response?.data?.detail || "Failed to load profile data.");
       }
     };
     loadProfileData();
@@ -50,7 +61,7 @@ export default function Profile() {
       });
       setSuccess("Profile information saved successfully!");
     } catch (err) {
-      setError(err);
+      setError(err.response?.data?.detail || "Failed to update profile info.");
     } finally {
       setProfileLoading(false);
     }
@@ -78,7 +89,7 @@ export default function Profile() {
       setNewPassword('');
       setConfirmNewPassword('');
     } catch (err) {
-      setError(err);
+      setError(err.response?.data?.detail || "Failed to update password.");
     } finally {
       setPasswordLoading(false);
     }
@@ -147,11 +158,14 @@ export default function Profile() {
                 {name ? name.charAt(0).toUpperCase() : 'U'}
               </div>
               <h2 className="text-[1.25rem] font-bold text-slate-200 mb-1">{name || 'User Profile'}</h2>
-              <p className="text-slate-400 text-[0.875rem] mb-6 font-medium">{role}</p>
+              <p className="text-slate-400 text-[0.875rem] mb-6 font-medium">{cardSummary.role_title}</p>
+
+              {cardSummary.is_verified && (
               <div className="inline-flex items-center gap-2 px-4 py-[0.4rem] bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 rounded-xl text-[0.75rem] font-bold">
                 <ShieldCheck className="w-4 h-4" />
                 Verified Account
               </div>
+              )}
             </div>
 
             {/* ACCOUNT STATUS CARD */}
@@ -162,11 +176,13 @@ export default function Profile() {
               <div className="space-y-3">
                 <div className="flex justify-between items-center p-3 bg-[#0D121F]/40 rounded-xl border border-slate-800/50">
                   <span className="text-slate-400 text-[0.8rem]">Two-Factor Auth</span>
-                  <span className="text-emerald-400 text-[0.7rem] font-bold uppercase">Active</span>
+                  <span className={`text-[0.7rem] font-bold uppercase ${cardSummary.two_factor_auth ? 'text-emerald-400' : 'text-rose-500'}`}>
+                    {cardSummary.two_factor_auth ? 'Active' : 'Inactive'}
+                  </span>
                 </div>
                 <div className="flex justify-between items-center p-3 bg-[#0D121F]/40 rounded-xl border border-slate-800/50">
                   <span className="text-slate-400 text-[0.8rem]">Role Permissions</span>
-                  <span className="text-blue-400 text-[0.8rem] font-medium">Full Access</span>
+                  <span className="text-blue-400 text-[0.8rem] font-medium">{cardSummary.role_permissions}</span>
                 </div>
               </div>
             </div>
