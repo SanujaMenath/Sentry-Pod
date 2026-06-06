@@ -1,7 +1,9 @@
 # Network Baselines — Automation Feature
 
 ## Overview
-The **Network Baselines** stat card (Row 1, rightmost) on the dashboard is backed by an on-demand automation pipeline. Clicking **Refresh** re-runs the `goldenState` snapshot inside the `sentry-ansible` Podman container, counts the resulting `GS_*.txt` files, and updates the card. The captured baselines are the "before" reference used by the sister **Configuration Drift** card.
+The **Network Baselines** stat card (Row 1, rightmost) on the dashboard is backed by an on-demand automation pipeline. The captured baselines are the "before" reference used by the sister **Configuration Drift** card.
+
+> ⚠️ **Destructive action**: Refreshing baselines **overwrites** the golden state files with current device configs. Previous baselines are lost permanently. A confirmation dialog with a checkbox acknowledgment protects against accidental clicks.
 
 ## What Changed
 
@@ -139,27 +141,25 @@ return { "status", "baseline_count", "devices", "output" }
 ### 5. `frontend/src/pages/Dashboard.jsx`
 #### Stat card
 ```jsx
-<div className="bg-[#1D293DED] border border-slate-700/50 rounded-3xl p-6 ...">
-  <p className="text-slate-400 text-sm font-medium mb-2">Network Baselines</p>
-  <h3 className="text-4xl font-extrabold text-white ...">
-    {isRefreshingBaseline ? "..." : String(baselineCount)}
-  </h3>
-  <p className="text-xs text-slate-500 mt-2 font-medium">
-    {baselineCount > 0 ? `${baselineCount} devices baselined` : "No devices baselined"}
-  </p>
-  <button onClick={handleRefreshBaseline} disabled={isRefreshingBaseline} className="...">
-    <RefreshCw size={14} className={isRefreshingBaseline ? 'animate-spin' : ''} />
-    {isRefreshingBaseline ? 'Baselining devices...' : 'Refresh'}
-  </button>
-</div>
+<button onClick={() => setShowBaselineConfirm(true)} disabled={isRefreshingBaseline} className="...">
+  <RefreshCw size={14} className={isRefreshingBaseline ? 'animate-spin' : ''} />
+  {isRefreshingBaseline ? 'Baselining devices...' : 'Refresh'}
+</button>
 ```
 - Cyan accent (`bg-cyan-600/20 text-cyan-400`) to distinguish it from the amber drift card.
-- No `onClick` on the wrapper (this card is not a navigation target).
+- The button opens a **confirmation modal** instead of calling the API directly.
+
+#### Confirmation modal
+Before the baseline capture runs, a full-screen overlay modal is shown:
+- **Header**: Amber warning badge with `AlertTriangle` icon and "DESTRUCTIVE ACTION" label
+- **Body**: Explanation of what will happen, impact list (baselines replaced, cannot be recovered, drift resets), and a mandatory checkbox: *"I understand this will overwrite all golden state baselines forever"*
+- **Footer**: "Cancel" (closes modal, resets checkbox) and "Continue" (disabled until checkbox is checked, calls the API)
+- Styled consistently with the `PlaybookStagingGate` modal used for dangerous playbook execution
 
 #### `handleRefreshBaseline()`
 ```js
-const handleRefreshBaseline = async (e) => {
-  if (e) e.stopPropagation();
+const handleRefreshBaseline = async () => {
+  setShowBaselineConfirm(false);
   setIsRefreshingBaseline(true);
   try {
     const res = await fetch('http://127.0.0.1:8000/playbooks/baseline/refresh', { method: 'POST' });
@@ -171,6 +171,7 @@ const handleRefreshBaseline = async (e) => {
   finally { setIsRefreshingBaseline(false); }
 };
 ```
+Called only from the modal's "Continue" button. The `e` parameter and `stopPropagation` guard were removed since the handler is no longer attached directly to the button.
 
 ## Data Flow (UI ↔ Backend ↔ Container ↔ Disk)
 
@@ -193,6 +194,7 @@ Dashboard.jsx
 ## Relationship to Sister Features
 - The `GS_*.txt` files produced here are the **"before"** state consumed by `configDrift.yml` (the **Configuration Drift** sister card).
 - Running the Network Baselines refresh after a known-good configuration change effectively "resets" the drift baseline, so subsequent drift detection only flags new deltas.
+- **Recovery**: If baselines are accidentally overwritten, the old GS files can be restored from git (`git checkout HEAD -- watchman/playbooks/goldenState/GS_*.txt`) provided they were committed before the refresh.
 
 ## Verified Behaviors
 - `python3 -m py_compile` on the modified service / route files → clean.
@@ -206,8 +208,10 @@ Dashboard.jsx
 ### From the UI
 1. Open the dashboard.
 2. In the **Network Baselines** stat card (Row 1, rightmost), click **Refresh**.
-3. The button shows a spinner and the label flips to **Baselining devices…**.
-4. On success the count and the subtext (`N devices baselined`) update.
+3. A confirmation modal appears explaining that baselines will be overwritten.
+4. Read the warning, check the acknowledgment checkbox, and click **Continue**.
+5. The button shows a spinner and the label flips to **Baselining devices…**.
+6. On success the count and the subtext (`N devices baselined`) update.
 
 ### From the CLI
 ```bash

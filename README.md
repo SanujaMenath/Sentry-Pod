@@ -111,7 +111,6 @@ sentry-pod/
 │   └── TEMPLATE.md
 │
 ├── podman-compose.yaml          # Compose stack definition
-├── requirements.txt             # Python dependencies
 ├── AGENTS.md                    # Developer reference
 └── NetworkDevices.jsx           # Legacy component
 ```

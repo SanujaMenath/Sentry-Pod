@@ -1,11 +1,12 @@
 from bson import ObjectId
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import StreamingResponse
 from datetime import datetime
 
 from app.models.playbook import PlaybookRequest, PlaybookResponse
 import app.services.playbook_service as playbook_service
 from app.database import db
+from app.core.dependencies import get_current_user
 from pydantic import BaseModel
 from bson import ObjectId
 
@@ -229,7 +230,7 @@ async def refresh_network_baselines():
         )
 
 @router.post("/baseline-graph/refresh")
-async def refresh_baseline_graph():
+async def refresh_baseline_graph(current_user: dict = Depends(get_current_user)):
     """Run SNMP collection + parsing in container and return the refreshed host count.
 
     Drives the Network Baseline graph card on the dashboard.
@@ -255,7 +256,7 @@ async def refresh_baseline_graph():
                 "action_name": "baseline_graph_refresh",
                 "status": "success" if returncode == 0 else "failed",
                 "output": output,
-                "username": "System",
+                "username": current_user["username"],
                 "host_count": host_count,
                 "timestamp": datetime.utcnow().isoformat() + "Z",
             }
