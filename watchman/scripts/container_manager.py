@@ -38,7 +38,7 @@ def _cleanup_temp_files():
 
 class SentryPodManager:
     COMPOSE_SERVICES = ["watchman", "syslog-ng", "command-center"]
-    ALL_TARGETS = ["watchman", "syslog-ng", "command-center", "ansible"]
+    ALL_TARGETS = ["all", "watchman", "syslog-ng", "command-center", "ansible"]
 
     def __init__(self):
         self.script_dir = Path(__file__).parent.resolve()
