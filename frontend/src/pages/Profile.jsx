@@ -132,14 +132,15 @@ export default function Profile() {
           </div>
         )}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-stretch">
 
           {/* LEFT COLUMN: PROFILE SUMMARY & ACTIVITY */}
-          <div className="lg:col-span-1 space-y-11">
+          {/* Flexbox forces the column height to fill the entire grid space dynamically */}
+          <div className="lg:col-span-1 flex flex-col gap-6">
             
             {/* PROFILE SUMMARY CARD */}
             <div 
-              className="p-8 rounded-3xl border border-slate-700/30 shadow-[0_0.5rem_2rem_rgba(0,0,0,0.2)] text-center transition-transform hover:scale-[1.01]"
+              className="p-8 rounded-3xl border border-slate-700/50 shadow-[0_5px_15px_rgba(0,0,0,0.6)] text-center transition-all hover:shadow-[0_8px_25px_rgba(0,0,0,0.7)]"
               style={styles.card}
             >
               <div className="w-24 h-24 bg-blue-600 rounded-full mx-auto mb-6 flex items-center justify-center text-[2.5rem] font-bold text-white shadow-[0_0.5rem_1.5rem_rgba(37,99,235,0.4)]">
@@ -154,7 +155,7 @@ export default function Profile() {
             </div>
 
             {/* ACCOUNT STATUS CARD */}
-            <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_0.5rem_2rem_rgba(0,0,0,0.2)]" style={styles.card}>
+            <div className="p-6 rounded-3xl border border-slate-700/50 shadow-[0_5px_15px_rgba(0,0,0,0.6)]" style={styles.card}>
               <h4 className="text-[0.75rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-4 px-2">
                 Account Status
               </h4>
@@ -171,21 +172,24 @@ export default function Profile() {
             </div>
 
             {/* RECENT ACTIVITY CARD */}
-            <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_0.5rem_2rem_rgba(0,0,0,0.2)]" style={styles.card}>
-              <h4 className="text-[0.75rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-4 px-2">
-                Recent Security Activity
-              </h4>
-              <div className="space-y-4">
-                {[
-                  { event: "Password Changed", time: "2 days ago", color: "text-slate-300" },
-                  { event: "New Login: Chrome / Windows", time: "Yesterday", color: "text-slate-300" },
-                  { event: "2FA Verified", time: "2 hours ago", color: "text-emerald-400" }
-                ].map((item, idx) => (
-                  <div key={idx} className="flex flex-col p-4 hover:bg-[#0D121F]/30 rounded-xl transition-colors border border-transparent hover:border-slate-800/50">
-                    <span className={`text-[0.8rem] font-medium ${item.color}`}>{item.event}</span>
-                    <span className="text-[0.7rem] text-slate-500">{item.time}</span>
-                  </div>
-                ))}
+            {/* flex-1 makes this card stretch vertically to completely flush the grid base line */}
+            <div className="p-6 rounded-3xl border border-slate-700/50 shadow-[0_5px_15px_rgba(0,0,0,0.6)] flex-1 flex flex-col justify-between" style={styles.card}>
+              <div>
+                <h4 className="text-[0.75rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-4 px-2">
+                  Recent Security Activity
+                </h4>
+                <div className="space-y-4">
+                  {[
+                    { event: "Password Changed", time: "2 days ago", color: "text-slate-300" },
+                    { event: "New Login: Chrome / Windows", time: "Yesterday", color: "text-slate-300" },
+                    { event: "2FA Verified", time: "2 hours ago", color: "text-emerald-400" }
+                  ].map((item, idx) => (
+                    <div key={idx} className="flex flex-col p-4 hover:bg-[#0D121F]/30 rounded-xl transition-colors border border-transparent hover:border-slate-800/50">
+                      <span className={`text-[0.8rem] font-medium ${item.color}`}>{item.event}</span>
+                      <span className="text-[0.7rem] text-slate-500">{item.time}</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -195,7 +199,7 @@ export default function Profile() {
           <div className="lg:col-span-2 space-y-6">
             
             {/* GENERAL INFORMATION CARD */}
-            <form onSubmit={handleProfileSubmit} className="rounded-3xl border border-slate-700/30 shadow-[0_0.5rem_2rem_rgba(0,0,0,0.2)] overflow-hidden transition-all hover:shadow-[0_0.8rem_2.5rem_rgba(0,0,0,0.3)]" style={styles.card}>
+            <form onSubmit={handleProfileSubmit} className="rounded-3xl border border-slate-700/50 shadow-[0_5px_15px_rgba(0,0,0,0.6)] overflow-hidden transition-all hover:shadow-[0_8px_25px_rgba(0,0,0,0.7)]" style={styles.card}>
               <div className="p-8">
                 <div className="flex items-center gap-3 mb-8 text-slate-200 border-b border-slate-800/50 pb-4">
                   <User className="w-[1.2rem] h-[1.2rem] text-blue-400" />
@@ -272,7 +276,7 @@ export default function Profile() {
             </form>
 
             {/* SECURITY & PASSWORD */}
-            <form onSubmit={handlePasswordSubmit} className="rounded-3xl border border-slate-700/30 shadow-[0_0.5rem_2rem_rgba(0,0,0,0.2)] overflow-hidden" style={styles.card}>
+            <form onSubmit={handlePasswordSubmit} className="rounded-3xl border border-slate-700/50 shadow-[0_5px_15px_rgba(0,0,0,0.6)] overflow-hidden transition-all hover:shadow-[0_8px_25px_rgba(0,0,0,0.7)]" style={styles.card}>
               <div className="p-8">
                 <div className="flex items-center gap-3 mb-8 text-slate-200 border-b border-slate-800/50 pb-4">
                   <Lock className="w-[1.2rem] h-[1.2rem] text-rose-400" />
