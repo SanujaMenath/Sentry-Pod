@@ -588,7 +588,7 @@ const Dashboard = () => {
                                   <span className="text-[10px] font-bold uppercase">{status === "degraded" ? "DEG" : status === "offline" ? "DOWN" : "UP"}</span>
                                 </div>
                                 {device.status_reason && (
-                                  <span className="text-[10px] text-amber-500/70 max-w-[160px] leading-tight">
+                                  <span className="text-[10px] text-amber-500/70 max-w-40 leading-tight">
                                     {device.status_reason}
                                   </span>
                                 )}
@@ -672,7 +672,7 @@ const Dashboard = () => {
                 </span>
               </div>
 
-              <div className="space-y-3 max-h-[400px] overflow-y-auto pr-1">
+              <div className="space-y-3 max-h-100 overflow-y-auto pr-1">
                 {syslogAlerts.length === 0 ? (
                   <div className="text-slate-500 text-sm text-center py-8">
                     No critical syslog messages received yet.<br />
@@ -721,7 +721,7 @@ const Dashboard = () => {
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
         <div className="w-full max-w-lg rounded-2xl bg-[#1D293DED] border border-slate-700/50 shadow-2xl">
           {/* Header */}
-          <div className="border-b border-slate-700/50 p-6 bg-amber-600/20 border-amber-600/50 text-amber-300 rounded-t-2xl">
+          <div className="border-b p-6 bg-amber-600/20 border-amber-600/50 text-amber-300 rounded-t-2xl">
             <div className="flex items-center gap-3">
               <AlertTriangle size={28} className="text-amber-400" />
               <div>
