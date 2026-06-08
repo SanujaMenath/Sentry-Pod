@@ -1,5 +1,5 @@
 from bson import ObjectId
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
 from fastapi.responses import StreamingResponse
 from datetime import datetime
 
@@ -9,9 +9,12 @@ from app.database import db
 from app.core.dependencies import get_current_user
 from pydantic import BaseModel
 from bson import ObjectId
-import re
+# import re
 
 router = APIRouter(prefix="/playbooks", tags=["Playbooks"])
+
+def get_database_session(request: Request):
+    return request.app.state.db
 
 @router.post("/execute", response_model=PlaybookResponse)
 async def execute_playbook(request: PlaybookRequest):
