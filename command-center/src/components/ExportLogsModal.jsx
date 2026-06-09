@@ -11,22 +11,7 @@ export default function ExportLogsModal({ onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex">
-      {/* Sidebar filter panel */}
-      <div className="absolute left-48 top-0 bottom-0 w-36 bg-[#0d1117] border-r border-[#1e2530] pt-16 z-10">
-        {filterOptions.map(opt => (
-          <button
-            key={opt}
-            onClick={() => setActiveFilter(opt)}
-            className={`w-full text-left px-4 py-2.5 text-xs transition-colors
-              ${activeFilter === opt
-                ? 'bg-blue-600 text-white font-medium'
-                : 'text-gray-400 hover:text-white hover:bg-[#1e2530]'
-              }`}
-          >
-            {opt}
-          </button>
-        ))}
-      </div>
+      
 
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />

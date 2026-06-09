@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { User, Lock, ShieldCheck, CheckCircle2, Loader2 } from 'lucide-react';
+import { User, Lock, ShieldCheck, CheckCircle2, Loader2,Eye, EyeOff } from 'lucide-react';
 import { getUserProfile, updateProfile, updatePassword } from '../services/profileService';
 import PageHeader from "../components/PageHeader";
 import api from '../services/api';
@@ -10,6 +10,10 @@ export default function Profile() {
   const [phone, setPhone] = useState('');
   const [bio, setBio] = useState('');
   const [role, setRole] = useState('User');
+  const [activities, setActivities] = useState([]);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
 
   const [cardSummary, setCardSummary] = useState({
     role_title: 'Super Admin',
@@ -21,11 +25,22 @@ export default function Profile() {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  
 
   const [profileLoading, setProfileLoading] = useState(false);
   const [passwordLoading, setPasswordLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
+  
+
+  const fetchSecurityActivities = async () => {
+    try {
+      const activityResponse = await api.get('/users/security-activity');
+      setActivities(activityResponse.data);
+    } catch (err) {
+      console.error("Failed to load live security actions:", err);
+    }
+  };
 
   useEffect(() => {
     const loadProfileData = async () => {
@@ -39,6 +54,7 @@ export default function Profile() {
 
         const summaryResponse = await api.get('/users/profile-cards-summary');
         setCardSummary(summaryResponse.data);
+        await fetchSecurityActivities();
       } catch (err) {
         setError(err.response?.data?.detail || "Failed to load profile data.");
       }
@@ -82,14 +98,20 @@ export default function Profile() {
     try {
       await updatePassword({
         current_password: currentPassword,
-        new_password: newPassword
+        new_password: newPassword,
+        confirm_password: confirmNewPassword
       });
       setSuccess("Password updated successfully!");
       setCurrentPassword('');
       setNewPassword('');
       setConfirmNewPassword('');
+      await fetchSecurityActivities();
+
     } catch (err) {
-      setError(err.response?.data?.detail || "Failed to update password.");
+      console.error("Password update error:", err);
+      
+      const backendMessage = err.response?.data?.detail || "Failed to update password.";
+      setError(typeof backendMessage === "string" ? backendMessage : JSON.stringify(backendMessage));
     } finally {
       setPasswordLoading(false);
     }
@@ -188,29 +210,33 @@ export default function Profile() {
             </div>
 
             {/* RECENT ACTIVITY CARD */}
-            {/* flex-1 makes this card stretch vertically to completely flush the grid base line */}
-            <div className="p-6 rounded-3xl border border-slate-700/50 shadow-[0_5px_15px_rgba(0,0,0,0.6)] flex-1 flex flex-col justify-between" style={styles.card}>
+          <div className="p-6 rounded-3xl border border-slate-700/50 shadow-[0_5px_15px_rgba(0,0,0,0.6)] flex-1 flex flex-col justify-between" style={styles.card}>
               <div>
                 <h4 className="text-[0.75rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-4 px-2">
                   Recent Security Activity
                 </h4>
-                <div className="space-y-4">
-                  {[
-                    { event: "Password Changed", time: "2 days ago", color: "text-slate-300" },
-                    { event: "New Login: Chrome / Windows", time: "Yesterday", color: "text-slate-300" },
-                    { event: "2FA Verified", time: "2 hours ago", color: "text-emerald-400" }
-                  ].map((item, idx) => (
-                    <div key={idx} className="flex flex-col p-4 hover:bg-[#0D121F]/30 rounded-xl transition-colors border border-transparent hover:border-slate-800/50">
-                      <span className={`text-[0.8rem] font-medium ${item.color}`}>{item.event}</span>
-                      <span className="text-[0.7rem] text-slate-500">{item.time}</span>
+                <div className="space-y-4 flex-1 flex flex-col justify-start">
+                  {activities && activities.length > 0 ? (
+                    activities.map((activityItem, idx) => (
+                      <div 
+                        key={idx} 
+                        className="flex flex-col p-4 bg-[#0D121F]/40 border border-slate-800/40 hover:border-slate-700/50 rounded-xl transition-all duration-200 hover:bg-[#0D121F]/70 shadow-sm"
+                      >
+                        <span className={`text-[0.85rem] font-semibold ${activityItem.type === 'security' ? 'text-rose-400' : 'text-slate-300'}`}>
+                          {activityItem.event}
+                        </span>
+                        <span className="text-[0.7rem] text-slate-500 mt-1">{activityItem.timestamp}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-6 border border-dashed border-slate-800/40 rounded-xl">
+                      <p className="text-[0.75rem] text-slate-500 font-medium">No recent security history found</p>
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
-            </div>
-
-          </div>
-
+            </div>  
+         </div>
           {/* RIGHT COLUMN: EDIT FORMS */}
           <div className="lg:col-span-2 space-y-6">
             
@@ -265,18 +291,21 @@ export default function Profile() {
                     </div>
                   </div>
 
-                  {/* Row 3: Bio / Department */}
+                  {/* Row 3: Assigned Role Group (Locked System Privilege) */}
                   <div className="group">
                     <label className="block text-[0.7rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-2 group-focus-within:text-blue-400 transition-colors">
-                      Bio / Department
+                      Assigned Role Group
                     </label>
-                    <textarea 
-                      rows="3"
-                      value={bio}
-                      onChange={(e) => setBio(e.target.value)}
-                      placeholder="Brief description of your role..."
-                      className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] px-[1.2rem] py-[0.9rem] text-[1rem] text-slate-200 outline-none ring-2 ring-transparent focus:ring-blue-600/40 focus:border-blue-500/50 transition-all shadow-inner resize-none"
-                    ></textarea>
+                    <div className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] px-[1.2rem] py-[0.9rem] text-[1rem] text-slate-400 font-mono flex items-center justify-between select-none shadow-inner">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-blue-500 shadow-[0_0_8px_#3b82f6]" />
+                        {/* Dynamically uses your real system role or falls back to Network Admin */}
+                        <span>{cardSummary.role_title || "Network Admin"}</span>
+                      </div>
+                      <span className="text-[9px] font-black tracking-widest text-slate-600 bg-[#0D121F]/80 px-2 py-1 rounded-md border border-slate-800/60 uppercase">
+                        System Locked
+                      </span>
+                    </div>
                   </div>
 
                   <button 
@@ -291,6 +320,7 @@ export default function Profile() {
               </div>
             </form>
 
+          
             {/* SECURITY & PASSWORD */}
             <form onSubmit={handlePasswordSubmit} className="rounded-3xl border border-slate-700/50 shadow-[0_5px_15px_rgba(0,0,0,0.6)] overflow-hidden transition-all hover:shadow-[0_8px_25px_rgba(0,0,0,0.7)]" style={styles.card}>
               <div className="p-8">
@@ -300,40 +330,71 @@ export default function Profile() {
                 </div>
                 
                 <div className="space-y-6">
+                  
                   <div>
                     <label className="block text-[0.7rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-2">Current Password</label>
-                    <input 
-                      type="password" 
-                      required
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      placeholder="••••••••" 
-                      className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] px-[1.2rem] py-[0.9rem] text-[1rem] text-slate-200 outline-none focus:ring-2 focus:ring-rose-500/40" 
-                    />
+                    <div className="relative">
+                      <input 
+                        type={showCurrentPassword ? "text" : "password"} 
+                        required
+                        value={currentPassword}
+                        onChange={(e) => setCurrentPassword(e.target.value)}
+                        placeholder="••••••••" 
+                        className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] pl-[1.2rem] pr-[3rem] py-[0.9rem] text-[1rem] text-slate-200 outline-none focus:ring-2 focus:ring-rose-500/40" 
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none"
+                      >
+                        {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      </button>
+                    </div>
                   </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  
                     <div>
                       <label className="block text-[0.7rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-2">New Password</label>
-                      <input 
-                        type="password" 
-                        required
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        placeholder="New Password" 
-                        className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] px-[1.2rem] py-[0.9rem] text-[1rem] text-slate-200 outline-none focus:ring-2 focus:ring-rose-500/40" 
-                      />
+                      <div className="relative">
+                        <input 
+                          type={showNewPassword ? "text" : "password"} 
+                          required
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          placeholder="New Password" 
+                          className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] pl-[1.2rem] pr-[3rem] py-[0.9rem] text-[1rem] text-slate-200 outline-none focus:ring-2 focus:ring-rose-500/40" 
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowNewPassword(!showNewPassword)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none"
+                        >
+                          {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
+                      </div>
                     </div>
+
+              
                     <div>
                       <label className="block text-[0.7rem] font-black text-slate-500 uppercase tracking-[0.15em] mb-2">Confirm New Password</label>
-                      <input 
-                        type="password" 
-                        required
-                        value={confirmNewPassword}
-                        onChange={(e) => setConfirmNewPassword(e.target.value)}
-                        placeholder="Confirm Password" 
-                        className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] px-[1.2rem] py-[0.9rem] text-[1rem] text-slate-200 outline-none focus:ring-2 focus:ring-rose-500/40" 
-                      />
+                      <div className="relative">
+                        <input 
+                          type={showConfirmNewPassword ? "text" : "password"} 
+                          required
+                          value={confirmNewPassword}
+                          onChange={(e) => setConfirmNewPassword(e.target.value)}
+                          placeholder="Confirm Password" 
+                          className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] pl-[1.2rem] pr-[3rem] py-[0.9rem] text-[1rem] text-slate-200 outline-none focus:ring-2 focus:ring-rose-500/40" 
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setShowConfirmNewPassword(!showConfirmNewPassword)}
+                          className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors focus:outline-none"
+                        >
+                          {showConfirmNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                        </button>
+                      </div>
                     </div>
                   </div>
 

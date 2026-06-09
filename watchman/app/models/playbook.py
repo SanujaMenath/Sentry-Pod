@@ -32,3 +32,19 @@ class PlaybookSuggestion(BaseModel):
     severity: str
     target_devices: List[str]
     playbook_preview: str = ""
+
+from pydantic import BaseModel, Field
+from datetime import datetime
+from typing import Optional
+
+class PlaybookBlueprintResponse(BaseModel):
+    id: str = Field(..., description="Unique configuration asset identifier")
+    name: str = Field(..., description="Filename of the playbook manifest")
+    engine_type: str = Field("Ansible", description="Automation framework used")
+    subnet_scope: str = Field(..., description="Target network inventory group")
+    pipeline_status: str = Field("Draft", description="Workspace validation state")
+    file_path: str = Field(..., description="Local server file path storage destination")
+    last_run: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True

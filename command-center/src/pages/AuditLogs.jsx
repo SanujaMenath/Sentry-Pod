@@ -1,17 +1,20 @@
-import { useState, useEffect } from 'react';
+ import { useState, useEffect } from 'react';
 import { Download, FileText, CheckCircle, AlertTriangle, XCircle, ChevronDown, Calendar, Eye } from 'lucide-react';
 import ExportLogsModal from '../components/ExportLogsModal';
 import AuditLogDetailModal from '../components/AuditLogDetailModal';
 import { getAllAuditLogs, getAuditLogById } from '../services/auditService';
+import PageHeader from "../components/PageHeader";
 
 const statusConfig = {
-  success: 'bg-green-900/60 text-green-400 border border-green-700',
-  blocked: 'bg-red-900/60 text-red-400 border border-red-700',
-  detected: 'bg-yellow-900/60 text-yellow-400 border border-yellow-700',
-  failed: 'bg-red-900/60 text-red-400 border border-red-700',
+  success: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
+  blocked: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
+  detected: 'bg-amber-500/10 text-amber-400 border border-amber-500/20',
+  failed: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
+  error: 'bg-rose-500/10 text-rose-400 border border-rose-500/20',
+  pending: 'bg-slate-500/10 text-slate-400 border border-slate-500/20',
 };
 
-const formatLogForModal = (log) => {
+const formatLogForDisplay = (log) => {
   const output = log.output || null;
   return {
     id: log._id || 'N/A',
@@ -34,10 +37,10 @@ const formatLogForModal = (log) => {
 };
 
 export default function AuditLogs() {
-  const [showExport, setShowExport] = useState(false);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [showExport, setShowExport] = useState(false);
   const [selectedLog, setSelectedLog] = useState(null);
   const [loadingLogId, setLoadingLogId] = useState(null);
 
@@ -46,7 +49,7 @@ export default function AuditLogs() {
       setLoadingLogId(logId);
       const response = await getAuditLogById(logId);
       if (response.log) {
-        const formattedLog = formatLogForModal(response.log);
+        const formattedLog = formatLogForDisplay(response.log);
         setSelectedLog(formattedLog);
       }
     } catch (err) {
@@ -62,12 +65,14 @@ export default function AuditLogs() {
       try {
         setLoading(true);
         const response = await getAllAuditLogs(100);
-        if (response.logs) setLogs(response.logs);
-        else if (Array.isArray(response)) setLogs(response);
+        if (response.logs) {
+          const formattedLogs = response.logs.map(formatLogForDisplay);
+          setLogs(formattedLogs);
+        }
         setError(null);
       } catch (err) {
         console.error('Failed to fetch audit logs:', err);
-        setError('Failed to load audit logs.');
+        setError('Failed to load audit logs. Showing no logs.');
         setLogs([]);
       } finally {
         setLoading(false);
@@ -77,152 +82,153 @@ export default function AuditLogs() {
     fetchLogs();
   }, []);
 
-   const styles = {
-    main: { 
-      background: 'linear-gradient(135deg, #F8FAFC 0%, #D1D5DB 100%)', 
+  // Calculate stats from logs
+  const stats = {
+    total: logs.length,
+    success: logs.filter(l => l.status === 'success').length,
+    warnings: logs.filter(l => l.status === 'detected' || l.status === 'blocked').length,
+    critical: logs.filter(l => l.status === 'failed' || l.status === 'error').length,
+  };
+
+  const styles = {
+    main: {
+      background: 'linear-gradient(135deg, #F8FAFC 0%, #D1D5DB 100%)',
       backgroundAttachment: 'fixed',
-      fontFamily: '"Inter", sans-serif' 
+      fontFamily: '"Inter", sans-serif',
+      minHeight: '100%',
     },
-    card: { backgroundColor: '#1D293DED', fontFamily: '"Inter", sans-serif' }
+    card: { backgroundColor: '#1D293DED', fontFamily: '"Inter", sans-serif' },
+    headline: { color: '#0F172A', fontSize: '30px', fontWeight: '800', fontFamily: '"Inter", sans-serif', letterSpacing: '-0.025em' },
+    subtext: { color: '#475569', fontSize: '16px', fontWeight: '500', fontFamily: '"Inter", sans-serif' }
   };
 
   return (
-    <div className="flex min-h-screen" style={styles.main}>
-     
-      <main className="flex-1 flex flex-col overflow-hidden">
-        
-        {/* MAIN SCROLLABLE CONTENT */}
-        <div className="flex-1 overflow-y-auto p-8 space-y-8">
+    <div style={styles.main}>
+      <div className="p-8 space-y-8">
 
-      {/* Header */}
-      <div className="flex items-start justify-between mb-6">
-        <div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-1">Audit Logs</h1>
-          <p className="text-sm text-gray-500">Complete audit trail of all system activities</p>
-        </div>
-        <button
-          onClick={() => setShowExport(true)}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-medium transition-colors"
-        >
-          <Download size={14} />
-          Export Logs
-        </button>
-      </div>
-
-      {/* Stats Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <div className="bg-[#161b22] border border-[#1e2530] rounded-xl p-4 flex items-center justify-between">
+        {/* Header */}
+        <div className="flex items-start justify-between">
           <div>
-            <p className="text-xs text-gray-500 mb-1">Total Events</p>
-            <p className="text-2xl font-bold text-white">8,934</p>
+            <h1 style={styles.headline}>Audit Logs</h1>
+            <p style={styles.subtext}>Complete audit trail of all system activities</p>
           </div>
-          <div className="w-10 h-10 bg-blue-900/40 rounded-lg flex items-center justify-center">
-            <FileText size={20} className="text-blue-400" />
-          </div>
+          <button
+            onClick={() => setShowExport(true)}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold transition-colors shadow-lg shadow-blue-600/20"
+          >
+            <Download size={14} />
+            Export Logs
+          </button>
         </div>
-        <div className="bg-[#161b22] border border-[#1e2530] rounded-xl p-4 flex items-center justify-between">
-          <div>
-            <p className="text-xs text-gray-500 mb-1">Success</p>
-            <p className="text-2xl font-bold text-green-400">7,821</p>
-          </div>
-          <div className="w-10 h-10 bg-green-900/40 rounded-lg flex items-center justify-center">
-            <CheckCircle size={20} className="text-green-400" />
-          </div>
-        </div>
-        <div className="bg-[#161b22] border border-[#1e2530] rounded-xl p-4 flex items-center justify-between">
-          <div>
-            <p className="text-xs text-gray-500 mb-1">Warnings</p>
-            <p className="text-2xl font-bold text-yellow-400">892</p>
-          </div>
-          <div className="w-10 h-10 bg-yellow-900/40 rounded-lg flex items-center justify-center">
-            <AlertTriangle size={20} className="text-yellow-400" />
-          </div>
-        </div>
-        <div className="bg-[#161b22] border border-[#1e2530] rounded-xl p-4 flex items-center justify-between">
-          <div>
-            <p className="text-xs text-gray-500 mb-1">Critical</p>
-            <p className="text-2xl font-bold text-red-400">221</p>
-          </div>
-          <div className="w-10 h-10 bg-red-900/40 rounded-lg flex items-center justify-center">
-            <XCircle size={20} className="text-red-400" />
-          </div>
-        </div>
-      </div>
 
-      {/* Filter Bar */}
-      <div className="bg-[#161b22] border border-[#1e2530] rounded-xl p-4 mb-6 flex items-center gap-3">
-        <input
-          id="search-logs"
-          name="search"
-          type="text"
-          placeholder="Search logs..."
-          className="flex-1 bg-[#0d1117] border border-[#1e2530] rounded-lg px-3 py-2 text-sm text-gray-300 placeholder-gray-600 focus:outline-none focus:border-blue-500"
-        />
-        <button id="action-filter" name="action-type" className="flex items-center gap-2 bg-[#0d1117] border border-[#1e2530] rounded-lg px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors min-w-32.5 justify-between">
-          Action Type <ChevronDown size={14} />
-        </button>
-        <button id="severity-filter" name="severity" className="flex items-center gap-2 bg-[#0d1117] border border-[#1e2530] rounded-lg px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors min-w-30 justify-between">
-          Severity <ChevronDown size={14} />
-        </button>
-        <button id="date-filter" name="date-range" className="flex items-center gap-2 bg-[#0d1117] border border-[#1e2530] rounded-lg px-4 py-2 text-sm text-gray-400 hover:text-white transition-colors">
-          <Calendar size={14} /> Date Range
-        </button>
-      </div>
-
-      {/* Table */}
-      <div className="bg-[#161b22] border border-[#1e2530] rounded-xl overflow-hidden">
-        <div className="px-5 py-4 border-b border-[#1e2530]">
-          <h2 className="text-sm font-semibold text-white">Recent Activity</h2>
+        {/* Stats Cards */}
+        <div className="grid grid-cols-4 gap-6">
+          <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] flex items-center justify-between" style={styles.card}>
+            <div>
+              <p className="text-slate-400 text-sm font-medium mb-2">Total Events</p>
+              <h3 className="text-4xl font-extrabold text-white tracking-tight">{stats.total}</h3>
+            </div>
+            <div className="w-16 h-16 rounded-2xl bg-blue-600/20 flex items-center justify-center border border-white/10">
+              <FileText size={32} className="text-blue-400" strokeWidth={1.5} />
+            </div>
+          </div>
+          <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] flex items-center justify-between" style={styles.card}>
+            <div>
+              <p className="text-slate-400 text-sm font-medium mb-2">Success</p>
+              <h3 className="text-4xl font-extrabold text-emerald-400 tracking-tight">{stats.success}</h3>
+            </div>
+            <div className="w-16 h-16 rounded-2xl bg-emerald-600/20 flex items-center justify-center border border-white/10">
+              <CheckCircle size={32} className="text-emerald-400" strokeWidth={1.5} />
+            </div>
+          </div>
+          <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] flex items-center justify-between" style={styles.card}>
+            <div>
+              <p className="text-slate-400 text-sm font-medium mb-2">Warnings</p>
+              <h3 className="text-4xl font-extrabold text-amber-400 tracking-tight">{stats.warnings}</h3>
+            </div>
+            <div className="w-16 h-16 rounded-2xl bg-amber-600/20 flex items-center justify-center border border-white/10">
+              <AlertTriangle size={32} className="text-amber-400" strokeWidth={1.5} />
+            </div>
+          </div>
+          <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] flex items-center justify-between" style={styles.card}>
+            <div>
+              <p className="text-slate-400 text-sm font-medium mb-2">Critical</p>
+              <h3 className="text-4xl font-extrabold text-rose-400 tracking-tight">{stats.critical}</h3>
+            </div>
+            <div className="w-16 h-16 rounded-2xl bg-rose-600/20 flex items-center justify-center border border-white/10">
+              <XCircle size={32} className="text-rose-400" strokeWidth={1.5} />
+            </div>
+          </div>
         </div>
-        <div className="overflow-x-auto">
-        <table className="w-full text-sm min-w-[740px]">
-          <thead>
-            <tr className="border-b border-[#1e2530]">
-              {['Log ID', 'Timestamp', 'User', 'Action', 'Target', 'Status', 'Details', 'View'].map(h => (
-                <th key={h} className="px-4 py-3 text-left text-xs text-gray-500 font-medium">{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {logs.map((log, i) => (
-              <tr
-                key={log.id}
-                className={`border-b border-[#1e2530] hover:bg-[#1e2530]/50 transition-colors ${i % 2 === 0 ? '' : ''}`}
-              >
-                <td className="px-4 py-3 text-blue-400 font-mono text-xs">{log.id}</td>
-                <td className="px-4 py-3 text-gray-400 font-mono text-xs whitespace-nowrap">{log.timestamp}</td>
-                <td className="px-4 py-3 text-gray-300 text-xs">{log.user}</td>
-                <td className="px-4 py-3 text-white text-xs font-medium">{log.action}</td>
-                <td className="px-4 py-3 text-gray-400 font-mono text-xs">{log.target}</td>
-                <td className="px-4 py-3">
-                  <span className={`px-2 py-0.5 rounded text-xs font-medium ${statusConfig[log.status]}`}>
-                    {log.status}
-                  </span>
-                </td>
-                <td className="px-4 py-3 text-gray-500 text-xs">{log.details}</td>
-                <td className="px-4 py-3">
-                  <button
-                    onClick={() => handleViewLog(log._id)}
-                    disabled={loadingLogId === log._id}
-                    className="flex items-center gap-1 bg-blue-600 hover:bg-blue-500 disabled:bg-gray-600 text-white px-2 py-1 rounded text-xs font-medium transition-colors"
-                  >
-                    <Eye size={12} />
-                    {loadingLogId === log._id ? 'Loading...' : 'View'}
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+
+        {/* Filter Bar */}
+        <div className="p-4 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] flex items-center gap-3" style={styles.card}>
+          <input
+            id="search-logs"
+            name="search"
+            type="text"
+            placeholder="Search logs..."
+            className="flex-1 bg-[#0D121F] border border-slate-700/50 rounded-xl px-4 py-2 text-sm text-slate-400 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500/30"
+          />
+          <button id="action-filter" name="action-type" className="flex items-center gap-2 bg-[#0D121F] border border-slate-700/50 rounded-xl px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors min-w-[130px] justify-between">
+            Action Type <ChevronDown size={14} />
+          </button>
+          <button id="severity-filter" name="severity" className="flex items-center gap-2 bg-[#0D121F] border border-slate-700/50 rounded-xl px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors min-w-[120px] justify-between">
+            Severity <ChevronDown size={14} />
+          </button>
+          <button id="date-filter" name="date-range" className="flex items-center gap-2 bg-[#0D121F] border border-slate-700/50 rounded-xl px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors">
+            <Calendar size={14} /> Date Range
+          </button>
         </div>
-      </div>
 
-      </div> 
-      </div>
-  </main> 
+        {/* Table */}
+        <div className="rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] overflow-hidden" style={styles.card}>
+          <div className="px-6 py-4 border-b border-slate-800/50">
+            <h2 className="text-sm font-medium text-slate-300">Recent Activity</h2>
+          </div>
+          <div className="overflow-x-auto px-6 pb-6">
+            <table className="w-full text-left">
+              <thead className="text-slate-500 text-[12px] font-medium border-b border-slate-800/30">
+                <tr>
+                  {['Log ID', 'Timestamp', 'User', 'Action', 'Target', 'Status', 'Details', 'View'].map(h => (
+                    <th key={h} className="py-5 font-normal">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody className="text-[13px]">
+                {logs.map((log) => (
+                  <tr key={log.id} className="border-b border-slate-800/30 hover:bg-slate-800/20 transition-colors last:border-0">
+                    <td className="py-4 text-blue-400 font-mono text-xs font-bold">{log.id}</td>
+                    <td className="py-4 text-slate-400 font-mono text-xs whitespace-nowrap">{log.timestamp}</td>
+                    <td className="py-4 text-slate-300 text-xs font-medium">{log.user}</td>
+                    <td className="py-4 text-slate-200 text-xs font-bold">{log.action}</td>
+                    <td className="py-4 text-slate-400 font-mono text-xs">{log.target}</td>
+                    <td className="py-4">
+                      <span className={`px-3 py-1 rounded-lg text-[11px] font-bold ${statusConfig[log.status]}`}>
+                        {log.status}
+                      </span>
+                    </td>
+                    <td className="py-4 text-slate-500 text-xs">{log.details}</td>
+                    <td className="py-4">
+                      <button
+                        onClick={() => handleViewLog(log.id)}
+                        disabled={loadingLogId === log.id}
+                        className="flex items-center gap-1 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-600 text-white px-2 py-1 rounded text-xs font-medium transition-colors"
+                      >
+                        <Eye size={12} />
+                        {loadingLogId === log.id ? 'Loading...' : 'View'}
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
 
-  {showExport && <ExportLogsModal onClose={() => setShowExport(false)} />}
-  {selectedLog && <AuditLogDetailModal log={selectedLog} onClose={() => setSelectedLog(null)} />}
-</div>
+      </div>
+      {showExport && <ExportLogsModal onClose={() => setShowExport(false)} />}
+      {selectedLog && <AuditLogDetailModal log={selectedLog} onClose={() => setSelectedLog(null)} />}
+    </div>
   );
 }

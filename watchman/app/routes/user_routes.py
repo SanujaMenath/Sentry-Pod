@@ -35,7 +35,11 @@ async def add_user(user: UserCreate):
         raise HTTPException(status_code=400, detail=str(e)) 
 
 @router.put("/{user_id}/role", response_model=UserResponse)
-async def update_role(user_id: str, role_data: UserRoleUpdate):
+async def update_role(
+    user_id: str, 
+    role_data: UserRoleUpdate, 
+    admin_user: dict = Depends(require_super_admin) # 🔒 This blocks normal profiles!
+):
     try:
         return await assign_user_role(user_id, role_data.role)
     except Exception as e:
@@ -67,16 +71,6 @@ async def list_users(current_user: dict = Depends(get_current_user)):
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@router.put("/{user_id}/role", response_model=UserResponse)
-async def update_role(
-    user_id: str, 
-    role_data: UserRoleUpdate, 
-    admin_user: dict = Depends(require_super_admin)
-):
-    try:
-        return await assign_user_role(user_id, role_data.role)
-    except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
     
 @router.get("/profile-cards-summary", response_model=AdminCardAndStatusResponse)
 async def get_profile_cards_summary(current_user: dict = Depends(get_current_user)):
@@ -91,8 +85,6 @@ async def get_profile_cards_summary(current_user: dict = Depends(get_current_use
         # Pulls data straight from your database using your service file's routine
         user_profile = await get_user_by_id(user_id_str)
         
-        # If your database document doesn't have a distinct 'role_title' field yet,
-        # this dynamically normalizes your standard 'role' string (e.g., "admin" -> "Admin")
         if "role_title" not in user_profile or not user_profile["role_title"]:
             user_profile["role_title"] = user_profile.get("role", "Super Admin").title()
 
@@ -104,4 +96,21 @@ async def get_profile_cards_summary(current_user: dict = Depends(get_current_use
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, 
             detail=f"Aggregation pipeline failure tracking status metrics: {str(e)}"
+        )
+    
+@router.get("/security-activity")
+async def get_security_activity(current_user: dict = Depends(get_current_user)):
+    try:
+        # Pull user data using  existing database helper function
+        user_profile = await get_user_by_id(str(current_user["_id"]))
+        
+        # 2. Extract exclusively from the database. Returns an empty list if no logs exist yet.
+        activities = user_profile.get("recent_activities", [])
+
+        return activities[:3]
+    
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database pipeline error tracking security activity logs: {str(e)}"
         )
