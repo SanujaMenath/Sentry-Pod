@@ -146,6 +146,18 @@
     },
     {
       "id": 13,
+      "name": "ESW12",
+      "ip": "10.2.99.12",
+      "status": "online",
+      "type": "switch",
+      "model": "Cisco Catalyst",
+      "version": "15.x",
+      "uptime": "70d",
+      "cpu": 30,
+      "memory": 50
+    },
+    {
+      "id": 14,
       "name": "ESW13",
       "ip": "10.2.99.13",
       "status": "online",
@@ -157,7 +169,7 @@
       "memory": 50
     },
     {
-      "id": 14,
+      "id": 15,
       "name": "ESW14",
       "ip": "10.2.99.14",
       "status": "online",
@@ -169,7 +181,7 @@
       "memory": 50
     },
     {
-      "id": 15,
+      "id": 16,
       "name": "R1",
       "ip": "192.168.122.252",
       "status": "online",
@@ -181,5 +193,5 @@
       "memory": 60
     }
   ],
-  "scan_timestamp": "2026-06-06T17:09:02.067530"
+  "scan_timestamp": "2026-06-10T17:52:19.633127"
 }

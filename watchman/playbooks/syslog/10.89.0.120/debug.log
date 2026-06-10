@@ -1,0 +1,42 @@
+Jun 10 17:50:41 10.89.0.120 <187>48: ESW14: .Jun 10 17:50:29.172: %LINK-3-UPDOWN: Interface FastEthernet1/7, changed state to up
+Jun 10 17:50:51 10.89.0.120 <189>5: Copyright (c) 1986-2007 by Cisco Systems, Inc.
+Jun 10 17:50:51 10.89.0.120 <189>6: Compiled Tue 24-Apr-07 15:33 by prod_rel_team
+Jun 10 17:50:51 10.89.0.120 <189>7: *Mar  1 05:30:02: %SNMP-5-COLDSTART: SNMP agent on host ESW12 is undergoing a cold start
+Jun 10 17:50:51 10.89.0.120 <189>8: *Mar  1 05:30:02: %PCMCIAFS-5-DIBERR: PCMCIA disk 0 is formatted from a different router or PC. A format in this router is required before an image can be booted from this device
+Jun 10 17:50:51 10.89.0.120 <189>9: *Mar  1 05:30:02: %SSH-5-ENABLED: SSH 2.0 has been enabled
+Jun 10 17:50:51 10.89.0.120 <189>10: *Mar  1 05:30:02: %LINK-5-CHANGED: Interface FastEthernet0/0, changed state to administratively down
+Jun 10 17:50:51 10.89.0.120 <189>11: *Mar  1 05:30:02: %LINK-5-CHANGED: Interface FastEthernet0/1, changed state to administratively down
+Jun 10 17:50:51 10.89.0.120 <189>12: *Mar  1 05:30:03: %DTP-5-TRUNKPORTON: Port Fa1/0-1 has become dot1q trunk
+Jun 10 17:50:51 10.89.0.120 <189>14: *Mar  1 05:30:03: %LINK-5-CHANGED: Interface Vlan1, changed state to administratively down
+Jun 10 17:50:51 10.89.0.120 <189>15: *Mar  1 05:30:03: %LINEPROTO-5-UPDOWN: Line protocol on Interface Vlan99, changed state to up
+Jun 10 17:50:51 10.89.0.120 <189>16: *Mar  1 05:30:03: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/0, changed state to down
+Jun 10 17:50:51 10.89.0.120 <187>19: *Mar  1 05:30:04: %LINK-3-UPDOWN: Interface FastEthernet1/14, changed state to up
+Jun 10 17:50:51 10.89.0.120 <187>20: *Mar  1 05:30:04: %LINK-3-UPDOWN: Interface FastEthernet1/13, changed state to up
+Jun 10 17:50:51 10.89.0.120 <187>21: *Mar  1 05:30:04: %LINK-3-UPDOWN: Interface FastEthernet1/12, changed state to up
+Jun 10 17:50:51 10.89.0.120 <187>22: *Mar  1 05:30:04: %LINK-3-UPDOWN: Interface FastEthernet1/11, changed state to up
+Jun 10 17:50:51 10.89.0.120 <187>23: *Mar  1 05:30:04: %LINK-3-UPDOWN: Interface FastEthernet1/10, changed state to up
+Jun 10 17:50:51 10.89.0.120 <187>24: *Mar  1 05:30:04: %LINK-3-UPDOWN: Interface FastEthernet1/9, changed state to up
+Jun 10 17:50:51 10.89.0.120 <187>25: *Mar  1 05:30:04: %LINK-3-UPDOWN: Interface FastEthernet1/8, changed state to up
+Jun 10 17:50:51 10.89.0.120 <187>26: *Mar  1 05:30:04: %LINK-3-UPDOWN: Interface FastEthernet1/7, changed state to up
+Jun 10 17:50:51 10.89.0.120 <187>27: *Mar  1 05:30:04: %LINK-3-UPDOWN: Interface FastEthernet1/6, changed state to up
+Jun 10 17:50:51 10.89.0.120 <187>28: *Mar  1 05:30:04: %LINK-3-UPDOWN: Interface FastEthernet1/5, changed state to up
+Jun 10 17:50:51 10.89.0.120 <187>29: *Mar  1 05:30:04: %LINK-3-UPDOWN: Interface FastEthernet1/4, changed state to up
+Jun 10 17:50:51 10.89.0.120 <187>30: *Mar  1 05:30:04: %LINK-3-UPDOWN: Interface FastEthernet1/3, changed state to up
+Jun 10 17:50:51 10.89.0.120 <189>31: *Mar  1 05:30:04: %LINEPROTO-5-UPDOWN: Line protocol on Interface Vlan1, changed state to down
+Jun 10 17:50:51 10.89.0.120 <189>32: *Mar  1 05:30:05: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet1/15, changed state to down
+Jun 10 17:50:51 10.89.0.120 <189>33: *Mar  1 05:30:05: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet1/14, changed state to down
+Jun 10 17:50:51 10.89.0.120 <189>34: *Mar  1 05:30:05: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet1/13, changed state to down
+Jun 10 17:50:51 10.89.0.120 <189>35: *Mar  1 05:30:05: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet1/12, changed state to down
+Jun 10 17:50:52 10.89.0.120 <189>36: *Mar  1 05:30:05: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet1/11, changed state to down
+Jun 10 17:50:52 10.89.0.120 <189>37: *Mar  1 05:30:05: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet1/10, changed state to down
+Jun 10 17:50:52 10.89.0.120 <189>38: *Mar  1 05:30:05: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet1/9, changed state to down
+Jun 10 17:50:52 10.89.0.120 <189>39: *Mar  1 05:30:05: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet1/8, changed state to down
+Jun 10 17:50:52 10.89.0.120 <189>40: *Mar  1 05:30:05: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet1/7, changed state to down
+Jun 10 17:50:52 10.89.0.120 <189>41: *Mar  1 05:30:05: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet1/6, changed state to down
+Jun 10 17:50:52 10.89.0.120 <189>42: *Mar  1 05:30:05: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet1/5, changed state to down
+Jun 10 17:50:52 10.89.0.120 <189>43: *Mar  1 05:30:05: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet1/4, changed state to down
+Jun 10 17:50:52 10.89.0.120 <189>44: *Mar  1 05:30:05: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet1/3, changed state to down
+Jun 10 17:50:52 10.89.0.120 <189>45: *Mar  1 05:30:05: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet1/2, changed state to up
+Jun 10 17:50:52 10.89.0.120 <189>46: *Mar  1 05:30:05: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet1/1, changed state to up
+Jun 10 17:50:52 10.89.0.120 <189>47: *Mar  1 05:30:05: %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet1/0, changed state to up
+Jun 10 17:51:47 10.89.0.120 <189>49: ESW14: .Jun 10 17:51:45.170: %LINK-5-CHANGED: Interface FastEthernet1/7, changed state to administratively down

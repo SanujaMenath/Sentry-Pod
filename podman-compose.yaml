@@ -16,6 +16,7 @@ services:
   watchman:
     build: ./watchman
     restart: always
+    privileged: true
     depends_on:
       - vault
     environment:
@@ -24,6 +25,8 @@ services:
       - "8000:8000"
     volumes:
       - ./watchman:/app:Z
+      - ./watchman/registries.conf:/etc/containers/registries.conf:ro
+      - /tmp:/tmp:ro
 
   syslog-ng:
     build:
@@ -42,12 +45,8 @@ services:
     build: ./command-center
     image: fresh-command-center
     restart: always
-    depends_on:
-      - watchman
     ports:
       - "3000:80"
-    environment:
-      - REACT_APP_API_URL=http://localhost:3000
 
 volumes:
   vault-data:

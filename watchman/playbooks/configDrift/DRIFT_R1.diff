@@ -1,0 +1,26 @@
+--- before
++++ after
+@@ -1,10 +1,12 @@
+ Building configuration...
+ 
+-Current configuration : 5802 bytes
++Current configuration : 5896 bytes
++!
++! Last configuration change at 16:58:44 SLST Wed Jun 10 2026 by admin
+ !
+ version 15.2
+ service timestamps debug datetime msec
+-service timestamps log datetime localtime
++service timestamps log datetime msec
+ !
+ hostname R1
+ !
+@@ -100,6 +102,7 @@
+ no ip http secure-server
+ !
+ logging trap notifications
++logging origin-id hostname
+ logging host 192.168.122.1 transport udp port 10514
+ !
+ snmp-server community sentryPod RO
+
