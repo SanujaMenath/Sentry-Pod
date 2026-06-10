@@ -20,9 +20,7 @@ import {
   deletePlaybook,
   executePlaybook 
 } from "../services/inventoryService";
-// ==========================================
-// 1. POPUP WINDOW FORM COMPONENT
-// ==========================================
+
 function PlaybookModal({ mode, playbookData, onClose, onSave }) {
   const [formData, setFormData] = useState({
     name: "",
@@ -70,7 +68,7 @@ function PlaybookModal({ mode, playbookData, onClose, onSave }) {
                  Upload Playbook File Blueprint
              </label>
         <div className="relative w-full bg-[#111827]/80 border border-slate-800 rounded-xl px-4 py-2.5 flex items-center justify-between">
-             <span className="text-sm text-slate-400 truncate max-w-[220px]">
+             <span className="text-sm text-slate-400 truncate max-w-55">
                 {formData.name || "No file selected..."}
             </span>
         <label className="bg-slate-800 hover:bg-slate-700 text-white text-[11px] font-bold px-3 py-1.5 rounded-lg cursor-pointer transition-colors">

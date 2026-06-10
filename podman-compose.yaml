@@ -16,7 +16,6 @@ services:
   watchman:
     build: ./watchman
     restart: always
-    privileged: true
     depends_on:
       - vault
     environment:
@@ -24,9 +23,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./watchman:/app:Z
-      - ./watchman/registries.conf:/etc/containers/registries.conf:ro
-      - /tmp:/tmp:ro
+      - ./watchman:/app${VOLUME_OPTS}
 
   syslog-ng:
     build:
@@ -37,16 +34,20 @@ services:
     ports:
       - "10514:10514/udp"
     volumes:
-      - ./watchman/playbooks/gns3_lab.conf:/etc/syslog-ng/conf.d/gns3_lab.conf:Z
-      - ./watchman/scripts/syslog_listener.sh:/usr/local/bin/syslog_listener.sh:Z
-      - ./watchman/playbooks/syslog/:/var/log/syslog/:z
+      - ./watchman/playbooks/gns3_lab.conf:/etc/syslog-ng/conf.d/gns3_lab.conf${VOLUME_OPTS}
+      - ./watchman/scripts/syslog_listener.sh:/usr/local/bin/syslog_listener.sh${VOLUME_OPTS}
+      - ./watchman/playbooks/syslog/:/var/log/syslog/${VOLUME_OPTS}
 
   command-center:
     build: ./command-center
     image: fresh-command-center
     restart: always
+    depends_on:
+      - watchman
     ports:
       - "3000:80"
+    environment:
+      - REACT_APP_API_URL=http://localhost:3000
 
 volumes:
   vault-data:

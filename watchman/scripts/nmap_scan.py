@@ -48,7 +48,7 @@ def run_nmap(hosts_file: str) -> dict:
     
     try:
         result = subprocess.run(
-            ["nmap", "-sn", "-n", "--max-rtt-timeout", "1000ms", "--unprivileged", "-iL", hosts_file],
+           ["nmap", "-sT", "-Pn", "-p", "22", "--open", "-n", "--max-rtt-timeout", "1000ms", "-iL", hosts_file],
             capture_output=True,
             text=True,
             timeout=120
