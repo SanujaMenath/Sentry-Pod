@@ -1,12 +1,35 @@
-# app/route/audit_routes.py
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel
 from datetime import datetime
+from typing import List
 from ..database import db
 
 router = APIRouter(prefix="/audit-logs", tags=["Audit Logs"])
 
 audit_logs_collection = db.get_collection("audit_logs")
+
+# =====================================================================
+# 1. NEW RBAC ACCESS CONTROL CODE
+# =====================================================================
+class UserSession(BaseModel):
+    username: str
+    role: str
+
+# Temporary helper to simulate your active test user profiles.
+# When testing your endpoints, you can change this role right here to verify permissions!
+async def get_current_user():
+    return UserSession(username="auditor_steph", role="Auditor")
+
+def verify_role_clearance(allowed_roles: List[str]):
+    def dependency(current_user: UserSession = Depends(get_current_user)):
+        if current_user.role not in allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Access Denied. Role '{current_user.role}' lacks necessary systemic permissions."
+            )
+        return current_user
+    return dependency
+# =====================================================================
 
 class AuditLogEntry(BaseModel):
     action_name: str
@@ -49,13 +72,16 @@ async def log_action(entry: AuditLogEntry):
             detail=str(e)
         )
 
+# ADDED DEPENDENCY HERE -> Only Admin and Auditor allowed
 @router.get("/all")
-async def get_all_audit_logs(limit: int = 50):
+async def get_all_audit_logs(
+    limit: int = 50,
+    current_user: UserSession = Depends(verify_role_clearance(["System Administrator", "Auditor"]))
+):
     """Retrieve all audit logs"""
     try:
         logs = await audit_logs_collection.find().sort("timestamp", -1).limit(limit).to_list(None)
         
-        # Convert ObjectId to string for JSON serialization
         for log in logs:
             log["_id"] = str(log["_id"])
         
@@ -70,8 +96,13 @@ async def get_all_audit_logs(limit: int = 50):
             detail=str(e)
         )
 
+# ADDED DEPENDENCY HERE -> Only Admin and Auditor allowed
 @router.get("/by-user/{username}")
-async def get_logs_by_user(username: str, limit: int = 50):
+async def get_logs_by_user(
+    username: str, 
+    limit: int = 50,
+    current_user: UserSession = Depends(verify_role_clearance(["System Administrator", "Auditor"]))
+):
     """Retrieve audit logs for a specific user"""
     try:
         logs = await audit_logs_collection.find({"username": username}).sort("timestamp", -1).limit(limit).to_list(None)
@@ -91,8 +122,12 @@ async def get_logs_by_user(username: str, limit: int = 50):
             detail=str(e)
         )
 
+# ADDED DEPENDENCY HERE -> Only Admin and Auditor allowed
 @router.get("/{log_id}")
-async def get_audit_log(log_id: str):
+async def get_audit_log(
+    log_id: str,
+    current_user: UserSession = Depends(verify_role_clearance(["System Administrator", "Auditor"]))
+):
     """Retrieve a specific audit log by ID"""
     try:
         from bson import ObjectId
@@ -115,8 +150,13 @@ async def get_audit_log(log_id: str):
             detail=str(e)
         )
 
+# ADDED DEPENDENCY HERE -> Only Admin and Auditor allowed
 @router.get("/by-action/{action_name}")
-async def get_logs_by_action(action_name: str, limit: int = 50):
+async def get_logs_by_action(
+    action_name: str, 
+    limit: int = 50,
+    current_user: UserSession = Depends(verify_role_clearance(["System Administrator", "Auditor"]))
+):
     """Retrieve audit logs for a specific action"""
     try:
         logs = await audit_logs_collection.find({"action_name": action_name}).sort("timestamp", -1).limit(limit).to_list(None)
