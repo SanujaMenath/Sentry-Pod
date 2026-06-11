@@ -147,7 +147,7 @@ class SentryPodManager:
                 "-f",
                 str(self.ansible_dockerfile),
                 "-t",
-                "sentry-ansible",
+                "localhost/sentry-ansible",
                 str(self.watchman_dir),
             ],
             check=True,
@@ -178,7 +178,7 @@ class SentryPodManager:
         self, playbook_name: str, inventory_file: str = "hosts.ini"
     ):
         self._check_podman()
-        if not self._image_exists("sentry-ansible"):
+        if not self._image_exists("localhost/sentry-ansible"):
             print(
                 "Error: sentry-ansible image not found. "
                 "Run: python container_manager.py build ansible"
@@ -204,7 +204,7 @@ class SentryPodManager:
             "-it",
             "-v",
             vol,
-            "sentry-ansible",
+            "localhost/sentry-ansible",
             "ansible-playbook",
             f"/ansible/{playbook_name}",
             "-i",
@@ -218,7 +218,7 @@ class SentryPodManager:
 
     def open_shell(self):
         self._check_podman()
-        if not self._image_exists("sentry-ansible"):
+        if not self._image_exists("localhost/sentry-ansible"):
             print(
                 "Error: sentry-ansible image not found. "
                 "Run: python container_manager.py build ansible"
@@ -237,7 +237,7 @@ class SentryPodManager:
             "-it",
             "-v",
             vol,
-            "sentry-ansible",
+            "localhost/sentry-ansible",
             "bash",
         ]
         if self.is_linux:
@@ -279,7 +279,7 @@ class SentryPodManager:
         print("Images:")
 
         images = [
-            ("sentry-ansible", "Ansible runner"),
+            ("localhost/sentry-ansible", "Ansible runner"),
             ("fresh-command-center", "Command Center"),
         ]
         for img, label in images:

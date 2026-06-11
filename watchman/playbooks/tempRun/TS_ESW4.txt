@@ -1,12 +1,13 @@
 Building configuration...
 
-Current configuration : 6263 bytes
+Current configuration : 6380 bytes
 !
-! No configuration change since last restart
+! Last configuration change at 17:18:42 SLST Wed Jun 10 2026 by admin
+! NVRAM config last updated at 20:53:00 SLST Wed Jun 10 2026 by admin
 !
 version 12.4
 service timestamps debug datetime msec
-service timestamps log datetime localtime
+service timestamps log datetime msec
 no service password-encryption
 no service dhcp
 !
@@ -187,6 +188,7 @@ no ip http server
 no ip http secure-server
 !
 logging trap notifications
+logging origin-id hostname
 logging host 192.168.122.1 transport udp port 10514
 snmp-server community sentryPod RO
 snmp-server enable traps snmp authentication linkdown linkup coldstart warmstart
@@ -293,7 +295,7 @@ line vty 0 4
  login local
  transport input ssh
 !
-ntp clock-period 17179893
+ntp clock-period 17180000
 ntp max-associations 1
 ntp server 192.168.122.1
 !

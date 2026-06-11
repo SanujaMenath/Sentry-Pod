@@ -140,7 +140,7 @@ def test_containers_running():
 
 def test_ansible_image():
     info("--- Ansible Image ---")
-    r = run(["podman", "image", "exists", "sentry-ansible"])
+    r = run(["podman", "image", "exists", "localhost/sentry-ansible"])
     if r.returncode == 0:
         ok("sentry-ansible image exists")
     else:

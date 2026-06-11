@@ -9,7 +9,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
 WATCHMAN_DIR="$REPO_ROOT/watchman"
 PLAYBOOKS_DIR="$WATCHMAN_DIR/playbooks"
-CONTAINER_NAME="sentry-ansible"
+CONTAINER_NAME="localhost/sentry-ansible"
 
 # Get arguments
 PLAYBOOK="${1:-get_facts.yml}"

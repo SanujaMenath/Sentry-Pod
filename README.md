@@ -29,25 +29,32 @@ Containerized Network Management System for Cisco-centric environments. Uses Int
      │ │ vault        │ │     │ (ephemeral runner)  │
      │ │ (MongoDB)    │ │     │                     │
      │ │ port 27017   │ │     │ podman run --rm     │
-     │ └──────┬───────┘ │     │-v playbooks:/ansible│
-     │        │         │     │ ansible-playbook    │
-     │ ┌──────▼───────┐ │     └─────────────────────┘
-     │ │ watchman     │ │
-     │ │ (FastAPI)    │ │
-     │ │ port 8000    │ │
-     │ └──────┬───────┘ │
-     │        │         │
-     │ ┌──────▼───────┐ │
-     │ │command-center│ │
-     │ │ (React/nginx)│ │
-     │ │ port 3000    │ │
-     │ └──────────────┘ │
-     │                  │
+     │ │ (standalone) │ │     │-v playbooks:/ansible│
+     │ └──────────────┘ │     │ ansible-playbook    │
+     │                  │     └─────────────────────┘
      │ ┌──────────────┐ │
-     │ │ syslog-ng    │ │
-     │ │ UDP 10514    │ │
-     │ └──────────────┘ │
-     └──────────────────┘
+     │ │ watchman     │──────┐
+     │ │ (FastAPI)    │ │    │
+     │ │ port 8000    │ │    │
+     │ └──────┬───────┘ │    │
+     │        │         │    │
+     │ ┌──────▼───────┐ │    │
+     │ │command-center│ │    │
+     │ │ (React/nginx)│ │    │
+     │ │ port 3000    │ │    │
+     │ └──────────────┘ │    │
+     │                  │    │
+     │ ┌──────────────┐ │    │
+     │ │ syslog-ng    │ │    │
+     │ │ UDP 10514    │ │    │
+     │ └──────────────┘ │    │
+     └──────────────────┘    │
+                             │
+               ┌─────────────▼──────────────┐
+               │   MongoDB Atlas (cloud)     │
+               │   sentrypod.n5boezy.net     │
+               │   users, devices, sessions  │
+               └─────────────────────────────┘
 ```
 
 ## Tech Stack
@@ -101,14 +108,14 @@ sentry-pod/
 ├── deployments/                 # Placeholder
 │
 ├── docs/                        # Feature documentation
+│   ├── AUTH_SETUP.md
 │   ├── CONTAINER_MANAGEMENT.md
 │   ├── CONFIG_DRIFT_AUTOMATION.md
 │   ├── NETWORK_BASELINE_AUTOMATION.md
 │   ├── REAL_TIME_NETWORK_STATUS.md
 │   ├── SESSION_MEMORY.md
 │   ├── SYSLOG_INTELLIGENCE.md
-│   ├── MIGRATION_GUIDE.md
-│   └── TEMPLATE.md
+│   └── MIGRATION_GUIDE.md
 │
 ├── podman-compose.yaml          # Compose stack definition
 ├── AGENTS.md                    # Developer reference
@@ -149,14 +156,19 @@ python watchman/scripts/container_manager.py status
 
 The UI is available at **http://localhost:3000** (command-center) or **http://localhost:5173** (frontend dev mode).
 
-> **First-time setup:** After starting the stack, configure your network devices in `watchman/playbooks/hosts.ini` and set `HUGGINGFACE_API_KEY` in `watchman/.env` (or via the UI) for AI features. See [Configuration](#configuration) and [SSH / Credential Setup](#ssh--credential-setup) below.
+> **First-time setup:** After starting the stack:
+> 1. **Create an admin account** — Sign up at http://localhost:3000, then promote your user to `"Super Admin"` (see [Auth Setup](docs/AUTH_SETUP.md#usage))
+> 2. **Configure devices** — Edit `watchman/playbooks/hosts.ini` with your network device credentials
+> 3. **Set AI key** — Add `HUGGINGFACE_API_KEY` in `watchman/.env` (or via the UI)
+>
+> See [Configuration](#configuration) and [SSH / Credential Setup](#ssh--credential-setup) below.
 
 ## Services
 
 | Service | Container | Tech | Port | Purpose |
-|---|---|---|---|---|
-| vault | `mongo:latest` | MongoDB | 27017 | Database (device data, users, sessions, syslog) |
-| watchman | `sentry-pod_watchman` | FastAPI + Motor | 8000 | REST API backend |
+|---|---|---|---|---|---|
+| vault | `mongo:latest` | MongoDB | 27017 | Local MongoDB (standalone — unused by default) |
+| watchman | `sentry-pod_watchman` | FastAPI + Motor | 8000 | REST API backend (connects to Atlas) |
 | syslog-ng | `sentry-pod_syslog-ng` | syslog-ng | 10514/udp | Centralized syslog collection |
 | command-center | `fresh-command-center` | React 19 + nginx | 3000 | Production UI |
 | sentry-ansible | `sentry-ansible` | Ubuntu + Ansible | — | Ephemeral playbook runner |
@@ -220,6 +232,21 @@ curl http://localhost:8000/api/network/drift/reports \
   -H "Authorization: Bearer <token>"
 ```
 
+## Authentication
+
+Login is handled via JWT. The watchman container connects to **MongoDB Atlas** by default (credentials in `watchman/.env`). A local `vault` MongoDB container is defined in the compose file but unused unless you revert (see `AGENTS.md`).
+
+### Default credentials
+
+After first-time sign-up via the UI, an admin must promote the user to `"Super Admin"`
+for full access. See [Auth Setup](docs/AUTH_SETUP.md#usage) for CLI commands.
+
+### Known auth gaps
+
+Some frontend service files and pages use raw `fetch()` or separate axios instances with
+hardcoded `http://localhost:8000` URLs — they **do not send the JWT Bearer token**.
+See [Auth Setup](docs/AUTH_SETUP.md#known-auth-gaps-not-yet-fixed) for the full list.
+
 ## SSH / Credential Setup
 
 Before playbooks can reach your network devices, configure authentication:
@@ -246,17 +273,27 @@ ESW1 ansible_host=192.168.1.1 ansible_user=admin ansible_ssh_pass=your_password
 
 ## Configuration
 
-Copy or edit `watchman/.env`:
+The watchman container reads `watchman/.env` (volume-mounted at `/app/.env`). Key variables:
 
 ```env
-DB_USER=sentry_pod
-DB_PASS=Admin123
-DB_HOST=vault:27017
+# MongoDB Atlas (default — watchman connects via load_dotenv())
+MONGO_URI="mongodb+srv://<user>:<pass>@<cluster>.mongodb.net/sentry_pod_db"
+
+# ... or use individual fields (pydantic constructs the URI):
+DB_USER=<user>
+DB_PASS=<pass>
+DB_HOST=<cluster>.mongodb.net
+
+# JWT
 SECRET_KEY=<change-this-to-a-random-string>
-HUGGINGFACE_API_KEY=<your-huggingface-token>    # Required for AI chat
+
+# Required for AI chat
+HUGGINGFACE_API_KEY=<your-huggingface-token>
 ```
 
 The `HUGGINGFACE_API_KEY` can also be set via the UI's API key management page instead of the `.env` file.
+
+**Switching to local vault:** See [Auth Setup](docs/AUTH_SETUP.md#reverting-to-local-vault-auth) or `AGENTS.md`.
 
 ## Development
 
@@ -269,7 +306,7 @@ pip install -r requirements.txt
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-Requires MongoDB running (via `container_manager.py up` or local mongod).
+Requires MongoDB accessible (Atlas by default; or run vault locally and switch auth — see `AGENTS.md`).
 
 ### Frontend (dev mode)
 
@@ -290,7 +327,8 @@ cd command-center && npm run lint
 
 | Script | Purpose |
 |---|---|
-| `watchman/scripts/create_admin.py` | Create initial admin user |
+| `watchman/scripts/create_admin.py` | Create initial admin user (adjusts role to `"Super Admin"` in code) |
+| `watchman/scripts/sync_users.py` | Sync users from Atlas to local vault MongoDB |
 | `watchman/scripts/nmap_scan.py` | Network discovery scan |
 | `watchman/scripts/collect_snmp.py` | SNMP telemetry collection |
 | `watchman/scripts/parse_metrics.py` | Aggregate SNMP metrics |
@@ -304,7 +342,10 @@ cd command-center && npm run lint
 | `podman-compose: command not found` | Run `pip install podman-compose` |
 | `sentry-ansible image not found` | Run `python container_manager.py build ansible` |
 | `playbook not found` | Check the file exists in `watchman/playbooks/` |
-| `MongoDB connection refused` | Ensure vault is running (`container_manager.py status`) |
+| `MongoDB connection refused` | Ensure Atlas credentials in `watchman/.env` are correct, or run vault locally and switch auth (see `AGENTS.md`) |
+| `Login returns 401 Invalid credentials` | User may not exist in Atlas. Create via the UI sign-up or `curl -X POST ... /users/` |
+| `Short-name errors in build` | Podman 5.8.2+ needs fully-qualified names. Use `docker.io/library/...` in `FROM` lines |
+| `COPY dist: no items matching glob` | Ensure `dist/` is not listed in `.dockerignore` |
 | Playbook SSH connection fails | Verify credentials in `hosts.ini` and network reachability |
 | AI chat returns errors | Set `HUGGINGFACE_API_KEY` in `.env` or via the UI |
 | SELinux volume mount errors (Linux) | Ensure `:Z` flag is present on volume mounts in compose file |
@@ -348,6 +389,7 @@ Routes live in `watchman/app/routes/`. Create a new file following the pattern o
 
 ## References
 
+- [Auth Setup](docs/AUTH_SETUP.md) — Authentication, build fixes, and known auth gaps
 - [Container Management](docs/CONTAINER_MANAGEMENT.md) — Full container CLI reference
 - [Migration Guide](docs/MIGRATION_GUIDE.md) — Moving from host Ansible to containerized
 - [Config Drift Automation](docs/CONFIG_DRIFT_AUTOMATION.md) — Drift detection deep-dive

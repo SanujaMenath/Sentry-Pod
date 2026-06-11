@@ -22,7 +22,7 @@ CATALOG_PATH = PLAYBOOKS_DIR / "catalog.json"
 ANSI_ESCAPE = re.compile(r'\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])')
 
 # Podman container configuration
-PODMAN_CONTAINER_IMAGE = "sentry-ansible"
+PODMAN_CONTAINER_IMAGE = "localhost/sentry-ansible"
 PODMAN_ANSIBLE_DIR = "/ansible"  # Mount point inside container
 
 _catalog_cache = None
