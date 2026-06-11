@@ -7,37 +7,10 @@ import PlaybookStagingGate from "../components/PlaybookStagingGate";
 import ApiKeyModal from "../components/ApiKeyModal";
 import PageHeader from "../components/PageHeader";
 import SessionSidebar from "../components/SessionSidebar";
-
-const mocha = {
-  base: "#1e1e2e",
-  mantle: "#181825",
-  surface0: "#313244",
-  surface1: "#45475a",
-  text: "#cdd6f4",
-  subtext1: "#bac2de",
-  lavender: "#b4befe",
-  blue: "#89b4fa",
-  green: "#a6e3a1",
-  yellow: "#f9e2af",
-  red: "#f38ba8",
-  peach: "#fab387",
-  sapphire: "#74c7ec",
-  sky: "#89dceb",
-};
-
-const classifyLine = (line) => {
-  if (!line.trim()) return { color: mocha.subtext1 };
-  if (line.startsWith("PLAY RECAP")) return { color: mocha.lavender, weight: 700 };
-  if (line.startsWith("PLAY [")) return { color: mocha.blue, weight: 700 };
-  if (line.startsWith("TASK [")) return { color: mocha.sapphire, weight: 700 };
-  if (line.startsWith("ok:")) return { color: mocha.green };
-  if (line.startsWith("changed:")) return { color: mocha.yellow };
-  if (line.startsWith("failed:")) return { color: mocha.red, weight: 700 };
-  if (line.startsWith("skipped:")) return { color: mocha.peach };
-  if (line.startsWith("fatal:")) return { color: mocha.red, weight: 700 };
-  if (line.startsWith("[")) return { color: mocha.subtext1 };
-  return { color: mocha.text };
-};
+import { classifyLine } from "../utils/playbookOutput";
+import { useCopyToClipboard } from "../hooks/useCopyToClipboard";
+import ExpandableOutput from "../components/ExpandableOutput";
+import PlaybookSuggestions from "../components/PlaybookSuggestions";
 
 const normalizeAssistantText = (rawText) => {
   if (!rawText) return "";
@@ -52,123 +25,6 @@ const normalizeAssistantText = (rawText) => {
     .replace(/^[-*]\s+/gm, "")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
-};
-
-const ExpandableOutput = ({ output }) => {
-  const [expanded, setExpanded] = useState(false);
-  const [copied, setCopied] = useState(false);
-
-  if (!output) return null;
-
-  const lines = output.split("\n");
-  const preview = lines.slice(0, 10);
-  const hasMore = lines.length > preview.length;
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(output);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy:", err);
-    }
-  };
-
-  return (
-    <div className="mt-3 rounded-xl border border-[#45475a] bg-[#1e1e2e] p-4 shadow-inner shadow-black/20">
-      <div className="mb-3 flex items-center justify-between">
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-2 text-sm text-[#cdd6f4] transition-colors hover:text-white"
-        >
-          {hasMore && (expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
-          <span className="font-mono text-xs">{lines.length} lines of output</span>
-        </button>
-
-        <button
-          onClick={handleCopy}
-          className="flex items-center gap-2 rounded-lg bg-[#45475a]/50 px-3 py-1.5 text-xs text-[#cdd6f4] transition-all hover:bg-[#45475a] hover:text-white"
-          title="Copy output to clipboard"
-        >
-          {copied ? (
-            <>
-              <Check size={14} />
-              <span>Copied!</span>
-            </>
-          ) : (
-            <>
-              <Copy size={14} />
-              <span>Copy</span>
-            </>
-          )}
-        </button>
-      </div>
-
-      <div className="max-h-72 overflow-auto rounded-lg border border-[#313244] bg-[#181825] p-3 font-mono text-xs leading-5">
-        {(expanded ? lines : preview).map((line, index) => {
-          const style = classifyLine(line);
-          return (
-            <div
-              key={`${index}-${line}`}
-              style={{ color: style.color, fontWeight: style.weight || 400 }}
-              className="whitespace-pre-wrap-break-words"
-            >
-              {line}
-            </div>
-          );
-        })}
-        {hasMore && !expanded && (
-          <div style={{ color: mocha.subtext1 }} className="mt-2 italic">
-            ...expand to view the rest of the playbook output
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const PlaybookSuggestions = ({ suggestions, onExecute }) => {
-  if (!suggestions || suggestions.length === 0) return null;
-
-  return (
-    <div className="mt-4 rounded-xl border border-[#45475a] bg-[#313244]/40 p-4">
-      <div className="mb-3 flex items-center gap-2">
-        <Zap size={16} className="text-[#f9e2af]" />
-        <span className="text-sm font-semibold text-[#f9e2af]">Available Playbooks</span>
-      </div>
-      <div className="space-y-2">
-        {suggestions.map((suggestion) => (
-          <div
-            key={suggestion.filename}
-            className="flex items-start justify-between rounded-lg border border-[#45475a]/50 bg-[#1e1e2e] p-3"
-          >
-            <div className="flex-1">
-              <h4 className="mb-1 text-sm font-semibold text-[#cdd6f4]">{suggestion.name}</h4>
-              <p className="mb-2 text-xs text-[#bac2de]">{suggestion.description}</p>
-              {suggestion.playbook_preview && (
-                <p className="mb-2 text-xs text-[#a6e3a1] italic">{suggestion.playbook_preview}</p>
-              )}
-              <div className="flex flex-wrap gap-1">
-                {(suggestion.tags || []).slice(0, 3).map((tag) => (
-                  <span key={tag} className="inline-block rounded bg-[#45475a]/50 px-2 py-0.5 text-xs text-[#89dceb]">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-              <p className="mt-2 text-xs text-[#6c7086]">Match: {suggestion.reason}</p>
-            </div>
-            <button
-              onClick={() => onExecute(suggestion)}
-              className="ml-3 flex items-center gap-2 whitespace-nowrap rounded-lg border border-blue-600/50 bg-blue-600/20 px-3 py-2 text-xs text-blue-300 transition-colors hover:bg-blue-600/30"
-            >
-              <Play size={14} />
-              <span>Run</span>
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
 };
 
 export default function AiChat() {

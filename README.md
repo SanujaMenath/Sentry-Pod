@@ -90,36 +90,45 @@ sentry-pod/
 │   │   ├── syslog/              # Per-device syslog data
 │   │   └── snmp_output/         # SNMP telemetry metrics
 │   ├── scripts/
-│   │   ├── container_manager.py # Unified container CLI
-│   │   ├── collect_snmp.py      # SNMP data collector
-│   │   ├── parse_metrics.py     # Metric aggregation
-│   │   ├── nmap_scan.py         # Network discovery
-│   │   └── create_admin.py      # Admin user creation
-│   ├── Dockerfile               # watchman container image
-│   ├── Dockerfile.ansible       # sentry-ansible image
-│   ├── Dockerfile.syslog-ng     # syslog-ng image
-│   └── .env                     # Environment config
+│   │   ├── container_manager.py     # Unified container CLI
+│   │   ├── collect_and_parse_snmp.py# SNMP collect + parse
+│   │   ├── nmap_scan.py             # Network discovery
+│   │   ├── create_admin.py          # Admin user creation
+│   │   ├── smoke_test.py            # Full stack health check
+│   │   └── sync_users.py            # Atlas → local vault sync
+│   ├── playbooks/
+│   │   └── run_action.sh            # Parametrized action runner
+│   ├── Dockerfile                   # watchman container image
+│   ├── Dockerfile.ansible           # sentry-ansible image
+│   ├── Dockerfile.syslog-ng         # syslog-ng image
+│   ├── .env                         # Environment config
+│   ├── .dockerignore                # Build context exclusions
+│   └── pyproject.toml               # Ruff config
 │
 ├── command-center/              # Production React UI (nginx)
+│   └── .prettierrc               # Prettier config
+│
 ├── frontend/                    # Dev-mode React UI
+│   └── .prettierrc               # Prettier config
 │
 ├── vault/                       # MongoDB data (empty, volume-mounted)
-├── brain/                       # Placeholder (future AI agent)
-├── deployments/                 # Placeholder
 │
 ├── docs/                        # Feature documentation
 │   ├── AUTH_SETUP.md
-│   ├── CONTAINER_MANAGEMENT.md
+│   ├── CODEBASE_REFACTOR_2026-06-11.md
 │   ├── CONFIG_DRIFT_AUTOMATION.md
+│   ├── CONTAINER_MANAGEMENT.md
+│   ├── HEALTH_CHECK.md
+│   ├── IMPLEMENTATION_SUMMARY.md
+│   ├── MIGRATION_GUIDE.md
 │   ├── NETWORK_BASELINE_AUTOMATION.md
 │   ├── REAL_TIME_NETWORK_STATUS.md
+│   ├── SESSION_2026-06-11.md
 │   ├── SESSION_MEMORY.md
-│   ├── SYSLOG_INTELLIGENCE.md
-│   └── MIGRATION_GUIDE.md
+│   └── SYSLOG_INTELLIGENCE.md
 │
 ├── podman-compose.yaml          # Compose stack definition
-├── AGENTS.md                    # Developer reference
-└── NetworkDevices.jsx           # Legacy component
+└── AGENTS.md                    # Developer reference
 ```
 
 ## Prerequisites
@@ -145,6 +154,8 @@ python --version
 git clone <repo-url> && cd Sentry-Pod
 
 # 2. Build all container images (one-time, ~5-10 min)
+#    Builds ansible first (generates sentry-ansible.tar),
+#    then compose stack (bakes tar into watchman image)
 python watchman/scripts/container_manager.py build all
 
 # 3. Start the full stack
@@ -152,6 +163,11 @@ python watchman/scripts/container_manager.py up
 
 # 4. Check everything is running
 python watchman/scripts/container_manager.py status
+
+# After code changes, rebuild and restart:
+#   python watchman/scripts/container_manager.py build all
+#   python watchman/scripts/container_manager.py down
+#   python watchman/scripts/container_manager.py up
 ```
 
 The UI is available at **http://localhost:3000** (command-center) or **http://localhost:5173** (frontend dev mode).
@@ -166,12 +182,12 @@ The UI is available at **http://localhost:3000** (command-center) or **http://lo
 ## Services
 
 | Service | Container | Tech | Port | Purpose |
-|---|---|---|---|---|---|
+|---|---|---|---|---|
 | vault | `mongo:latest` | MongoDB | 27017 | Local MongoDB (standalone — unused by default) |
 | watchman | `sentry-pod_watchman` | FastAPI + Motor | 8000 | REST API backend (connects to Atlas) |
 | syslog-ng | `sentry-pod_syslog-ng` | syslog-ng | 10514/udp | Centralized syslog collection |
 | command-center | `fresh-command-center` | React 19 + nginx | 3000 | Production UI |
-| sentry-ansible | `sentry-ansible` | Ubuntu + Ansible | — | Ephemeral playbook runner |
+| sentry-ansible | `sentry-ansible` | Ubuntu + Ansible | — | Ephemeral playbook runner (`--pull=never`, image loaded from tar) |
 
 ## Usage
 
@@ -308,6 +324,11 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 
 Requires MongoDB accessible (Atlas by default; or run vault locally and switch auth — see `AGENTS.md`).
 
+> For live syslog data, also run the syslog-ng container alongside uvicorn:
+> ```bash
+> podman-compose up syslog-ng
+> ```
+
 ### Frontend (dev mode)
 
 ```bash
@@ -315,6 +336,18 @@ cd frontend     # OR cd command-center
 npm install
 npm run dev     # Hot-reload at http://localhost:5173 (frontend) or :5174 (command-center)
 ```
+
+> **Prerequisites for live syslog:** When running `npm run dev` in `frontend/`, ensure the backend services are also running:
+> ```bash
+> # Terminal 1: watchman API
+> cd watchman && uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+> 
+> # Terminal 2: syslog-ng container
+> podman-compose up syslog-ng
+> 
+> # Terminal 3: frontend dev server
+> cd frontend && npm run dev
+> ```
 
 ### Lint
 
@@ -327,11 +360,11 @@ cd command-center && npm run lint
 
 | Script | Purpose |
 |---|---|
-| `watchman/scripts/create_admin.py` | Create initial admin user (adjusts role to `"Super Admin"` in code) |
+| `watchman/scripts/create_admin.py` | Create initial admin user |
 | `watchman/scripts/sync_users.py` | Sync users from Atlas to local vault MongoDB |
 | `watchman/scripts/nmap_scan.py` | Network discovery scan |
-| `watchman/scripts/collect_snmp.py` | SNMP telemetry collection |
-| `watchman/scripts/parse_metrics.py` | Aggregate SNMP metrics |
+| `watchman/scripts/collect_and_parse_snmp.py` | SNMP telemetry collection + metric aggregation |
+| `watchman/scripts/smoke_test.py` | Full stack health check |
 | `watchman/scripts/cleanup_data.py` | Clean old playbook output data |
 
 ## Troubleshooting
@@ -341,6 +374,10 @@ cd command-center && npm run lint
 | `podman: command not found` | Install Podman Desktop from https://podman.io |
 | `podman-compose: command not found` | Run `pip install podman-compose` |
 | `sentry-ansible image not found` | Run `python container_manager.py build ansible` |
+| Playbook execution fails with `localhost` registry pull error | Run `python container_manager.py build all` to regenerate `sentry-ansible.tar` and bake it into watchman |
+| White screen on `/ai-chat` | Rebuild the frontend container (`build command-center`) or rebuild the `dist/` manually — missing component imports from refactor are now fixed in source |
+| Live syslog not showing in frontend dev | Ensure `podman-compose up syslog-ng` is running alongside the uvicorn backend |
+| `npm run lint` crashes | Ensure `eslint-plugin-react` is in `devDependencies` (already fixed after health check) |
 | `playbook not found` | Check the file exists in `watchman/playbooks/` |
 | `MongoDB connection refused` | Ensure Atlas credentials in `watchman/.env` are correct, or run vault locally and switch auth (see `AGENTS.md`) |
 | `Login returns 401 Invalid credentials` | User may not exist in Atlas. Create via the UI sign-up or `curl -X POST ... /users/` |
@@ -390,12 +427,15 @@ Routes live in `watchman/app/routes/`. Create a new file following the pattern o
 ## References
 
 - [Auth Setup](docs/AUTH_SETUP.md) — Authentication, build fixes, and known auth gaps
+- [Codebase Refactor](docs/CODEBASE_REFACTOR_2026-06-11.md) — Component extraction and deduplication
 - [Container Management](docs/CONTAINER_MANAGEMENT.md) — Full container CLI reference
 - [Migration Guide](docs/MIGRATION_GUIDE.md) — Moving from host Ansible to containerized
-- [Config Drift Automation](docs/CONFIG_DRIFT_AUTOMATION.md) — Drift detection deep-dive
-- [Network Baseline Automation](docs/NETWORK_BASELINE_AUTOMATION.md) — SNMP telemetry
+- [Health Check & Smoke Test](docs/HEALTH_CHECK.md) — Audit findings and smoke test usage
+- [Config Drift Automation](docs/CONFIG_DRIFT_AUTOMATION.md) — Drift detection and git-style diff viewer
+- [Network Baseline Automation](docs/NETWORK_BASELINE_AUTOMATION.md) — SNMP telemetry and baseline graph
 - [Syslog Intelligence](docs/SYSLOG_INTELLIGENCE.md) — Log collection and AI analysis
-- [Session Memory](docs/SESSION_MEMORY.md) — LLM chat persistence
-- [Real-Time Network Status](docs/REAL_TIME_NETWORK_STATUS.md) — Live device status
-- [AGENTS.md](AGENTS.md) — Developer quick-reference
-- [Podman Setup Guide](PODMAN_SETUP.md) — Detailed Podman installation instructions
+- [Session Memory](docs/SESSION_MEMORY.md) — LLM chat persistence and context window
+- [Real-Time Network Status](docs/REAL_TIME_NETWORK_STATUS.md) — Live device status with tier cascade
+- [Implementation Summary](docs/IMPLEMENTATION_SUMMARY.md) — Configuration drift diff viewer details
+- [Session Log 2026-06-11](docs/SESSION_2026-06-11.md) — Bugfix session log (syslog, white screen, pull error)
+- [AGENTS.md](AGENTS.md) — Developer quick-reference with hardcoded URL todo list

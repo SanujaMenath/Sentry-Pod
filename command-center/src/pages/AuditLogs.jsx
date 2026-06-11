@@ -1,9 +1,10 @@
- import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { Download, FileText, CheckCircle, AlertTriangle, XCircle, ChevronDown, Calendar, Eye } from 'lucide-react';
 import ExportLogsModal from '../components/ExportLogsModal';
 import AuditLogDetailModal from '../components/AuditLogDetailModal';
 import { getAllAuditLogs, getAuditLogById } from '../services/auditService';
 import PageHeader from "../components/PageHeader";
+import StatCard from "../components/StatCard";
 
 const statusConfig = {
   success: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20',
@@ -123,42 +124,10 @@ export default function AuditLogs() {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-4 gap-6">
-          <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] flex items-center justify-between" style={styles.card}>
-            <div>
-              <p className="text-slate-400 text-sm font-medium mb-2">Total Events</p>
-              <h3 className="text-4xl font-extrabold text-white tracking-tight">{stats.total}</h3>
-            </div>
-            <div className="w-16 h-16 rounded-2xl bg-blue-600/20 flex items-center justify-center border border-white/10">
-              <FileText size={32} className="text-blue-400" strokeWidth={1.5} />
-            </div>
-          </div>
-          <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] flex items-center justify-between" style={styles.card}>
-            <div>
-              <p className="text-slate-400 text-sm font-medium mb-2">Success</p>
-              <h3 className="text-4xl font-extrabold text-emerald-400 tracking-tight">{stats.success}</h3>
-            </div>
-            <div className="w-16 h-16 rounded-2xl bg-emerald-600/20 flex items-center justify-center border border-white/10">
-              <CheckCircle size={32} className="text-emerald-400" strokeWidth={1.5} />
-            </div>
-          </div>
-          <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] flex items-center justify-between" style={styles.card}>
-            <div>
-              <p className="text-slate-400 text-sm font-medium mb-2">Warnings</p>
-              <h3 className="text-4xl font-extrabold text-amber-400 tracking-tight">{stats.warnings}</h3>
-            </div>
-            <div className="w-16 h-16 rounded-2xl bg-amber-600/20 flex items-center justify-center border border-white/10">
-              <AlertTriangle size={32} className="text-amber-400" strokeWidth={1.5} />
-            </div>
-          </div>
-          <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] flex items-center justify-between" style={styles.card}>
-            <div>
-              <p className="text-slate-400 text-sm font-medium mb-2">Critical</p>
-              <h3 className="text-4xl font-extrabold text-rose-400 tracking-tight">{stats.critical}</h3>
-            </div>
-            <div className="w-16 h-16 rounded-2xl bg-rose-600/20 flex items-center justify-center border border-white/10">
-              <XCircle size={32} className="text-rose-400" strokeWidth={1.5} />
-            </div>
-          </div>
+          <StatCard title="Total Events" value={String(stats.total)} subValue="" icon={FileText} iconBg="bg-blue-600/20" iconColor="text-blue-400" />
+          <StatCard title="Success" value={String(stats.success)} subValue="" icon={CheckCircle} iconBg="bg-emerald-600/20" iconColor="text-emerald-400" />
+          <StatCard title="Warnings" value={String(stats.warnings)} subValue="" icon={AlertTriangle} iconBg="bg-amber-600/20" iconColor="text-amber-400" />
+          <StatCard title="Critical" value={String(stats.critical)} subValue="" icon={XCircle} iconBg="bg-rose-600/20" iconColor="text-rose-400" />
         </div>
 
         {/* Filter Bar */}

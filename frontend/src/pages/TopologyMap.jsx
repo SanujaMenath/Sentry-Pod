@@ -1,6 +1,10 @@
 import React from "react";
 import { Maximize2, Router, Search, Server, Shield, ZoomIn } from "lucide-react";
 import PageHeader from "../components/PageHeader";
+import Panel from "../components/TopoPanel";
+import LegendDot from "../components/LegendDot";
+import LegendIcon from "../components/LegendIcon";
+import Stat from "../components/TopoStat";
 
 const nodes = [
   { label: "Firewall-01", icon: Shield, position: "left-1/2 top-[40px] -translate-x-1/2", online: true },
@@ -82,23 +86,4 @@ export default function TopologyMap() {
   );
 }
 
-function Panel({ title, children }) {
-  return (
-    <div className="rounded-3xl bg-[#1D293DED] border border-slate-700/30 p-6 shadow-[0_5px_15px_rgba(0,0,0,0.6)]">
-      <h2 className="mb-6 text-lg font-extrabold text-white">{title}</h2>
-      <div className="space-y-4">{children}</div>
-    </div>
-  );
-}
 
-function LegendDot({ color, label }) {
-  return <div className="flex items-center gap-3 text-sm text-slate-300"><span className={`h-3 w-3 rounded-full ${color}`} />{label}</div>;
-}
-
-function LegendIcon({ label }) {
-  return <div className="flex items-center gap-3 text-sm text-slate-400"><span className="h-8 w-8 rounded-full border-2 border-blue-500" />{label}</div>;
-}
-
-function Stat({ label, value, color = "text-white" }) {
-  return <div className="flex justify-between text-sm"><span className="text-slate-400">{label}</span><strong className={color}>{value}</strong></div>;
-}

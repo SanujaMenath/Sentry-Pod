@@ -124,8 +124,8 @@ class SentryPodManager:
         self._check_podman()
         if target == "all":
             print("Building all containers ...")
-            self._run_compose("build")
             self._build_ansible()
+            self._run_compose("build")
             print("All containers built successfully!")
         elif target in self.COMPOSE_SERVICES:
             self._run_compose("build", target)
@@ -152,7 +152,15 @@ class SentryPodManager:
             ],
             check=True,
         )
-        print("sentry-ansible built successfully!")
+        # Save image as tar so watchman container can load it for nested podman
+        tar_path = self.watchman_dir / "sentry-ansible.tar"
+        tar_path.unlink(missing_ok=True)  # podman save -o doesn't overwrite
+        print(f"Saving sentry-ansible image to {tar_path} ...")
+        subprocess.run(
+            ["podman", "save", "-o", str(tar_path), "localhost/sentry-ansible"],
+            check=True,
+        )
+        print("sentry-ansible built and saved successfully!")
 
     # ------------------------------------------------------------------ #
     #  Compose lifecycle

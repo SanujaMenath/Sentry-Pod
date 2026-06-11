@@ -4,12 +4,13 @@ import PageHeader from '../components/PageHeader';
 import DiffViewer from '../components/DiffViewer';
 import { useNavigate } from 'react-router-dom';
 import { Copy, ArrowLeft } from 'lucide-react';
+import { useCopyToClipboard } from '../hooks/useCopyToClipboard';
 
 const DriftReportDetail = () => {
   const { hostname } = useParams();
   const [content, setContent] = useState('');
   const [loading, setLoading] = useState(true);
-  const [copied, setCopied] = useState(false);
+  const { copied, handleCopy } = useCopyToClipboard();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -27,16 +28,6 @@ const DriftReportDetail = () => {
     };
     if (hostname) fetchDetail();
   }, [hostname]);
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(content);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
-  };
 
   return (
     <div className="flex-1 overflow-y-auto p-8" style={{ background: 'linear-gradient(135deg, #F8FAFC 0%, #D1D5DB 100%)' }}>
@@ -58,7 +49,7 @@ const DriftReportDetail = () => {
               Back to Reports
             </button>
             <button
-              onClick={handleCopy}
+              onClick={() => handleCopy(content)}
               className={`flex items-center gap-2 text-xs px-3 py-2 rounded-lg transition-colors border ${
                 copied
                   ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
