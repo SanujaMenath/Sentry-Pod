@@ -2,7 +2,7 @@
 
 API_URL="${SYSLOG_API_URL:-http://host.containers.internal:8000/api/syslog/alerts}"
 
-SEVERITY_NAMES=("Emergency" "Alert" "Critical" "Error" "Warning" "Notification")
+SEVERITY_NAMES=("Emergency" "Alert" "Critical" "Error" "Warning" "Notification" "Informational" "Debug")
 
 while IFS= read -r line; do
     [ -z "$line" ] && continue

@@ -118,6 +118,20 @@ HUGGINGFACE_API_KEY=<hf_token>
 - **`frontend/package.json`**: Added `eslint-plugin-react@^7.37.5` to `devDependencies` (was missing, broke `npm run lint`).
 - **`podman-compose.yaml`**: Renamed `DATABASE_URL` → `MONGO_URI` to match what `database.py` reads; changed DB name from `sentry_nms` → `sentry_pod_db` to match the code.
 
+## Auth: MongoDB connection
+
+**Current setup**: Watchman container connects to **Atlas** (`sentrypod.n5boezy.mongodb.net`). Credentials come from `watchman/.env` which is volume-mounted at `/app/.env` and loaded by `database.py:load_dotenv()`.
+
+**To revert to local vault auth** (e.g. for offline dev):
+1. In `podman-compose.yaml`, add `MONGO_URI` back under `watchman.environment`:
+   ```yaml
+   environment:
+     MONGO_URI: mongodb://sentry_pod:Admin123@vault:27017/sentry_pod_db?authSource=admin
+   ```
+2. Add `depends_on: vault` back to the `watchman` service.
+3. Ensure vault is running (`podman-compose up vault`).
+4. Run `python watchman/scripts/sync_users.py` to pull users from Atlas to local vault.
+
 ## Repo style
 
 - Backend: Python FastAPI, async MongoDB via motor, pydantic-settings for config.

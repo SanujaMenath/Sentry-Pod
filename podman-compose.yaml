@@ -15,11 +15,8 @@ services:
 
   watchman:
     build: ./watchman
+    privileged: true
     restart: always
-    depends_on:
-      - vault
-    environment:
-      MONGO_URI: mongodb://sentry_pod:Admin123@vault:27017/sentry_pod_db?authSource=admin
     ports:
       - "8000:8000"
     volumes:
@@ -40,7 +37,7 @@ services:
 
   command-center:
     build: ./command-center
-    image: fresh-command-center
+    image: localhost/fresh-command-center
     restart: always
     depends_on:
       - watchman

@@ -1,4 +1,4 @@
-FROM ubuntu:24.04
+FROM docker.io/library/ubuntu:24.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV ANSIBLE_CONFIG=/ansible/ansible.cfg
@@ -19,7 +19,7 @@ RUN apt-get update && apt-get install -y \
 
 # Configure native SSH client inside the container to allow legacy key exchange and host key algorithms
 RUN mkdir -p /etc/ssh/ssh_config.d && \
-    echo "Host *\n    HostKeyAlgorithms +ssh-rsa\n    PubkeyAcceptedAlgorithms +ssh-rsa\n    KexAlgorithms +diffie-hellman-group1-sha1,diffie-hellman-group14-sha1" > /etc/ssh/ssh_config.d/legacy.conf
+    printf "Host *\n    HostKeyAlgorithms +ssh-rsa\n    PubkeyAcceptedAlgorithms +ssh-rsa\n    KexAlgorithms +diffie-hellman-group1-sha1,diffie-hellman-group14-sha1\n" > /etc/ssh/ssh_config.d/legacy.conf
 
 # Install required python packages for network connections (using paramiko for legacy cipher support)
 RUN pip3 install --no-cache-dir --break-system-packages paramiko
