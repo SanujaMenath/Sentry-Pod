@@ -1,109 +1,96 @@
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { getNetworkTerminalSocketUrl } from "../services/networkService";
-import Cursor from "./Cursor";
+import { Terminal } from "@xterm/xterm";
+import { FitAddon } from "@xterm/addon-fit";
+import "@xterm/xterm/css/xterm.css";
+import { useTerminalConfig } from "../hooks/useTerminalConfig";
+import { resolveTheme } from "../config/terminalThemes";
 
 export default function TerminalDeviceModal({ device, onClose }) {
-  const [command, setCommand] = useState("");
   const [connected, setConnected] = useState(false);
-  const [socket, setSocket] = useState(null);
-  const [lines, setLines] = useState([
-    `Opening terminal for ${device.name} (${device.ip})...`,
-  ]);
-  const [commandHistory, setCommandHistory] = useState([]);
-  const [historyIndex, setHistoryIndex] = useState(-1);
-  const preRef = useRef(null);
+  const terminalRef = useRef(null);
+  const termRef = useRef(null);
+  const dimsRef = useRef({ cols: 0, rows: 0 });
+  const { sshConfig: { fontSize, fontFamily, colorScheme, cursorStyle, cursorBlink } } = useTerminalConfig();
 
+  // eslint-disable react-hooks/exhaustive-deps
   useEffect(() => {
-    preRef.current?.focus();
-  }, []);
+    const scheme = resolveTheme(colorScheme).theme;
 
-  useEffect(() => {
-    if (preRef.current) {
-      preRef.current.scrollTop = preRef.current.scrollHeight;
-    }
-  }, [lines, command]);
+    const term = new Terminal({
+      cursorBlink,
+      cursorStyle,
+      fontSize,
+      fontFamily,
+      allowTransparency: true,
+      theme: scheme,
+    });
 
-  useEffect(() => {
-    const terminalSocket = new WebSocket(getNetworkTerminalSocketUrl(device.id));
-    setSocket(terminalSocket);
+    const fitAddon = new FitAddon();
+    term.loadAddon(fitAddon);
+    term.open(terminalRef.current);
+    fitAddon.fit();
+    termRef.current = term;
 
-    terminalSocket.onopen = () => {
+    const socket = new WebSocket(getNetworkTerminalSocketUrl(device.id));
+
+    socket.onopen = () => {
       setConnected(true);
+      term.focus();
     };
 
-    terminalSocket.onmessage = (event) => {
-      setLines((current) => [...current, event.data]);
+    socket.onmessage = (event) => {
+      term.write(event.data);
     };
 
-    terminalSocket.onerror = () => {
-      setLines((current) => [...current, "\r\nTerminal connection error.\r\n"]);
+    socket.onerror = () => {
+      term.writeln("\r\n\x1b[31mTerminal connection error.\x1b[0m");
     };
 
-    terminalSocket.onclose = () => {
+    socket.onclose = () => {
       setConnected(false);
-      setLines((current) => [...current, "\r\nSSH session closed.\r\n"]);
+      term.writeln("\r\n\x1b[33mSSH session closed.\x1b[0m");
     };
+
+    term.onData((data) => {
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.send(data);
+      }
+    });
+
+    const resizeObserver = new ResizeObserver(() => {
+      try {
+        const proposed = fitAddon.proposeDimensions();
+        if (!proposed) return;
+        if (proposed.cols === dimsRef.current.cols && proposed.rows === dimsRef.current.rows) return;
+        fitAddon.fit();
+        dimsRef.current = { cols: proposed.cols, rows: proposed.rows };
+      } catch {
+        /* ignore */
+      }
+    });
+
+    resizeObserver.observe(terminalRef.current);
 
     return () => {
-      terminalSocket.close();
+      resizeObserver.disconnect();
+      socket.close();
+      term.dispose();
     };
-  }, [device.id]);
+  }, [device.id, device.name, device.ip]);
+  // eslint-enable react-hooks/exhaustive-deps
 
-  const handleKeyDown = (e) => {
-    if (e.key === "ArrowUp") {
-      e.preventDefault();
-      if (commandHistory.length > 0 && historyIndex < commandHistory.length - 1) {
-        const newIndex = historyIndex + 1;
-        setHistoryIndex(newIndex);
-        setCommand(commandHistory[commandHistory.length - 1 - newIndex]);
-      }
-      return;
-    }
-
-    if (e.key === "ArrowDown") {
-      e.preventDefault();
-      if (historyIndex > 0) {
-        const newIndex = historyIndex - 1;
-        setHistoryIndex(newIndex);
-        setCommand(commandHistory[commandHistory.length - 1 - newIndex]);
-      } else if (historyIndex === 0) {
-        setHistoryIndex(-1);
-        setCommand("");
-      }
-      return;
-    }
-
-    if (e.key === "Enter") {
-      e.preventDefault();
-      if (command && socket?.readyState === WebSocket.OPEN) {
-        setCommandHistory((prev) => [...prev, command]);
-        setHistoryIndex(-1);
-        socket.send(`${command}\r`);
-        setCommand("");
-      } else if (socket?.readyState === WebSocket.OPEN) {
-        socket.send("\r");
-      }
-      return;
-    }
-
-    if (e.key === " " && !command && socket?.readyState === WebSocket.OPEN) {
-      e.preventDefault();
-      socket.send(" ");
-      return;
-    }
-
-    if (e.key === "Backspace") {
-      e.preventDefault();
-      setCommand((prev) => prev.slice(0, -1));
-      return;
-    }
-
-    if (e.key.length === 1) {
-      e.preventDefault();
-      setCommand((prev) => prev + e.key);
-    }
-  };
+  useEffect(() => {
+    const term = termRef.current;
+    if (!term) return;
+    const scheme = resolveTheme(colorScheme).theme;
+    term.options.cursorBlink = cursorBlink;
+    term.options.cursorStyle = cursorStyle;
+    term.options.fontSize = fontSize;
+    term.options.fontFamily = fontFamily;
+    term.options.theme = scheme;
+  }, [colorScheme, cursorBlink, cursorStyle, fontSize, fontFamily]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
@@ -123,14 +110,7 @@ export default function TerminalDeviceModal({ device, onClose }) {
           </button>
         </div>
 
-        <pre
-          ref={preRef}
-          tabIndex={0}
-          onKeyDown={handleKeyDown}
-          className="flex flex-1 min-h-0 cursor-text overflow-auto whitespace-pre-wrap bg-[#1f2034] p-5 font-mono text-[15px] leading-6 text-slate-200 terminal-scrollbar focus:outline-none"
-        >
-          {lines.join("")}{connected ? command : ""}{connected ? <Cursor /> : ""}
-        </pre>
+        <div ref={terminalRef} className="flex-1 min-h-0 p-1" />
       </div>
     </div>
   );

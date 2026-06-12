@@ -3,6 +3,7 @@ import { Bell, Shield, Globe, Database } from 'lucide-react';
 import PageHeader from "../components/PageHeader";
 import Toggle from "../components/Toggle";
 import SettingRow from "../components/SettingRow";
+import TerminalConfigCard from "../components/TerminalConfigCard";
 
 export default function SettingsPage() {
   const [settings, setSettings] = useState({
@@ -132,6 +133,11 @@ export default function SettingsPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Terminal Customization — full-width row */}
+        <div className="col-span-2">
+          <TerminalConfigCard />
         </div>
       </div>
     </div>

@@ -18,6 +18,7 @@ import PublicRoute from "./routes/PublicRoute";
 import PlaybookManagement from "./pages/PlaybookManagement";
 import DriftReports from "./pages/DriftReports";
 import DriftReportDetail from "./pages/DriftReportDetail";
+import Console from "./pages/Console";
 
 function App() {
   return (
@@ -52,7 +53,7 @@ function App() {
           <Route path="/playbooks" element={<PlaybookManagement />} />
           <Route path="/drift-reports" element={<DriftReports />} />
           <Route path="/drift-reports/:hostname" element={<DriftReportDetail />} />
-          
+          <Route path="/console" element={<Console />} />
         </Route>
       </Routes>
     </BrowserRouter>
