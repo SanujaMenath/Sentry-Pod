@@ -27,6 +27,10 @@ const normalizeAssistantText = (rawText) => {
     .trim();
 };
 
+
+
+
+
 export default function AiChat() {
   const [messages, setMessages] = useState([
     {

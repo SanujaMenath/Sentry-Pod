@@ -2,6 +2,7 @@ import { X, Copy, Check } from 'lucide-react';
 import { classifyLine } from '../utils/playbookOutput';
 import { useCopyToClipboard } from '../hooks/useCopyToClipboard';
 
+
 export default function AuditLogDetailModal({ log, onClose }) {
   const { copied, handleCopy } = useCopyToClipboard();
 

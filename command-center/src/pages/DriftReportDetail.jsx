@@ -29,6 +29,8 @@ const DriftReportDetail = () => {
     if (hostname) fetchDetail();
   }, [hostname]);
 
+
+
   return (
     <div className="flex-1 overflow-y-auto p-8" style={{ background: 'linear-gradient(135deg, #F8FAFC 0%, #D1D5DB 100%)' }}>
       <div className="mb-6">
