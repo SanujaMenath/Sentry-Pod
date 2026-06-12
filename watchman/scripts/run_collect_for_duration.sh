@@ -34,8 +34,7 @@ done
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 OUTPUT_DIR="$REPO_ROOT/playbooks/snmp_output"
-COLLECT="$SCRIPT_DIR/collect_snmp.py"
-PARSE="$SCRIPT_DIR/parse_metrics.py"
+COLLECT_AND_PARSE="$SCRIPT_DIR/collect_and_parse_snmp.py"
 
 if [ ! -d "$OUTPUT_DIR" ]; then
   echo "Creating output dir: $OUTPUT_DIR"
@@ -51,8 +50,7 @@ while [ $(date +%s) -lt $END_TIME ]; do
   echo "[$(date +%F\ %T)] Run starting (ts=$NOW_TS)"
 
   if [ -x "$(command -v python3)" ]; then
-    python3 "$COLLECT" || echo "[!] collect_snmp.py failed at $(date +%T)"
-    python3 "$PARSE" || echo "[!] parse_metrics.py failed at $(date +%T)"
+    python3 "$COLLECT_AND_PARSE" || echo "[!] collect_and_parse_snmp.py failed at $(date +%T)"
   else
     echo "[!] python3 not found in PATH"; exit 2
   fi

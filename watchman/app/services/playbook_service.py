@@ -49,7 +49,7 @@ def get_podman_command(playbook_name: str) -> List[str]:
     playbooks_abs_path = PLAYBOOKS_DIR.resolve()
     
     # Build the podman command
-    cmd = ["podman", "run", "--rm"]
+    cmd = ["podman", "run", "--rm", "--pull=never"]
     
     # Add networking flag (only on Linux)
     if system == "Linux":
@@ -259,12 +259,12 @@ def run_playbook(playbook_name: str) -> Tuple[int, str]:
         )
 
 def run_drift_analysis() -> Tuple[int, str]:
-    """Executes run_drift_analysis.sh inside the sentry-ansible container."""
+    """Executes drift analysis inside the sentry-ansible container."""
     system = platform.system()
     playbooks_abs_path = PLAYBOOKS_DIR.resolve()
     scripts_abs_path = (BASE_DIR / "scripts").resolve()
     
-    cmd = ["podman", "run", "--rm"]
+    cmd = ["podman", "run", "--rm", "--pull=never"]
     if system == "Linux":
         cmd.append("--network=host")
         
@@ -274,7 +274,7 @@ def run_drift_analysis() -> Tuple[int, str]:
         "-v", vol_pb,
         "-v", vol_scripts,
         PODMAN_CONTAINER_IMAGE,
-        "/bin/bash", f"{PODMAN_ANSIBLE_DIR}/run_drift_analysis.sh"
+        "/bin/bash", f"{PODMAN_ANSIBLE_DIR}/run_action.sh", "drift"
     ])
     
     logger.debug(f"Running drift analysis command: {' '.join(cmd)}")
@@ -309,11 +309,11 @@ def get_baselined_devices() -> List[str]:
     return sorted(devices)
 
 def run_baseline_collection() -> Tuple[int, str]:
-    """Executes run_baseline_collection.sh inside the sentry-ansible container."""
+    """Executes baseline collection inside the sentry-ansible container."""
     system = platform.system()
     playbooks_abs_path = PLAYBOOKS_DIR.resolve()
 
-    cmd = ["podman", "run", "--rm"]
+    cmd = ["podman", "run", "--rm", "--pull=never"]
     if system == "Linux":
         cmd.append("--network=host")
 
@@ -321,7 +321,7 @@ def run_baseline_collection() -> Tuple[int, str]:
     cmd.extend([
         "-v", vol_flag,
         PODMAN_CONTAINER_IMAGE,
-        "/bin/bash", f"{PODMAN_ANSIBLE_DIR}/run_baseline_collection.sh"
+        "/bin/bash", f"{PODMAN_ANSIBLE_DIR}/run_action.sh", "collect"
     ])
 
     logger.debug(f"Running baseline collection command: {' '.join(cmd)}")
@@ -346,7 +346,7 @@ def run_baseline_collection() -> Tuple[int, str]:
         )
 
 def run_baseline_refresh() -> Tuple[int, str]:
-    """Executes run_baseline_refresh.sh inside the sentry-ansible container.
+    """Executes baseline refresh inside the sentry-ansible container.
 
     Re-runs SNMP bulkwalk collection and metric parsing to refresh
     the per_interface_metrics.json file consumed by the Network Baseline graph.
@@ -355,7 +355,7 @@ def run_baseline_refresh() -> Tuple[int, str]:
     playbooks_abs_path = PLAYBOOKS_DIR.resolve()
     scripts_abs_path = (BASE_DIR / "scripts").resolve()
 
-    cmd = ["podman", "run", "--rm"]
+    cmd = ["podman", "run", "--rm", "--pull=never"]
     if system == "Linux":
         cmd.append("--network=host")
 
@@ -365,7 +365,7 @@ def run_baseline_refresh() -> Tuple[int, str]:
         "-v", vol_pb,
         "-v", vol_scripts,
         PODMAN_CONTAINER_IMAGE,
-        "/bin/bash", f"{PODMAN_ANSIBLE_DIR}/run_baseline_refresh.sh"
+        "/bin/bash", f"{PODMAN_ANSIBLE_DIR}/run_action.sh", "refresh"
     ])
 
     logger.debug(f"Running baseline refresh command: {' '.join(cmd)}")

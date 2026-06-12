@@ -1,53 +1,10 @@
 import { X, Copy, Check } from 'lucide-react';
-import { useState } from 'react';
+import { classifyLine } from '../utils/playbookOutput';
+import { useCopyToClipboard } from '../hooks/useCopyToClipboard';
 
-const mocha = {
-  base: '#1e1e2e',
-  mantle: '#181825',
-  surface0: '#313244',
-  surface1: '#45475a',
-  text: '#cdd6f4',
-  subtext1: '#bac2de',
-  lavender: '#b4befe',
-  blue: '#89b4fa',
-  green: '#a6e3a1',
-  yellow: '#f9e2af',
-  red: '#f38ba8',
-  peach: '#fab387',
-  sapphire: '#74c7ec',
-  sky: '#89dceb',
-};
-
-const classifyLine = (line) => {
-  if (!line.trim()) {
-    return { color: mocha.subtext1 };
-  }
-
-  if (line.startsWith("PLAY RECAP")) return { color: mocha.lavender, weight: 700 };
-  if (line.startsWith("PLAY [")) return { color: mocha.blue, weight: 700 };
-  if (line.startsWith("TASK [")) return { color: mocha.sapphire, weight: 700 };
-  if (line.startsWith("ok:")) return { color: mocha.green };
-  if (line.startsWith("changed:")) return { color: mocha.yellow };
-  if (line.startsWith("failed:")) return { color: mocha.red, weight: 700 };
-  if (line.startsWith("skipped:")) return { color: mocha.peach };
-  if (line.startsWith("fatal:")) return { color: mocha.red, weight: 700 };
-  if (line.startsWith("[")) return { color: mocha.subtext1 };
-
-  return { color: mocha.text };
-};
 
 export default function AuditLogDetailModal({ log, onClose }) {
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(log.output || '');
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
-  };
+  const { copied, handleCopy } = useCopyToClipboard();
 
   const statusColors = {
     success: 'bg-green-900/60 text-green-400 border border-green-700',
@@ -105,7 +62,7 @@ export default function AuditLogDetailModal({ log, onClose }) {
               <label className="block text-sm font-semibold text-gray-400">Execution Output</label>
               {log.output && (
                 <button
-                  onClick={handleCopy}
+                  onClick={() => handleCopy(log.output || '')}
                   className="flex items-center gap-2 rounded-lg bg-[#45475a]/50 px-3 py-1.5 text-xs text-[#cdd6f4] transition-all hover:bg-[#45475a] hover:text-white"
                 >
                   {copied ? (
