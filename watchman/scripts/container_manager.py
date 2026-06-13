@@ -93,6 +93,11 @@ class SentryPodManager:
         content = re.sub(
             r":[Zz](?=\s*$|\s+#)", "", content, flags=re.MULTILINE
         )
+        content = re.sub(
+            r'((?:build|context):\s*)\./',
+            lambda m: m.group(1) + str(self.repo_root.resolve()).replace("\\", "/") + "/",
+            content,
+        )
         tmp = Path(
             tempfile.mktemp(suffix=".yaml", prefix="sentry-compose-")
         )
@@ -113,7 +118,9 @@ class SentryPodManager:
         self._check_podman_compose()
         cf = self._get_compose_file()
         subprocess.run(
-            ["podman-compose", "-f", str(cf), *args], check=True
+            ["podman-compose", "-f", str(cf), *args], 
+            check=True,
+            cwd="D:\\SUSL\\Sentry-Pod" 
         )
 
     # ------------------------------------------------------------------ #
@@ -124,10 +131,21 @@ class SentryPodManager:
         import shutil
         src = self.repo_root / "frontend" / "src"
         dst = self.repo_root / "command-center" / "src"
-        print(f"Syncing {src} → {dst} ...")
+        print(f"Syncing {src} -> {dst} ...")
         if dst.exists():
             shutil.rmtree(dst)
         shutil.copytree(src, dst)
+
+    def _build_command_center_frontend(self):
+        cmd_dir = self.repo_root / "command-center"
+        print(f"Building command-center frontend in {cmd_dir} ...")
+        subprocess.run(
+            ["npm", "run", "build"],
+            check=True,
+            cwd=str(cmd_dir),
+            shell=(self.system == "Windows"),
+        )
+        print("command-center frontend built successfully!")
 
     def build(self, target: str = "all"):
         self._check_podman()
@@ -135,11 +153,13 @@ class SentryPodManager:
             print("Building all containers ...")
             self._build_ansible()
             self._sync_frontend_to_command_center()
+            self._build_command_center_frontend()
             self._run_compose("build")
             print("All containers built successfully!")
         elif target in self.COMPOSE_SERVICES:
             if target == "command-center":
                 self._sync_frontend_to_command_center()
+                self._build_command_center_frontend()
             self._run_compose("build", target)
             print(f"'{target}' built successfully!")
         elif target == "ansible":
