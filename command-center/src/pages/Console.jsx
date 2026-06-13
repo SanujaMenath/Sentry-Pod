@@ -1,18 +1,18 @@
-import { useEffect, useRef, useState } from "react";
-import { X } from "lucide-react";
-import { getNetworkTerminalSocketUrl } from "../services/networkService";
+import { useEffect, useRef } from "react";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
 import "@xterm/xterm/css/xterm.css";
 import { useTerminalConfig } from "../hooks/useTerminalConfig";
 import { resolveTheme } from "../config/terminalThemes";
 
-export default function TerminalDeviceModal({ device, onClose }) {
-  const [connected, setConnected] = useState(false);
+const WS_BASE = import.meta.env.VITE_WS_BASE_URL || "ws://localhost:8000";
+
+export default function Console() {
   const terminalRef = useRef(null);
   const termRef = useRef(null);
+  const socketRef = useRef(null);
   const dimsRef = useRef({ cols: 0, rows: 0 });
-  const { sshConfig: { fontSize, fontFamily, colorScheme, cursorStyle, cursorBlink } } = useTerminalConfig();
+  const { consoleConfig: { fontSize, fontFamily, colorScheme, cursorStyle, cursorBlink } } = useTerminalConfig();
 
   // eslint-disable react-hooks/exhaustive-deps
   useEffect(() => {
@@ -25,6 +25,7 @@ export default function TerminalDeviceModal({ device, onClose }) {
       fontFamily,
       allowTransparency: true,
       theme: scheme,
+      allowProposedApi: true,
     });
 
     const fitAddon = new FitAddon();
@@ -33,24 +34,19 @@ export default function TerminalDeviceModal({ device, onClose }) {
     fitAddon.fit();
     termRef.current = term;
 
-    const socket = new WebSocket(getNetworkTerminalSocketUrl(device.id));
+    const socket = new WebSocket(`${WS_BASE}/console/ws`);
+    socketRef.current = socket;
 
-    socket.onopen = () => {
-      setConnected(true);
-      term.focus();
-    };
+    socket.onopen = () => term.focus();
 
-    socket.onmessage = (event) => {
-      term.write(event.data);
-    };
+    socket.onmessage = (event) => term.write(event.data);
 
     socket.onerror = () => {
-      term.writeln("\r\n\x1b[31mTerminal connection error.\x1b[0m");
+      term.writeln("\r\n\x1b[31mWebSocket connection error.\x1b[0m");
     };
 
     socket.onclose = () => {
-      setConnected(false);
-      term.writeln("\r\n\x1b[33mSSH session closed.\x1b[0m");
+      term.writeln("\r\n\x1b[33mConsole session closed.\x1b[0m");
     };
 
     term.onData((data) => {
@@ -66,6 +62,13 @@ export default function TerminalDeviceModal({ device, onClose }) {
         if (proposed.cols === dimsRef.current.cols && proposed.rows === dimsRef.current.rows) return;
         fitAddon.fit();
         dimsRef.current = { cols: proposed.cols, rows: proposed.rows };
+        if (socket.readyState === WebSocket.OPEN) {
+          socket.send(JSON.stringify({
+            type: "resize",
+            cols: proposed.cols,
+            rows: proposed.rows,
+          }));
+        }
       } catch {
         /* ignore */
       }
@@ -78,7 +81,7 @@ export default function TerminalDeviceModal({ device, onClose }) {
       socket.close();
       term.dispose();
     };
-  }, [device.id, device.name, device.ip]);
+  }, []);
   // eslint-enable react-hooks/exhaustive-deps
 
   useEffect(() => {
@@ -93,25 +96,12 @@ export default function TerminalDeviceModal({ device, onClose }) {
   }, [colorScheme, cursorBlink, cursorStyle, fontSize, fontFamily]);
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-      <div className="flex h-[min(720px,calc(100vh-32px))] w-full max-w-5xl flex-col overflow-hidden rounded-2xl border border-slate-700 bg-[#17182b] shadow-2xl">
-        <div className="flex items-center justify-between border-b border-slate-700/70 bg-[#202136] px-5 py-3">
-          <div className="flex items-center gap-3">
-            <div>
-              <h2 className="text-sm font-bold text-slate-100">Terminal - {device.name}</h2>
-              <p className="text-xs font-mono text-slate-400">{device.ip}</p>
-            </div>
-            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider ${connected ? "bg-emerald-500/20 text-emerald-400" : "bg-rose-500/20 text-rose-400"}`}>
-              {connected ? "Connected" : "Disconnected"}
-            </span>
-          </div>
-          <button type="button" onClick={onClose} className="text-slate-500 hover:text-white">
-            <X size={18} />
-          </button>
-        </div>
-
-        <div ref={terminalRef} className="flex-1 min-h-0 p-1" />
-      </div>
+    <div className="h-full w-full bg-[#0d1117]">
+      <div
+        ref={terminalRef}
+        className="h-full w-full p-2"
+        style={{ minHeight: "100%" }}
+      />
     </div>
   );
 }
