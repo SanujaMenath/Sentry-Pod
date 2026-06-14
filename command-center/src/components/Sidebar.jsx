@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Network, MessageSquare, ShieldAlert, 
-  Server, ClipboardList, Users, Settings, LogOut,  UserCircle, Terminal
+  Server, ClipboardList, Users, Settings, LogOut, UserCircle, Terminal
 } from 'lucide-react';
 import { logout } from "../services/authService";
 import logo from '../images/logo.png'; 
@@ -13,7 +13,6 @@ const navItems = [
   { icon: Network, label: 'Topology Map', id: 'topology', path: '/topology' },
   { icon: MessageSquare, label: 'AI Chat Console', id: 'ai-chat', path: '/ai-chat' },
   { icon: Terminal, label: 'Console', id: 'console', path: '/console' },
-  // { icon: ShieldAlert, label: 'Staging Gate', id: 'staging', path: '/staging' },
   { icon: Server, label: 'Network Devices', id: 'network', path: '/network-devices' },
   { icon: ClipboardList, label: 'Audit Logs', id: 'audit', path: '/audit-logs' }, 
   { icon: ShieldAlert, label: 'Drift Reports', id: 'drift', path: '/drift-reports' },
@@ -34,6 +33,7 @@ const PAGE_PERMISSIONS = {
   '/users': ['System Administrator'],
   '/playbooks': ['System Administrator', 'Network Engineer'],
   '/profile': ['System Administrator', 'Network Engineer', 'Operator', 'Auditor', 'Security Analyst', 'Guest'],
+  '/console': ['System Administrator', 'Network Engineer', 'Operator'],
   '/settings': ['System Administrator'],
 };
 

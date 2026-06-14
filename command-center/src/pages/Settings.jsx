@@ -133,11 +133,11 @@ export default function SettingsPage() {
               </div>
             </div>
           </div>
-        </div>
 
         {/* Terminal Customization — full-width row */}
         <div className="col-span-2">
           <TerminalConfigCard />
+        </div>
         </div>
       </div>
     </div>
