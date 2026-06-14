@@ -21,6 +21,7 @@ services:
       - "8000:8000"
     volumes:
       - ./watchman:/app${VOLUME_OPTS}
+    env_file: ./watchman/.env
 
   syslog-ng:
     build:

@@ -98,8 +98,10 @@ class SentryPodManager:
             lambda m: m.group(1) + str(self.repo_root.resolve()).replace("\\", "/") + "/",
             content,
         )
+        
+        # FIX: Generate the temp file inside the repository root instead of OS Temp folder
         tmp = Path(
-            tempfile.mktemp(suffix=".yaml", prefix="sentry-compose-")
+            tempfile.mktemp(suffix=".yaml", prefix="sentry-compose-", dir=str(self.repo_root))
         )
         tmp.write_text(content, encoding="utf-8")
         _temp_files.add(tmp)
@@ -120,7 +122,7 @@ class SentryPodManager:
         subprocess.run(
             ["podman-compose", "-f", str(cf), *args], 
             check=True,
-            cwd="D:\\SUSL\\Sentry-Pod" 
+            cwd=str(self.repo_root) 
         )
 
     # ------------------------------------------------------------------ #
@@ -246,6 +248,7 @@ class SentryPodManager:
             vol,
             "localhost/sentry-ansible",
             "ansible-playbook",
+            "--env-file",
             f"/ansible/{playbook_name}",
             "-i",
             f"/ansible/{inventory_file}",
