@@ -93,8 +93,15 @@ class SentryPodManager:
         content = re.sub(
             r":[Zz](?=\s*$|\s+#)", "", content, flags=re.MULTILINE
         )
+        content = re.sub(
+            r'((?:build|context):\s*)\./',
+            lambda m: m.group(1) + str(self.repo_root.resolve()).replace("\\", "/") + "/",
+            content,
+        )
+        
+        # FIX: Generate the temp file inside the repository root instead of OS Temp folder
         tmp = Path(
-            tempfile.mktemp(suffix=".yaml", prefix="sentry-compose-")
+            tempfile.mktemp(suffix=".yaml", prefix="sentry-compose-", dir=str(self.repo_root))
         )
         tmp.write_text(content, encoding="utf-8")
         _temp_files.add(tmp)
@@ -113,7 +120,9 @@ class SentryPodManager:
         self._check_podman_compose()
         cf = self._get_compose_file()
         subprocess.run(
-            ["podman-compose", "-f", str(cf), *args], check=True
+            ["podman-compose", "-f", str(cf), *args], 
+            check=True,
+            cwd=str(self.repo_root) 
         )
 
     # ------------------------------------------------------------------ #
@@ -140,6 +149,15 @@ class SentryPodManager:
 
         print("Building command-center production bundle ...")
         subprocess.run(["npm", "run", "build"], cwd=str(cc_dir), check=True)
+    def _build_command_center_frontend(self):
+        cmd_dir = self.repo_root / "command-center"
+        print(f"Building command-center frontend in {cmd_dir} ...")
+        subprocess.run(
+            ["npm", "run", "build"],
+            check=True,
+            cwd=str(cmd_dir),
+            shell=(self.system == "Windows"),
+        )
         print("command-center frontend built successfully!")
 
     def build(self, target: str = "all"):
@@ -239,6 +257,7 @@ class SentryPodManager:
             vol,
             "localhost/sentry-ansible",
             "ansible-playbook",
+            "--env-file",
             f"/ansible/{playbook_name}",
             "-i",
             f"/ansible/{inventory_file}",
