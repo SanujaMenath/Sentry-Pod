@@ -9,8 +9,8 @@ Usage:
     python container_manager.py build [all|watchman|syslog-ng|command-center|ansible]
     python container_manager.py up
     python container_manager.py down
-   python container_manager.py status
-  python container_manager.py run <playbook> [-i INVENTORY]
+    python container_manager.py status
+    python container_manager.py run <playbook> [-i INVENTORY]
     python container_manager.py shell
 """
 
@@ -129,9 +129,8 @@ class SentryPodManager:
     #  Build
     # ------------------------------------------------------------------ #
 
-    def _build_command_center_assets(self):
+    def _sync_frontend_to_command_center(self):
         import shutil
-
         src = self.repo_root / "frontend" / "src"
         dst = self.repo_root / "command-center" / "src"
         cc_dir = self.repo_root / "command-center"

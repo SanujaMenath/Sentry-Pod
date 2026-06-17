@@ -178,15 +178,5 @@
     "example_intents":[],
     "destructive": true,
     "severity":"critical"
-  },
-  {
-    "filename": "getCDPNeighbors.yml",
-    "name": "Get CDP Neighbors",
-    "description": "Collects CDP neighbor information from all devices for topology discovery",
-    "tags": ["cdp", "topology", "discovery", "neighbors"],
-    "target_devices": ["allHosts"],
-    "example_intents": ["discover topology", "cdp neighbors", "network map"],
-    "destructive": false,
-    "severity": "low"
   }
 ]

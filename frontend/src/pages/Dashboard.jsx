@@ -26,7 +26,6 @@ import { getAllHostsDeviceCount } from "../services/inventoryService";
 import NetworkTrafficChart from "../components/NetworkTrafficChart";
 import PageHeader from "../components/PageHeader";
 import api from "../services/api";
-import { getSetupStatus } from "../services/setupService";
 
 //  MAIN DASHBOARD
 const Dashboard = () => {
@@ -49,11 +48,7 @@ const Dashboard = () => {
   const [networkStatus, setNetworkStatus] = useState({ devices: [], online_count: 0, offline_count: 0, degraded_count: 0, total_count: 0, scan_timestamp: null });
   const [isRefreshingNetStatus, setIsRefreshingNetStatus] = useState(false);
   const [syslogAlerts, setSyslogAlerts] = useState([]);
-  const [setupStatus, setSetupStatus] = useState(null);
 
-  useEffect(() => {
-    getSetupStatus().then(setSetupStatus).catch(() => {});
-  }, []);
 
   const handleApprove = (e) => {
     e.stopPropagation(); // Stops the card container click from running
@@ -279,22 +274,6 @@ const Dashboard = () => {
       <main className="flex-1 flex flex-col overflow-hidden">
         {/* DASHBOARD CONTENT */}
         <div className="flex-1 overflow-y-auto p-8 space-y-8">
-          {setupStatus && !setupStatus.setup_complete && (
-            <div className="bg-amber-500/10 border border-amber-500/50 rounded-xl p-4 flex items-start gap-3">
-              <AlertTriangle className="text-amber-400 shrink-0 mt-0.5" size={20} />
-              <div className="flex-1">
-                <p className="text-amber-400 font-semibold text-sm">Setup Required</p>
-                <p className="text-amber-300/80 text-xs mt-1">{setupStatus.message}</p>
-              </div>
-              <button
-                onClick={() => navigate("/setup")}
-                className="px-4 py-2 bg-amber-600 hover:bg-amber-500 text-white text-sm font-bold rounded-lg transition-all shrink-0"
-              >
-                Set Up Network
-              </button>
-            </div>
-          )}
-
           <PageHeader 
            title="Command Center" 
            description="Network overview and real-time monitoring" 

@@ -19,7 +19,6 @@ import PlaybookManagement from "./pages/PlaybookManagement";
 import DriftReports from "./pages/DriftReports";
 import DriftReportDetail from "./pages/DriftReportDetail";
 import Console from "./pages/Console";
-import SetupWizard from "./pages/SetupWizard";
 
 function App() {
   return (
@@ -32,15 +31,6 @@ function App() {
             <PublicRoute>
               <Login />
             </PublicRoute>
-          }
-        />
-
-        <Route
-          path="/setup"
-          element={
-            <ProtectedRoute>
-              <SetupWizard />
-            </ProtectedRoute>
           }
         />
 
