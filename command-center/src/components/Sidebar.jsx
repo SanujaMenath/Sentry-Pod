@@ -37,6 +37,7 @@ const PAGE_PERMISSIONS = {
   '/settings': ['System Administrator'],
 };
 
+// 2. NEW TEST USERS DEFINITION (Keeps existing database users completely separated)
 const MOCK_TEST_USERS = [
   { username: 'super_admin', role: 'System Administrator' },
   { username: 'net_eng_alan', role: 'Network Engineer' },
@@ -50,7 +51,7 @@ export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // 3. Track active simulation user and control the modal
+  // 3. ADD THESE STATE HOOKS: Track active simulation user and control the modal
   const [currentUser, setCurrentUser] = useState(MOCK_TEST_USERS[0]); // Defaults to Super Admin
   const [modalState, setModalState] = useState({ isOpen: false, requiredRole: "" });
 
@@ -58,13 +59,15 @@ export default function Sidebar() {
      logout();
   };
 
-  // 4. Handles access validation
+  // 4. ADD THIS INTERCEPTOR FUNCTION: Handles access validation
   const handleNavigation = (path) => {
     const allowedRoles = PAGE_PERMISSIONS[path] || [];
     
     if (allowedRoles.includes(currentUser.role)) {
+      // User has access clearance -> send them to the page
       navigate(path);
     } else {
+      // Access Denied -> block navigation and open warning modal
       setModalState({
         isOpen: true,
         requiredRole: allowedRoles.join(", ")
@@ -110,7 +113,7 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* 5. Allows you to switch test profiles on the fly */}
+      {/* 5. ADD THIS DROPDOWN: Allows you to switch test profiles on the fly */}
       <div className="mt-auto mb-4 p-3 bg-slate-900/50 rounded-lg border border-slate-800">
         <label className="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
           Simulate Test User

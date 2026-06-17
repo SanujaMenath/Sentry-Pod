@@ -7,7 +7,7 @@ Development happens in `frontend/` (host-based `npm run dev` with hot-reload). T
 ## What Changed
 
 ### Modified
-- `watchman/scripts/container_manager.py` (lines 123-144) — added `_sync_frontend_to_command_center()` method and calls it before `command-center` compose builds
+- `watchman/scripts/container_manager.py` — added `_build_command_center_assets()` method that syncs `frontend/src/` → `command-center/src/`, runs `npm install`, runs `npm run build`, then calls the compose build
 
 ## Architecture
 
@@ -18,12 +18,18 @@ Development happens in `frontend/` (host-based `npm run dev` with hot-reload). T
 │  build command-center                                       │
 │       │                                                     │
 │       ├── copytree(frontend/src, command-center/src)        │
+│       ├── npm install                                       │
+│       ├── npm audit fix                                     │
+│       ├── npm run build                                     │
 │       └── podman-compose build command-center               │
 │                                                             │
 │  build all                                                  │
 │       │                                                     │
 │       ├── build ansible                                     │
 │       ├── copytree(frontend/src, command-center/src)        │
+│       ├── npm install                                       │
+│       ├── npm audit fix                                     │
+│       ├── npm run build                                     │
 │       └── podman-compose build                              │
 └─────────────────────────────────────────────────────────────┘
 
@@ -33,26 +39,44 @@ Development loop:
   │ (canonical)  │                    │  (mirror)        │
   └──────────────┘                    └────────┬─────────┘
                                                │
+                                        npm run build
+                                               │
                                                ▼
-                                        nginx container
-                                        (fresh-command-center)
+                                        command-center/dist/
+                                               │
+                                               ▼
+                                         nginx container
+                                         (fresh-command-center)
 ```
 
 ## File-by-File Detail
 
 ### 1. `watchman/scripts/container_manager.py`
 
-Added `_sync_frontend_to_command_center()`:
+Added `_build_command_center_assets()`:
 
 ```python
-def _sync_frontend_to_command_center(self):
+def _build_command_center_assets(self):
     import shutil
+
     src = self.repo_root / "frontend" / "src"
     dst = self.repo_root / "command-center" / "src"
+    cc_dir = self.repo_root / "command-center"
+
     print(f"Syncing {src} → {dst} ...")
     if dst.exists():
         shutil.rmtree(dst)
     shutil.copytree(src, dst)
+
+    print("Installing command-center dependencies ...")
+    subprocess.run(["npm", "install"], cwd=str(cc_dir), check=True)
+
+    print("Running npm audit fix ...")
+    subprocess.run(["npm", "audit", "fix"], cwd=str(cc_dir), check=False)
+
+    print("Building command-center production bundle ...")
+    subprocess.run(["npm", "run", "build"], cwd=str(cc_dir), check=True)
+    print("command-center frontend built successfully!")
 ```
 
 Called before `command-center` builds in two paths:
@@ -82,6 +106,13 @@ Developer                               container_manager.py
     │                   frontend/src/            │
     │                         ↓                  │
     │                  command-center/src/       │
+    │                                            │
+    │                  npm install               │
+    │                  npm audit fix             │
+    │                  npm run build             │
+    │                         ↓                  │
+    │                  command-center/dist/      │
+    │                  (fresh production bundle) │
     │                                            │
     │                  podman-compose build      │
     │                         ↓                  │

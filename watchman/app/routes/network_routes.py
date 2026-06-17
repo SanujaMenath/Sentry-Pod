@@ -8,6 +8,7 @@ import sys
 import subprocess
 
 from fastapi import APIRouter, HTTPException, WebSocket, WebSocketDisconnect, status
+from fastapi.responses import StreamingResponse
 from typing import List, Optional
 from app.database import device_configurations_collection, devices_collection
 from app.models.telemetry import (
@@ -16,6 +17,7 @@ from app.models.telemetry import (
     DeviceConfigurationResponse,
     NetworkDevice,
     NetworkDeviceCreate,
+    NetworkDeviceUpdate,
     NetworkTerminalCommand,
     NetworkTerminalResponse,
     TrafficDataPoint,
@@ -370,7 +372,146 @@ async def get_network_devices():
         serialized = serialize_device(device)
         devices_by_id[serialized["id"]] = serialized
 
+    # Always apply DEVICE_TIER layer mapping at runtime (same as dashboard).
+    # This sets correct layer for known devices regardless of MongoDB state.
+    for device in devices_by_id.values():
+        name = device.get("name", "")
+        if name in DEVICE_TIER:
+            device["layer"] = DEVICE_TIER[name]
+
     return [NetworkDevice(**device) for device in devices_by_id.values()]
+
+
+# ------------------------------------------------------------------ #
+#  Refresh device facts from Ansible get_facts playbook
+# ------------------------------------------------------------------ #
+
+
+def _sse_event(event_type: str, **kwargs) -> str:
+    payload = json.dumps({"type": event_type, **kwargs})
+    return f"data: {payload}\n\n"
+
+
+async def _refresh_facts_generator():
+    from app.services.playbook_service import get_podman_command, PLAYBOOKS_DIR
+
+    facts_dir = PLAYBOOKS_DIR / "facts"
+
+    yield _sse_event("status", message="Clearing previous facts...")
+    if facts_dir.exists():
+        for f in facts_dir.iterdir():
+            if f.suffix == ".json":
+                f.unlink()
+    else:
+        facts_dir.mkdir(parents=True, exist_ok=True)
+
+    yield _sse_event("status", message="Running get_facts playbook (this may take a while)...")
+
+    cmd = get_podman_command("get_facts.yml")
+    try:
+        process = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.STDOUT,
+        )
+    except FileNotFoundError:
+        yield _sse_event("error", message="Podman not found. Ensure Podman is installed and in PATH")
+        return
+
+    async for line in process.stdout:
+        text = line.decode(errors="replace").rstrip()
+        if text:
+            yield _sse_event("output", line=text)
+
+    returncode = await process.wait()
+
+    if returncode != 0:
+        yield _sse_event("error", message="get_facts playbook failed — check device reachability")
+        return
+
+    yield _sse_event("status", message="Importing device facts into database...")
+
+    inventory_devices = load_devices_from_inventory()
+    inventory_by_name = {d["name"]: d for d in inventory_devices}
+
+    updated = 0
+    failed = 0
+    fact_files = sorted(facts_dir.glob("*.json"))
+
+    for fact_path in fact_files:
+        hostname = fact_path.stem
+        try:
+            with open(fact_path, encoding="utf-8") as f:
+                facts = json.load(f)
+        except Exception as e:
+            yield _sse_event("status", message=f"Failed to parse {hostname}: {e}")
+            failed += 1
+            continue
+
+        inventory = inventory_by_name.get(hostname, {})
+
+        memfree = int(facts.get("memfree_mb", 0))
+        memtotal = int(facts.get("memtotal_mb", 1))
+        memory_pct = min(100, max(0, int(((memtotal - memfree) / memtotal) * 100)))
+        cpu_val = min(100, max(0, int(facts.get("cpu", 0))))
+
+        device_id = slugify(hostname)
+
+        await devices_collection.update_one(
+            {"id": device_id},
+            {
+                "$set": {
+                    "model": facts.get("model", "Unknown"),
+                    "version": facts.get("version", "Unknown"),
+                    "uptime": facts.get("uptime", "N/A"),
+                    "cpu": cpu_val,
+                    "memory": memory_pct,
+                    "online": True,
+                    "serial": facts.get("serial", ""),
+                    "last_fact_refresh": datetime.utcnow(),
+                },
+                "$setOnInsert": {
+                    "id": device_id,
+                    "name": inventory.get("name", hostname),
+                    "ip": inventory.get("ip", ""),
+                    "type": inventory.get("type", "switch"),
+                    "label": "",
+                    "layer": DEVICE_TIER.get(hostname, "access"),
+                },
+            },
+            upsert=True,
+        )
+
+        yield _sse_event(
+            "status",
+            message=(
+                f"{hostname}: model={facts.get('model')}, "
+                f"version={facts.get('version')}, "
+                f"cpu={cpu_val}%, mem={memory_pct}%"
+            ),
+        )
+        updated += 1
+
+    yield _sse_event("counts", total=len(fact_files), updated=updated, failed=failed)
+    yield _sse_event("complete", message=f"{updated} devices updated, {failed} failed")
+
+
+@router.get("/refresh-facts")
+async def refresh_facts():
+    """Run get_facts playbook and import results into the devices database.
+
+    Streams SSE events with progress updates.  After completion the
+    /api/network/devices endpoint will return the enriched data.
+    """
+    return StreamingResponse(
+        _refresh_facts_generator(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",
+            "Connection": "keep-alive",
+            "X-Accel-Buffering": "no",
+        },
+    )
 
 
 @router.get("/active-devices")
@@ -669,6 +810,50 @@ async def add_network_device(device: NetworkDeviceCreate):
     return NetworkDevice(**new_device)
 
 
+@router.put("/devices/{device_id}", response_model=NetworkDevice)
+async def update_network_device(device_id: str, update: NetworkDeviceUpdate):
+    device = await find_device(device_id)
+
+    if not device:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Device not found.",
+        )
+
+    if not update.name and not update.ip and not update.type and not update.label and not update.layer:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="At least one field to update must be provided.",
+        )
+
+    set_fields = {}
+    if update.name is not None:
+        set_fields["name"] = update.name.strip()
+        set_fields["id"] = slugify(update.name.strip())
+    if update.ip is not None:
+        set_fields["ip"] = update.ip.strip()
+    if update.type is not None:
+        set_fields["type"] = update.type.strip()
+    if update.label is not None:
+        set_fields["label"] = update.label.strip()
+    if update.layer is not None:
+        set_fields["layer"] = update.layer.strip()
+
+    if not set_fields:
+        return NetworkDevice(**device)
+
+    new_id = set_fields.get("id", device["id"])
+    await devices_collection.update_one(
+        {"id": device_id},
+        {"$set": set_fields},
+    )
+
+    updated_device = dict(device)
+    updated_device.update(set_fields)
+    updated_device["id"] = new_id
+    return NetworkDevice(**serialize_device(updated_device))
+
+
 @router.post("/devices/{device_id}/configure", response_model=DeviceConfigurationResponse)
 async def configure_network_device(device_id: str, request: DeviceConfigurationRequest):
     device = await find_device(device_id)
@@ -950,6 +1135,8 @@ def serialize_device(device: dict) -> dict:
     device.setdefault("cpu", 0)
     device.setdefault("memory", 0)
     device.setdefault("online", False)
+    device.setdefault("label", "")
+    device.setdefault("layer", "access")
     return device
 
 

@@ -4,6 +4,7 @@ import {
   Pencil,
   KeyRound,
   PlusCircle,
+  RefreshCw,
   Router,
   Save,
   Server,
@@ -23,6 +24,7 @@ import PageHeader from "../components/PageHeader";
 import DeviceCard, { normalizeDevice } from "../components/DeviceCard";
 import TerminalDeviceModal from "../components/TerminalDeviceModal";
 import EditDeviceModal from "../components/EditDeviceModal";
+import RefreshFactsModal from "../components/RefreshFactsModal";
 import UsageBar from "../components/UsageBar";
 import Cursor from "../components/Cursor";
 import ConfigSection from "../components/ConfigSection";
@@ -39,12 +41,17 @@ export default function NetworkDevices() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [terminalDevice, setTerminalDevice] = useState(null);
   const [editDevice, setEditDevice] = useState(null);
+  const [showRefreshFacts, setShowRefreshFacts] = useState(false);
   const [error, setError] = useState("");
 
-  useEffect(() => {
+  const loadDevices = () => {
     fetchNetworkDevices()
       .then((items) => setDevices(items.map(normalizeDevice)))
       .catch((err) => setError(err.response?.data?.detail || "Unable to load network devices."));
+  };
+
+  useEffect(() => {
+    loadDevices();
   }, []);
 
   const addDevice = async (device) => {
@@ -61,13 +68,22 @@ export default function NetworkDevices() {
           isSmallSubtext={true}
         />
 
-        <button
-          onClick={() => setShowAddModal(true)}
-          className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-600/20 active:scale-95 transition-all"
-        >
-          <PlusCircle size={18} />
-          Add Device
-        </button>
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setShowRefreshFacts(true)}
+            className="flex items-center gap-2 bg-slate-700 hover:bg-slate-600 text-slate-200 px-5 py-2.5 rounded-xl text-sm font-bold transition-all active:scale-95"
+          >
+            <RefreshCw size={18} />
+            Refresh Facts
+          </button>
+          <button
+            onClick={() => setShowAddModal(true)}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-5 py-2.5 rounded-xl text-sm font-bold shadow-lg shadow-blue-600/20 active:scale-95 transition-all"
+          >
+            <PlusCircle size={18} />
+            Add Device
+          </button>
+        </div>
       </div>
 
       {error && <p className="mb-4 rounded-xl bg-rose-500/10 px-4 py-3 text-sm font-semibold text-rose-600">{error}</p>}
@@ -82,6 +98,13 @@ export default function NetworkDevices() {
           />
         ))}
       </div>
+
+      {showRefreshFacts && (
+        <RefreshFactsModal
+          onClose={() => setShowRefreshFacts(false)}
+          onComplete={() => loadDevices()}
+        />
+      )}
 
       {showAddModal && (
         <AddDeviceModal
@@ -101,6 +124,7 @@ export default function NetworkDevices() {
         <EditDeviceModal
           device={editDevice}
           onClose={() => setEditDevice(null)}
+          onSaved={() => loadDevices()}
         />
       )}
     </div>

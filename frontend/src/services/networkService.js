@@ -31,6 +31,16 @@ export const addNetworkDevice = async (device) => {
   }
 };
 
+export const updateNetworkDevice = async (deviceId, updates) => {
+  try {
+    const response = await api.put(`/api/network/devices/${deviceId}`, updates);
+    return response.data;
+  } catch (error) {
+    console.error("Error updating network device:", error);
+    throw error;
+  }
+};
+
 export const saveDeviceConfiguration = async (deviceId, configuration) => {
   try {
     const response = await api.post(`/api/network/devices/${deviceId}/configure`, configuration);
@@ -79,6 +89,11 @@ export const fetchNetworkTrafficFor = async (params = {}) => {
     console.error('Error fetching filtered network traffic:', e);
     throw e;
   }
+};
+
+export const getRefreshFactsUrl = () => {
+  const base = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+  return `${base}/api/network/refresh-facts`;
 };
 
 export const fetchTelemetryHosts = async () => {
