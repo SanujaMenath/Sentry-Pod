@@ -3,6 +3,8 @@ import PageHeader from '../components/PageHeader';
 import DiffViewer from '../components/DiffViewer';
 import { Link } from 'react-router-dom';
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+
 const DriftReports = () => {
   const [reports, setReports] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -10,7 +12,7 @@ const DriftReports = () => {
   useEffect(() => {
     const fetchDrift = async () => {
       try {
-        const res = await fetch('http://127.0.0.1:8000/playbooks/drift');
+        const res = await fetch(`${API_BASE}/playbooks/drift`);
         const data = await res.json();
         setReports(data.reports || []);
       } catch (e) {

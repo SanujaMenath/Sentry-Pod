@@ -27,6 +27,8 @@ import NetworkTrafficChart from "../components/NetworkTrafficChart";
 import PageHeader from "../components/PageHeader";
 import api from "../services/api";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+
 //  MAIN DASHBOARD
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -80,7 +82,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchDrift = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/playbooks/drift");
+        const res = await fetch(`${API_BASE}/playbooks/drift`);
         const data = await res.json();
         if (data && data.reports) setDriftReports(data.reports);
       } catch (e) {
@@ -94,7 +96,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchBaseline = async () => {
       try {
-        const res = await fetch("http://127.0.0.1:8000/playbooks/baseline");
+        const res = await fetch(`${API_BASE}/playbooks/baseline`);
         const data = await res.json();
         if (data && data.devices) setBaselineCount(data.devices.length);
       } catch (e) {
@@ -108,7 +110,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchActiveDevices = async () => {
       try {
-        const response = await fetch('http://127.0.0.1:8000/api/network/active-devices');
+        const response = await fetch(`${API_BASE}/api/network/active-devices`);
         if (response.ok) {
           const data = await response.json();
           setActiveDevicesCount(data.length || 0);
@@ -124,7 +126,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchNetworkStatus = async () => {
       try {
-        const res = await fetch('http://127.0.0.1:8000/api/network/device-status');
+        const res = await fetch(`${API_BASE}/api/network/device-status`);
         if (res.ok) setNetworkStatus(await res.json());
       } catch (e) {
         console.error('Failed to load network status:', e);
@@ -136,7 +138,7 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchSyslogAlerts = async () => {
       try {
-        const res = await fetch('http://127.0.0.1:8000/api/syslog/alerts');
+        const res = await fetch(`${API_BASE}/api/syslog/alerts`);
         if (res.ok) setSyslogAlerts(await res.json());
       } catch (e) {
         console.error('Failed to load syslog alerts:', e);
@@ -150,7 +152,7 @@ const Dashboard = () => {
   const handleRefreshDevices = async () => {
     setIsScanning(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/network/active-devices/scan', {
+      const response = await fetch(`${API_BASE}/api/network/active-devices/scan`, {
         method: 'POST'
       });
       if (response.ok) {
@@ -169,7 +171,7 @@ const Dashboard = () => {
   const handleRefreshNetStatus = async () => {
     setIsRefreshingNetStatus(true);
     try {
-      const res = await fetch('http://127.0.0.1:8000/api/network/device-status/scan', { method: 'POST' });
+      const res = await fetch(`${API_BASE}/api/network/device-status/scan`, { method: 'POST' });
       if (res.ok) setNetworkStatus(await res.json());
     } catch (e) {
       console.error('Error refreshing network status:', e);
@@ -182,7 +184,7 @@ const Dashboard = () => {
     if (e) e.stopPropagation();
     setIsRefreshingDrift(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/playbooks/drift/refresh', {
+      const response = await fetch(`${API_BASE}/playbooks/drift/refresh`, {
         method: 'POST'
       });
       if (response.ok) {
@@ -204,7 +206,7 @@ const Dashboard = () => {
     setShowBaselineConfirm(false);
     setIsRefreshingBaseline(true);
     try {
-      const response = await fetch('http://127.0.0.1:8000/playbooks/baseline/refresh', {
+      const response = await fetch(`${API_BASE}/playbooks/baseline/refresh`, {
         method: 'POST'
       });
       if (response.ok) {
