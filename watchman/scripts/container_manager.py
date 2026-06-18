@@ -120,41 +120,18 @@ class SentryPodManager:
     #  Build
     # ------------------------------------------------------------------ #
 
-    def _build_command_center_assets(self):
-        import shutil
-
-        src = self.repo_root / "frontend" / "src"
-        dst = self.repo_root / "command-center" / "src"
-        cc_dir = self.repo_root / "command-center"
-
-        print(f"Syncing {src} → {dst} ...")
-        if dst.exists():
-            shutil.rmtree(dst)
-        shutil.copytree(src, dst)
-
-        print("Installing command-center dependencies ...")
-        subprocess.run(["npm", "install"], cwd=str(cc_dir), check=True)
-
-        print("Running npm audit fix ...")
-        subprocess.run(["npm", "audit", "fix"], cwd=str(cc_dir), check=False)
-
-        print("Building command-center production bundle ...")
-        subprocess.run(["npm", "run", "build"], cwd=str(cc_dir), check=True)
-        print("command-center frontend built successfully!")
-
     def build(self, target: str = "all"):
         self._check_podman()
         if target == "all":
             print("Building all containers ...")
             self._build_ansible()
-            self._build_command_center_assets()
             self._run_compose("build")
-            print("All containers built successfully!")
+            self._run_compose("up", "-d", "--force-recreate")
+            print("All containers built and restarted successfully!")
         elif target in self.COMPOSE_SERVICES:
-            if target == "command-center":
-                self._build_command_center_assets()
             self._run_compose("build", target)
-            print(f"'{target}' built successfully!")
+            self._run_compose("up", "-d", "--force-recreate", target)
+            print(f"'{target}' built and restarted successfully!")
         elif target == "ansible":
             self._build_ansible()
 

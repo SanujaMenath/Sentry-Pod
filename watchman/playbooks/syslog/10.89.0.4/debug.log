@@ -337,3 +337,6 @@ Jun 16 14:34:53 10.89.0.4 <189>22: R1: *Jun 16 14:34:47.859: %OSPF-5-ADJCHG: Pro
 Jun 16 14:34:53 10.89.0.4 <189>21: R2: *Jun 16 14:34:47.599: %OSPF-5-ADJCHG: Process 1, Nbr 10.0.0.1 on FastEthernet0/1 from LOADING to FULL, Loading Done
 Jun 16 14:35:43 10.89.0.4 <189>22: R2: *Jun 16 14:35:21.275: %OSPF-5-ADJCHG: Process 1, Nbr 10.0.0.20 on FastEthernet0/0 from LOADING to FULL, Loading Done
 Jun 16 14:35:48 10.89.0.4 <189>23: R1: *Jun 16 14:35:20.803: %OSPF-5-ADJCHG: Process 1, Nbr 10.0.0.10 on FastEthernet0/0 from LOADING to FULL, Loading Done
+Jun 17 14:38:58 10.89.0.4 <189>61: ESW2: *Mar  1 00:01:10.080: %OSPF-5-ADJCHG: Process 1, Nbr 10.0.0.2 on FastEthernet1/0 from LOADING to FULL, Loading Done
+Jun 17 14:38:59 10.89.0.4 <189>22: R2: *Jun 17 14:38:38.043: %OSPF-5-ADJCHG: Process 1, Nbr 10.0.0.20 on FastEthernet0/0 from LOADING to FULL, Loading Done
+Jun 17 14:39:03 10.89.0.4 <189>23: R1: *Jun 17 14:38:37.795: %OSPF-5-ADJCHG: Process 1, Nbr 10.0.0.10 on FastEthernet0/0 from LOADING to FULL, Loading Done

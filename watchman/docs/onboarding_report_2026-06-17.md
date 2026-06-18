@@ -1,5 +1,5 @@
 # Sentry-Pod Onboarding Report
-**Date:** 2026-06-17T01:29:13Z
+**Date:** 2026-06-17T01:52:36Z
 
 ## Summary
 | Group | Count |
@@ -13,7 +13,7 @@
 ## Generated hosts.ini
 ```ini
 # Sentry-Pod managed inventory
-# Generated: 2026-06-17T01:29:13Z
+# Generated: 2026-06-17T01:52:36Z
 
 [allHosts]
 

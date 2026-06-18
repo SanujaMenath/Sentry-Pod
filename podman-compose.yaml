@@ -36,7 +36,9 @@ services:
       - ./watchman/playbooks/syslog/:/var/log/syslog/${VOLUME_OPTS}
 
   command-center:
-    build: ./command-center
+    build:
+      context: .
+      dockerfile: command-center/Dockerfile.prod
     image: localhost/fresh-command-center
     restart: always
     depends_on:
