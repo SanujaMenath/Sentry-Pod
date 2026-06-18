@@ -1,15 +1,13 @@
 from bson import ObjectId
-from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi import APIRouter, Depends, HTTPException, status, Request, UploadFile, File, Form
 from fastapi.responses import StreamingResponse
 from datetime import datetime
+from typing import Optional
 
-from app.models.playbook import PlaybookRequest, PlaybookResponse
+from app.models.playbook import PlaybookRequest, PlaybookResponse, AddPlaybookRequest, UpdatePlaybookRequest, UpdatePlaybookStatusRequest
 import app.services.playbook_service as playbook_service
 from app.database import db
 from app.core.dependencies import get_current_user
-from pydantic import BaseModel
-from bson import ObjectId
-# import re
 
 router = APIRouter(prefix="/playbooks", tags=["Playbooks"])
 
@@ -326,34 +324,211 @@ async def get_all_hosts_count():
             detail=str(e)
         )
     
-class AddPlaybookRequest(BaseModel):
-    name: str
-    engine_type: str
-    subnet_scope: str
-    pipeline_status: str
-
-
 @router.post("/add", status_code=status.HTTP_201_CREATED)
-async def add_new_playbook(request: AddPlaybookRequest):
-    """Save a new registered automation blueprint directly to MongoDB"""
+async def add_new_playbook(
+    name: str = Form(...),
+    description: str = Form(""),
+    engine_type: str = Form("Ansible"),
+    subnet_scope: str = Form(""),
+    pipeline_status: str = Form("Draft"),
+    tags: str = Form(""),
+    target_devices: str = Form(""),
+    example_intents: str = Form(""),
+    destructive: bool = Form(False),
+    severity: str = Form("medium"),
+    file: Optional[UploadFile] = File(None)
+):
+    """Save a new playbook: save YAML file, update catalog.json, save to MongoDB."""
+    import json as json_mod
+
+    if not name.strip():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Name is required")
+
+    filename = name
+    file_content = None
+
+    if file and file.filename:
+        if not file.filename.endswith(('.yml', '.yaml')):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only .yml and .yaml files are supported")
+        file_content = await file.read()
+        if not file_content:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Uploaded file is empty")
+        filename = file.filename
+
+    tags_list = [t.strip() for t in tags.split(",") if t.strip()] if tags else []
+    target_devices_list = [d.strip() for d in target_devices.split(",") if d.strip()] if target_devices else []
+    intents_list = [i.strip() for i in example_intents.split("\n") if i.strip()] if example_intents else []
+
+    saved_filename = None
+    catalog_updated = False
+    mongo_inserted = False
+
     try:
         playbooks_col = db.get_collection("playbooks")
-        
+
+        existing = playbook_service.read_catalog_raw()
+        if any(e.get("filename") == filename for e in existing):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"A catalog entry with filename '{filename}' already exists"
+            )
+
+        if file_content:
+            saved_filename = playbook_service.save_playbook_file(filename, file_content)
+        else:
+            saved_filename = filename
+
+        catalog_entry = {
+            "filename": saved_filename,
+            "name": name,
+            "description": description,
+            "tags": tags_list,
+            "target_devices": target_devices_list,
+            "example_intents": intents_list,
+            "destructive": destructive,
+            "severity": severity
+        }
+
+        existing.append(catalog_entry)
+        if not playbook_service.save_catalog(existing):
+            if saved_filename and file_content:
+                playbook_service.delete_playbook_file(saved_filename)
+            raise RuntimeError("Failed to write catalog.json")
+        catalog_updated = True
+
         new_blueprint_doc = {
-            "name": request.name,
-            "engine_type": request.engine_type,
-            "subnet_scope": request.subnet_scope,
-            "pipeline_status": request.pipeline_status,
+            "name": name,
+            "filename": saved_filename,
+            "description": description,
+            "engine_type": engine_type,
+            "subnet_scope": subnet_scope,
+            "pipeline_status": pipeline_status,
+            "tags": tags_list,
+            "target_devices": target_devices_list,
+            "example_intents": intents_list,
+            "destructive": destructive,
+            "severity": severity,
+            "file_path": str(playbook_service.PLAYBOOKS_DIR / saved_filename),
             "last_executed": "Never Executed",
             "timestamp_created": datetime.utcnow().isoformat() + "Z"
         }
-        
-        await playbooks_col.insert_one(new_blueprint_doc)
-        return {"status": "success", "message": f"Successfully committed blueprint: {request.name}"}
+
+        result = await playbooks_col.insert_one(new_blueprint_doc)
+        mongo_inserted = True
+
+        return {
+            "status": "success",
+            "message": f"Successfully committed blueprint: {name}",
+            "id": str(result.inserted_id),
+            "filename": saved_filename
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        if saved_filename and not catalog_updated:
+            playbook_service.delete_playbook_file(saved_filename)
+        if catalog_updated and saved_filename:
+            playbook_service.remove_catalog_entry(saved_filename)
+        if mongo_inserted:
+            pass
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create playbook: {str(e)}"
+        )
+
+
+@router.put("/{playbook_id}")
+async def update_playbook(playbook_id: str, request: UpdatePlaybookRequest):
+    """Update a playbook blueprint and sync catalog.json."""
+    try:
+        playbooks_col = db.get_collection("playbooks")
+
+        try:
+            mongo_id = ObjectId(playbook_id)
+        except Exception:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid playbook ID format")
+
+        existing = await playbooks_col.find_one({"_id": mongo_id})
+        if not existing:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Playbook not found")
+
+        update_fields = {k: v for k, v in request.model_dump(exclude_unset=True).items() if v is not None}
+        if not update_fields:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
+
+        old_filename = existing.get("filename")
+        new_filename = update_fields.get("filename") or old_filename
+
+        if new_filename and old_filename and new_filename != old_filename:
+            catalog_updated = playbook_service.update_catalog_entry(old_filename, {"filename": new_filename, **{k: v for k, v in update_fields.items() if k != "filename"}})
+            old_filepath = playbook_service.PLAYBOOKS_DIR / old_filename
+            new_filepath = playbook_service.PLAYBOOKS_DIR / new_filename
+            if old_filepath.exists() and not new_filepath.exists():
+                old_filepath.rename(new_filepath)
+        else:
+            catalog_updates = {k: v for k, v in update_fields.items() if k in ("name", "description", "tags", "target_devices", "example_intents", "destructive", "severity")}
+            if catalog_updates and old_filename:
+                playbook_service.update_catalog_entry(old_filename, catalog_updates)
+
+        update_fields.pop("filename", None)
+        update_fields["last_modified"] = datetime.utcnow().isoformat() + "Z"
+
+        await playbooks_col.update_one({"_id": mongo_id}, {"$set": update_fields})
+
+        updated = await playbooks_col.find_one({"_id": mongo_id})
+        updated["id"] = str(updated["_id"])
+        del updated["_id"]
+
+        return {"status": "success", "blueprint": updated}
+
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Database commit failed: {str(e)}"
+            detail=f"Update failed: {str(e)}"
+        )
+
+
+@router.patch("/{playbook_id}/status")
+async def update_playbook_status(playbook_id: str, request: UpdatePlaybookStatusRequest):
+    """Update only the pipeline_status of a playbook blueprint."""
+    try:
+        playbooks_col = db.get_collection("playbooks")
+
+        try:
+            mongo_id = ObjectId(playbook_id)
+        except Exception:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid playbook ID format")
+
+        valid_statuses = ["Draft", "Verified", "Failed"]
+        if request.pipeline_status not in valid_statuses:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid status. Must be one of: {', '.join(valid_statuses)}"
+            )
+
+        result = await playbooks_col.update_one(
+            {"_id": mongo_id},
+            {"$set": {"pipeline_status": request.pipeline_status}}
+        )
+
+        if result.matched_count == 0:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Playbook not found")
+
+        updated = await playbooks_col.find_one({"_id": mongo_id})
+        updated["id"] = str(updated["_id"])
+        del updated["_id"]
+
+        return {"status": "success", "blueprint": updated}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Status update failed: {str(e)}"
         )
     
 @router.get("/dashboard")
@@ -396,10 +571,9 @@ async def get_playbook_dashboard_data():
 
 @router.delete("/delete/{playbook_id}")
 async def delete_playbook_entry(playbook_id: str):
-    """Permanently delete an automated blueprint record out of MongoDB by its unique hex ID"""
+    """Permanently delete a playbook: MongoDB document, catalog.json entry, and YAML file."""
     try:
         playbooks_col = db.get_collection("playbooks")
-        
 
         try:
             mongo_id = ObjectId(playbook_id)
@@ -408,18 +582,23 @@ async def delete_playbook_entry(playbook_id: str):
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Provided blueprint asset tracking ID format is completely invalid."
             )
-            
-        
-        result = await playbooks_col.delete_one({"_id": mongo_id})
-        
-        if result.deleted_count == 0:
+
+        existing = await playbooks_col.find_one({"_id": mongo_id})
+        if not existing:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Target configuration entry could not be located in database layer."
             )
-            
-        return {"status": "success", "detail": "Blueprint document successfully dropped from cluster data."}
-        
+
+        filename = existing.get("filename")
+        if filename:
+            playbook_service.remove_catalog_entry(filename)
+            playbook_service.delete_playbook_file(filename)
+
+        await playbooks_col.delete_one({"_id": mongo_id})
+
+        return {"status": "success", "detail": "Blueprint document and associated files successfully removed."}
+
     except HTTPException as he:
         raise he
     except Exception as e:

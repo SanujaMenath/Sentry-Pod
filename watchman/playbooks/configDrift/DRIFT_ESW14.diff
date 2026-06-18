@@ -1,15 +1,12 @@
 --- before
 +++ after
-@@ -1,12 +1,13 @@
+@@ -1,12 +1,12 @@
  Building configuration...
  
 -Current configuration : 5508 bytes
--!
--! No configuration change since last restart
-+Current configuration : 5635 bytes
-+!
-+! Last configuration change at 17:19:22 SLST Wed Jun 10 2026 by admin
-+! NVRAM config last updated at 20:53:02 SLST Wed Jun 10 2026 by admin
++Current configuration : 5540 bytes
+ !
+ ! No configuration change since last restart
  !
  version 12.4
  service timestamps debug datetime msec
@@ -18,15 +15,15 @@
  no service password-encryption
  no service dhcp
  !
-@@ -106,6 +107,7 @@
+@@ -110,6 +110,7 @@
   speed 100
  !
- interface FastEthernet1/7
+ interface FastEthernet1/8
 + shutdown
   duplex full
   speed 100
  !
-@@ -156,6 +158,7 @@
+@@ -156,6 +157,7 @@
  no ip http secure-server
  !
  logging trap notifications

@@ -21,9 +21,11 @@ export const getPlaybookDashboardData = async () => {
 };
 
 // Dispatches your modal registration form data payload straight to MongoDB
-export const addPlaybook = async (playbookData) => {
+export const addPlaybook = async (formData) => {
   try {
-    const response = await api.post("/playbooks/add", playbookData);
+    const response = await api.post("/playbooks/add", formData, {
+      headers: { "Content-Type": "multipart/form-data" }
+    });
     return response.data;
   } catch (error) {
     throw error.response?.data?.detail || "Failed to register new playbook blueprint";
@@ -49,5 +51,23 @@ export const deletePlaybook = async (playbookId) => {
     return response.data;
   } catch (error) {
     throw error.response?.data?.detail || "Failed to delete playbook entry permanently";
+  }
+};
+
+export const updatePlaybook = async (id, playbookData) => {
+  try {
+    const response = await api.put(`/playbooks/${id}`, playbookData);
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.detail || "Failed to update playbook blueprint";
+  }
+};
+
+export const updatePlaybookStatus = async (id, status) => {
+  try {
+    const response = await api.patch(`/playbooks/${id}/status`, { pipeline_status: status });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.detail || "Failed to update pipeline status";
   }
 };

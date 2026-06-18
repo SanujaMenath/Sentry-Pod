@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { X, Key, Eye, EyeOff, Loader2, Check, AlertCircle } from "lucide-react";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '${API_BASE}';
+
 export default function ApiKeyModal({ onClose, onSave }) {
   const [apiKey, setApiKey] = useState("");
   const [showKey, setShowKey] = useState(false);
@@ -15,7 +17,7 @@ export default function ApiKeyModal({ onClose, onSave }) {
   useEffect(() => {
     const loadApiKey = async () => {
       try {
-        const response = await fetch("http://localhost:8000/llm/api-key-status");
+        const response = await fetch(`${API_BASE}/llm/api-key-status`);
         if (!response.ok) throw new Error("Failed to fetch key status");
         const data = await response.json();
         setHasKey(data.has_key);
@@ -40,7 +42,7 @@ export default function ApiKeyModal({ onClose, onSave }) {
 
     setIsSaving(true);
     try {
-      const response = await fetch("http://localhost:8000/llm/api-key", {
+      const response = await fetch(`${API_BASE}/llm/api-key`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -74,7 +76,7 @@ export default function ApiKeyModal({ onClose, onSave }) {
 
     setIsSaving(true);
     try {
-      const response = await fetch("http://localhost:8000/llm/api-key", {
+      const response = await fetch(`${API_BASE}/llm/api-key`, {
         method: "DELETE",
       });
 
@@ -106,7 +108,7 @@ export default function ApiKeyModal({ onClose, onSave }) {
     setTestLoading(true);
     setError("");
     try {
-      const response = await fetch("http://localhost:8000/llm/api-key-test", {
+      const response = await fetch(`${API_BASE}/llm/api-key-test`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -134,7 +136,7 @@ export default function ApiKeyModal({ onClose, onSave }) {
     return (
       <div className="fixed inset-0 z-50 flex">
         <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-        <div className="relative z-10 m-auto bg-[#161b22] border border-[#1e2530] rounded-2xl w-[420px] shadow-2xl p-5">
+        <div className="relative z-10 m-auto bg-[#161b22] border border-[#1e2530] rounded-2xl w-105 shadow-2xl p-5">
           <div className="flex items-center justify-center gap-2 text-gray-400">
             <Loader2 size={18} className="animate-spin" />
             Loading...
@@ -150,7 +152,7 @@ export default function ApiKeyModal({ onClose, onSave }) {
       <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
 
       {/* Modal */}
-      <div className="relative z-10 m-auto bg-[#161b22] border border-[#1e2530] rounded-2xl w-[420px] shadow-2xl">
+      <div className="relative z-10 m-auto bg-[#161b22] border border-[#1e2530] rounded-2xl w-105 shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-[#1e2530]">
           <div className="flex items-center gap-2">

@@ -19,8 +19,6 @@ class NetworkDevice(BaseModel):
     cpu: int = Field(default=0, ge=0, le=100)
     memory: int = Field(default=0, ge=0, le=100)
     online: bool = False
-    label: str = ""
-    layer: str = "access"
 
 
 class NetworkDeviceCreate(BaseModel):
@@ -31,16 +29,6 @@ class NetworkDeviceCreate(BaseModel):
     version: Optional[str] = None
     username: Optional[str] = None
     password: Optional[str] = None
-    label: Optional[str] = None
-    layer: Optional[str] = None
-
-
-class NetworkDeviceUpdate(BaseModel):
-    name: Optional[str] = None
-    ip: Optional[str] = None
-    type: Optional[str] = None
-    label: Optional[str] = None
-    layer: Optional[str] = None
 
 
 class DeviceConfigurationRequest(BaseModel):

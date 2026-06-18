@@ -24,7 +24,6 @@ function DeviceCard({ device, onConfigure, onEdit }) {
           </div>
           <div>
             <h3 className="text-white font-bold text-lg tracking-tight font-mono">{device.name}</h3>
-            {device.label && <p className="text-slate-400 text-xs font-medium">{device.label}</p>}
             <p className="text-slate-500 text-xs font-mono">{device.ip}</p>
           </div>
         </div>
@@ -40,17 +39,6 @@ function DeviceCard({ device, onConfigure, onEdit }) {
         <strong className="text-right font-semibold text-slate-200">{device.model}</strong>
         <span className="text-slate-500">Version</span>
         <strong className="text-right font-semibold text-slate-200">{device.version}</strong>
-        <span className="text-slate-500">Layer</span>
-        <strong className="text-right">
-          <span className={`inline-block rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider border ${
-            device.layer === "edge" ? "bg-blue-500/10 text-blue-400 border-blue-500/20"
-            : device.layer === "core" ? "bg-purple-500/10 text-purple-400 border-purple-500/20"
-            : device.layer === "distribution" ? "bg-amber-500/10 text-amber-400 border-amber-500/20"
-            : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
-          }`}>
-            {device.layer || "access"}
-          </span>
-        </strong>
         <span className="text-slate-500">Uptime</span>
         <strong className="text-right font-semibold text-slate-200">{device.uptime}</strong>
       </div>

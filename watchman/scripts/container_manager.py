@@ -9,8 +9,8 @@ Usage:
     python container_manager.py build [all|watchman|syslog-ng|command-center|ansible]
     python container_manager.py up
     python container_manager.py down
-   python container_manager.py status
-  python container_manager.py run <playbook> [-i INVENTORY]
+    python container_manager.py status
+    python container_manager.py run <playbook> [-i INVENTORY]
     python container_manager.py shell
 """
 
@@ -129,18 +129,49 @@ class SentryPodManager:
     #  Build
     # ------------------------------------------------------------------ #
 
+    def _sync_frontend_to_command_center(self):
+        import shutil
+        src = self.repo_root / "frontend" / "src"
+        dst = self.repo_root / "command-center" / "src"
+        cc_dir = self.repo_root / "command-center"
+
+        print(f"Syncing {src} → {dst} ...")
+        if dst.exists():
+            shutil.rmtree(dst)
+        shutil.copytree(src, dst)
+
+        print("Installing command-center dependencies ...")
+        subprocess.run(["npm", "install"], cwd=str(cc_dir), check=True)
+
+        print("Running npm audit fix ...")
+        subprocess.run(["npm", "audit", "fix"], cwd=str(cc_dir), check=False)
+
+        print("Building command-center production bundle ...")
+        subprocess.run(["npm", "run", "build"], cwd=str(cc_dir), check=True)
+    def _build_command_center_frontend(self):
+        cmd_dir = self.repo_root / "command-center"
+        print(f"Building command-center frontend in {cmd_dir} ...")
+        subprocess.run(
+            ["npm", "run", "build"],
+            check=True,
+            cwd=str(cmd_dir),
+            shell=(self.system == "Windows"),
+        )
+        print("command-center frontend built successfully!")
+
     def build(self, target: str = "all"):
         self._check_podman()
         if target == "all":
             print("Building all containers ...")
             self._build_ansible()
+            self._build_command_center_assets()
             self._run_compose("build")
-            self._run_compose("up", "-d", "--force-recreate")
-            print("All containers built and restarted successfully!")
+            print("All containers built successfully!")
         elif target in self.COMPOSE_SERVICES:
+            if target == "command-center":
+                self._build_command_center_assets()
             self._run_compose("build", target)
-            self._run_compose("up", "-d", "--force-recreate", target)
-            print(f"'{target}' built and restarted successfully!")
+            print(f"'{target}' built successfully!")
         elif target == "ansible":
             self._build_ansible()
 

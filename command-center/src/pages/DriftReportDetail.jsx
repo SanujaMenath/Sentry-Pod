@@ -6,6 +6,8 @@ import { useNavigate } from 'react-router-dom';
 import { Copy, ArrowLeft } from 'lucide-react';
 import { useCopyToClipboard } from '../hooks/useCopyToClipboard';
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+
 const DriftReportDetail = () => {
   const { hostname } = useParams();
   const [content, setContent] = useState('');
@@ -16,7 +18,7 @@ const DriftReportDetail = () => {
   useEffect(() => {
     const fetchDetail = async () => {
       try {
-        const res = await fetch(`http://127.0.0.1:8000/playbooks/drift/${hostname}`);
+        const res = await fetch(`${API_BASE}/playbooks/drift/${hostname}`);
         const data = await res.json();
         setContent(data.content || '');
       } catch (e) {
