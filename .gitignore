@@ -22,3 +22,5 @@ pgdata/
 watchman/sentry-ansible.tar
 
 watchman/venv/
+
+opencode.json
