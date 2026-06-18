@@ -31,4 +31,14 @@ RUN ansible-galaxy collection install cisco.ios
 # regardless of world-writable directory warnings
 COPY ansible.cfg /etc/ansible/ansible.cfg
 
+# Small debugging tools (kept separate to preserve cache of larger layers above)
+RUN apt-get update && apt-get install -y \
+    nano \
+    curl \
+    dnsutils \
+    iputils-ping \
+    traceroute \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /ansible

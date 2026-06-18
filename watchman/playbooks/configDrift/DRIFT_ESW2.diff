@@ -1,15 +1,12 @@
 --- before
 +++ after
-@@ -1,12 +1,13 @@
+@@ -1,12 +1,12 @@
  Building configuration...
  
 -Current configuration : 5579 bytes
--!
--! No configuration change since last restart
-+Current configuration : 5696 bytes
-+!
-+! Last configuration change at 17:18:27 SLST Wed Jun 10 2026 by admin
-+! NVRAM config last updated at 20:52:52 SLST Wed Jun 10 2026 by admin
++Current configuration : 5601 bytes
+ !
+ ! No configuration change since last restart
  !
  version 12.4
  service timestamps debug datetime msec
@@ -18,7 +15,7 @@
  no service password-encryption
  no service dhcp
  !
-@@ -155,6 +156,7 @@
+@@ -155,6 +155,7 @@
  no ip http secure-server
  !
  logging trap notifications

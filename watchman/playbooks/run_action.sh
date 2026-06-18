@@ -1,7 +1,7 @@
 #!/bin/bash
 set -e
 
-ACTION="${1:?Usage: $0 {collect|refresh|drift}}"
+ACTION="${1:?Usage: $0 {collect|refresh|drift}"
 
 case "$ACTION" in
   collect)

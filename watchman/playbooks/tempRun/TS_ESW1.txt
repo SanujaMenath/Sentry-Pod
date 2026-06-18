@@ -1,9 +1,8 @@
 Building configuration...
 
-Current configuration : 5760 bytes
+Current configuration : 5665 bytes
 !
-! Last configuration change at 17:18:27 SLST Wed Jun 10 2026 by admin
-! NVRAM config last updated at 20:52:53 SLST Wed Jun 10 2026 by admin
+! No configuration change since last restart
 !
 version 12.4
 service timestamps debug datetime msec
@@ -265,7 +264,7 @@ line vty 0 4
  login local
  transport input ssh
 !
-ntp clock-period 17180044
+ntp clock-period 17179987
 ntp max-associations 1
 ntp server 192.168.122.1
 !
