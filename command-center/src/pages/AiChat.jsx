@@ -12,6 +12,8 @@ import { useCopyToClipboard } from "../hooks/useCopyToClipboard";
 import ExpandableOutput from "../components/ExpandableOutput";
 import PlaybookSuggestions from "../components/PlaybookSuggestions";
 
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
 const normalizeAssistantText = (rawText) => {
   if (!rawText) return "";
 
@@ -53,7 +55,7 @@ export default function AiChat() {
   useEffect(() => {
     const fetchCatalog = async () => {
       try {
-        const res = await fetch("http://localhost:8000/playbooks/catalog");
+        const res = await fetch(`${API_BASE}/playbooks/catalog`);
         if (!res.ok) return;
 
         const data = await res.json();
@@ -127,7 +129,7 @@ export default function AiChat() {
     let userMessageAdded = false;
 
     try {
-      const eventSource = new EventSource(`http://localhost:8000/playbooks/execute-stream/${playbookName}`);
+      const eventSource = new EventSource(`${API_BASE}/playbooks/execute-stream/${playbookName}`);
 
       eventSource.onmessage = (event) => {
         try {

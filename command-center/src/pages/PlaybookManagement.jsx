@@ -19,7 +19,9 @@ import {
   getPlaybookDashboardData, 
   addPlaybook, 
   deletePlaybook,
-  executePlaybook 
+  executePlaybook,
+  updatePlaybook,
+  updatePlaybookStatus
 } from "../services/inventoryService";
 
 // ==========================================
@@ -62,24 +64,24 @@ export default function PlaybookManagement() {
     fetchMetrics();
   }, []);
 
-  // 3. Simulated execution deployment action
-  const handleRunPlaybook = (id, name) => {
+  // 3. Execute playbook deployment action via real API call
+  const handleRunPlaybook = async (id, name) => {
     setSystemAlert(null);
     setRunningStates((prev) => ({ ...prev, [id]: true }));
-
-    setTimeout(() => {
-      setRunningStates((prev) => ({ ...prev, [id]: false }));
-      setDashboardMetrics((prev) => ({
-        ...prev,
-        blueprints: prev.blueprints.map((pb) =>
-          (pb.id === id || pb._id === id) ? { ...pb, last_run: new Date().toISOString(), pipeline_status: "Verified", status: "Verified" } : pb
-        )
-      }));
+    try {
+      const result = await executePlaybook(name);
+      const newStatus = result.status === "success" ? "Verified" : "Failed";
+      await updatePlaybookStatus(id, newStatus);
       setSystemAlert({
         type: "success",
         text: `Orchestration playbook "${name}" successfully deployed to network layer.`,
       });
-    }, 1500);
+    } catch (err) {
+      setSystemAlert({ type: "error", text: `Execution failed for "${name}": ${err.message || err}` });
+    } finally {
+      setRunningStates((prev) => ({ ...prev, [id]: false }));
+      fetchMetrics();
+    }
   };
 
   // 4. Delete playbooks configuration wrapper layout
@@ -105,19 +107,39 @@ export default function PlaybookManagement() {
   const handleSavePlaybook = async (formData) => {
     try {
       if (modalConfig.mode === "edit") {
+        const payload = {
+          name: formData.name,
+          description: formData.description,
+          engine_type: formData.engine_type,
+          subnet_scope: formData.subnet_scope || formData.target_devices,
+          pipeline_status: formData.pipeline_status,
+          tags: formData.tags ? formData.tags.split(",").map(t => t.trim()).filter(Boolean) : [],
+          target_devices: formData.target_devices ? formData.target_devices.split(",").map(d => d.trim()).filter(Boolean) : [],
+          example_intents: formData.example_intents ? formData.example_intents.split("\n").map(i => i.trim()).filter(Boolean) : [],
+          destructive: formData.destructive,
+          severity: formData.severity,
+        };
+        await updatePlaybook(modalConfig.data.id || modalConfig.data._id, payload);
         setSystemAlert({ type: "success", text: `Changes applied to "${formData.name}".` });
       } else {
-
-        await addPlaybook({
-          name: formData.name,
-          engine_type: formData.engine_type,
-          subnet_scope: formData.subnet_scope,
-          pipeline_status: formData.pipeline_status
-        });
-        
+        const fd = new FormData();
+        fd.append("name", formData.name);
+        fd.append("description", formData.description);
+        fd.append("engine_type", formData.engine_type);
+        fd.append("subnet_scope", formData.target_devices || formData.subnet_scope);
+        fd.append("pipeline_status", formData.pipeline_status);
+        fd.append("tags", formData.tags || "");
+        fd.append("target_devices", formData.target_devices || "");
+        fd.append("example_intents", formData.example_intents || "");
+        fd.append("destructive", formData.destructive ? "true" : "false");
+        fd.append("severity", formData.severity);
+        if (formData.file) {
+          fd.append("file", formData.file);
+        }
+        await addPlaybook(fd);
         setSystemAlert({ 
           type: "success", 
-          text: `Successfully committed blueprint "${formData.name}" to MongoDB database environment cluster.` 
+          text: `Successfully committed blueprint "${formData.name}".` 
         });
       }
       setModalConfig({ show: false, mode: "add", data: null });

@@ -6,7 +6,7 @@ import subprocess
 import platform
 import re
 from pathlib import Path
-from typing import List, Tuple, Generator
+from typing import List, Tuple, Generator, Optional
 from fastapi import HTTPException, status
 
 from app.models.playbook import PlaybookCatalogItem, PlaybookSuggestion
@@ -88,6 +88,92 @@ def load_catalog() -> List[PlaybookCatalogItem]:
     except Exception as e:
         logger.error(f"Error loading catalog: {str(e)}")
         return []
+
+def invalidate_catalog_cache():
+    global _catalog_cache
+    _catalog_cache = None
+
+def read_catalog_raw() -> list:
+    invalidate_catalog_cache()
+    try:
+        if not CATALOG_PATH.exists():
+            logger.warning(f"Catalog file not found at {CATALOG_PATH}")
+            return []
+        with open(CATALOG_PATH, 'r') as f:
+            return json.load(f)
+    except Exception as e:
+        logger.error(f"Error reading catalog raw: {str(e)}")
+        return []
+
+def save_catalog(entries: list) -> bool:
+    try:
+        temp_path = CATALOG_PATH.with_suffix('.json.tmp')
+        with open(temp_path, 'w') as f:
+            json.dump(entries, f, indent=2)
+            f.write('\n')
+        temp_path.replace(CATALOG_PATH)
+        invalidate_catalog_cache()
+        return True
+    except Exception as e:
+        logger.error(f"Error saving catalog: {str(e)}")
+        return False
+
+def update_catalog_entry(filename: str, updates: dict) -> bool:
+    entries = read_catalog_raw()
+    found = False
+    for entry in entries:
+        if entry.get("filename") == filename:
+            entry.update(updates)
+            found = True
+            break
+    if not found:
+        return False
+    return save_catalog(entries)
+
+def remove_catalog_entry(filename: str) -> bool:
+    entries = read_catalog_raw()
+    new_entries = [e for e in entries if e.get("filename") != filename]
+    if len(new_entries) == len(entries):
+        return False
+    return save_catalog(new_entries)
+
+def save_playbook_file(filename: str, content: bytes) -> str:
+    import shutil
+    filepath = PLAYBOOKS_DIR / filename
+    if filepath.exists():
+        stem = filepath.stem
+        suffix = filepath.suffix
+        counter = 1
+        while filepath.exists():
+            filepath = PLAYBOOKS_DIR / f"{stem}_{counter}{suffix}"
+            counter += 1
+    try:
+        filepath.write_bytes(content)
+        return filepath.name
+    except Exception as e:
+        logger.error(f"Error saving playbook file: {str(e)}")
+        raise
+
+def read_playbook_file(filename: str) -> Optional[str]:
+    filepath = PLAYBOOKS_DIR / filename
+    if not filepath.exists():
+        return None
+    try:
+        return filepath.read_text(encoding='utf-8')
+    except Exception as e:
+        logger.error(f"Error reading playbook file {filename}: {str(e)}")
+        return None
+
+def delete_playbook_file(filename: str) -> bool:
+    filepath = PLAYBOOKS_DIR / filename
+    if not filepath.exists():
+        return False
+    try:
+        filepath.unlink()
+        return True
+    except Exception as e:
+        logger.error(f"Error deleting playbook file {filename}: {str(e)}")
+        return False
 
 def extract_playbook_preview(filename: str) -> str:
     """Read a playbook YAML file and extract key task information."""

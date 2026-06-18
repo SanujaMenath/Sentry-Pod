@@ -1,5 +1,7 @@
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
+
 export async function generateText(prompt, model, sessionId = null) {
-  const url = `http://localhost:8000/llm/chat`;
+  const url = `${API_BASE}/llm/chat`;
 
   const body = {
     prompt: prompt,
