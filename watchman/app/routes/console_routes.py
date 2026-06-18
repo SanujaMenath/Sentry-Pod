@@ -58,6 +58,7 @@ async def console_websocket(websocket: WebSocket):
         os.execvp("podman", [
             "podman", "run", "--rm", "-i", "-t",
             "--network=host",
+            "--cap-add=NET_RAW",
             "-v", f"{PLAYBOOKS_DIR}:/ansible:Z",
             "localhost/sentry-ansible", "bash",
         ])

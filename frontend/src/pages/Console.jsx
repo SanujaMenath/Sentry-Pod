@@ -37,7 +37,18 @@ export default function Console() {
     const socket = new WebSocket(`${WS_BASE}/console/ws`);
     socketRef.current = socket;
 
-    socket.onopen = () => term.focus();
+    socket.onopen = () => {
+      term.focus();
+      const proposed = fitAddon.proposeDimensions();
+      if (proposed) {
+        dimsRef.current = { cols: proposed.cols, rows: proposed.rows };
+        socket.send(JSON.stringify({
+          type: "resize",
+          cols: proposed.cols,
+          rows: proposed.rows,
+        }));
+      }
+    };
 
     socket.onmessage = (event) => term.write(event.data);
 
