@@ -9,13 +9,9 @@ from app.routes import llm_routes
 from app.routes import network_routes
 from app.routes import syslog_routes
 from app.routes import console_routes
-from app.routes import audit_routes
-from app.routes import auth_routes
-from app.routes import llm_routes
-from app.routes import network_routes
-from app.routes import playbook_routes
-from app.routes import syslog_routes
-from app.routes import user_routes
+from app.routes import topology_routes
+from app.routes import setup_routes
+import sys
 
 app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION)
 
@@ -35,6 +31,11 @@ app.include_router(llm_routes.router)
 app.include_router(network_routes.router)
 app.include_router(syslog_routes.router)
 app.include_router(console_routes.router)
+app.include_router(topology_routes.router)
+app.include_router(setup_routes.router)
+
+if sys.platform != "win32":
+    app.include_router(console_routes.router)
 
 @app.get("/")
 async def root():
