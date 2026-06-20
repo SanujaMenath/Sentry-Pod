@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { X, Key, Eye, EyeOff, Loader2, Check, AlertCircle } from "lucide-react";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '${API_BASE}';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 export default function ApiKeyModal({ onClose, onSave }) {
   const [apiKey, setApiKey] = useState("");

@@ -14,4 +14,4 @@ if ! podman images --format '{{.Repository}}' | grep -q '^localhost/sentry-ansib
     fi
 fi
 
-exec uvicorn app.main:app --host 0.0.0.0 --port 8000
+exec uvicorn app.main:app --host 0.0.0.0 --port 8000 --limit-concurrency 100

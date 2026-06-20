@@ -1,25 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard,
   Network,
   MessageSquare,
   ShieldAlert,
   Server,
   ClipboardList,
-  Users,
-  Settings,
-  Search,
-  Bell,
   CheckCircle2,
-  LogOut,
   AlertTriangle,
   X,
   Loader2,
   RefreshCw,
 } from "lucide-react";
 
-import logo from "../images/logo.png";
 import StatCard from "../components/StatCard";
 import DiffViewer from "../components/DiffViewer";
 import { getAllHostsDeviceCount } from "../services/inventoryService";
@@ -27,7 +20,7 @@ import NetworkTrafficChart from "../components/NetworkTrafficChart";
 import PageHeader from "../components/PageHeader";
 import api from "../services/api";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || '${API_BASE}';
 
 //  MAIN DASHBOARD
 const Dashboard = () => {
@@ -38,7 +31,7 @@ const Dashboard = () => {
   const [activeDevicesCount, setActiveDevicesCount] = useState(0);
   const [isScanning, setIsScanning] = useState(false);
 
-  const [showNotifications, setShowNotifications] = useState(false);
+  // const [showNotifications, setShowNotifications] = useState(false);
   const [driftReports, setDriftReports] = useState([]);
   const [isRefreshingDrift, setIsRefreshingDrift] = useState(false);
   const [baselineCount, setBaselineCount] = useState(0);
