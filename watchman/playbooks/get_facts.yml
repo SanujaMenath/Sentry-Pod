@@ -26,3 +26,7 @@
          default(0) | int, 'memtotal_mb': ansible_net_memtotal_mb |
           default(1) | int, 'cpu': ansible_net_cpu | default(0) | int} | to_json }}"
         dest: "/ansible/facts/{{ inventory_hostname }}.json"
+
+    - name: Print output to terminal
+      
+      

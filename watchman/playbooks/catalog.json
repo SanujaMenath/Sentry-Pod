@@ -437,5 +437,28 @@
     ],
     "destructive": false,
     "severity": "low"
+  },
+  {
+    "filename": "get_facts_modified_1.yml",
+    "name": "Edge Device Modification",
+    "description": "Modify the playbook to target edge devices",
+    "tags": [
+      "device-modification",
+      "cisco"
+    ],
+    "target_devices": [
+      "Edge_routers"
+    ],
+    "example_intents": [
+      "gather device info",
+      "collect facts",
+      "get device information",
+      "backup device facts",
+      "discover devices",
+      "gather-info",
+      "cisco"
+    ],
+    "destructive": false,
+    "severity": "low"
   }
 ]

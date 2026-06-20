@@ -329,6 +329,7 @@ export default function AiChat() {
       }
     } catch (err) {
       console.error("Failed to delete session:", err);
+      alert("Failed to delete session: " + (err.response?.data?.detail || err.message));
     }
   };
 
