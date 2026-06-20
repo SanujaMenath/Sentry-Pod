@@ -387,5 +387,55 @@
     ],
     "destructive": false,
     "severity": "low"
+  },
+  {
+    "filename": "xx.yml",
+    "name": "xx.yml",
+    "description": "xaa",
+    "tags": [],
+    "target_devices": [
+      "allHosts"
+    ],
+    "example_intents": [],
+    "destructive": false,
+    "severity": "medium"
+  },
+  {
+    "filename": "get_facts_modified.yml",
+    "name": "Gather Info from Cisco IOS",
+    "description": "Collects IOS facts from edge routers and displays the OS version.",
+    "tags": [],
+    "target_devices": [
+      "edge_routers"
+    ],
+    "example_intents": [
+      "gather device info",
+      "collect facts",
+      "get device information",
+      "backup device facts",
+      "discover devices",
+      "Gather information from edge routers"
+    ],
+    "destructive": false,
+    "severity": "low"
+  },
+  {
+    "filename": "get_facts_modified.yml",
+    "name": "Gather Info from Cisco IOS",
+    "description": "Collects and prints OS version facts from Cisco IOS devices",
+    "tags": [],
+    "target_devices": [
+      "Edge_routers"
+    ],
+    "example_intents": [
+      "gather device info",
+      "collect facts",
+      "get device information",
+      "backup device facts",
+      "discover devices",
+      "get information on the edge routers"
+    ],
+    "destructive": false,
+    "severity": "low"
   }
 ]

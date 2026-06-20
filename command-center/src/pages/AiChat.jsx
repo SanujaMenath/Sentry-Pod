@@ -1,16 +1,15 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Bot, Send, Zap, Shield, Wrench, BarChart3, ChevronDown, ChevronUp, Copy, Check, Play, Settings, MessageSquare } from "lucide-react";
 import { logAction } from "../services/auditService";
-import { generateText } from "../services/llmService";
+import { generateText, proposeModification, approveModification } from "../services/llmService";
 import { listSessions, getSession, createSession, deleteSession } from "../services/sessionService";
 import PlaybookStagingGate from "../components/PlaybookStagingGate";
 import ApiKeyModal from "../components/ApiKeyModal";
 import PageHeader from "../components/PageHeader";
 import SessionSidebar from "../components/SessionSidebar";
-import { classifyLine } from "../utils/playbookOutput";
-import { useCopyToClipboard } from "../hooks/useCopyToClipboard";
 import ExpandableOutput from "../components/ExpandableOutput";
 import PlaybookSuggestions from "../components/PlaybookSuggestions";
+import PlaybookModificationCard from "../components/PlaybookModificationCard";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -51,6 +50,7 @@ export default function AiChat() {
   const [activeSessionId, setActiveSessionId] = useState(() => localStorage.getItem("active_session_id") || null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loadingSession, setLoadingSession] = useState(false);
+  const [isPreparingModification, setIsPreparingModification] = useState(false);
 
   useEffect(() => {
     const fetchCatalog = async () => {
@@ -268,7 +268,7 @@ export default function AiChat() {
     setLoadingSession(true);
     try {
       const session = await getSession(sessionId);
-      const loaded = (session.messages || []).map((msg, idx) => {
+      const loaded = (session.messages || []).map((msg) => {
         if (msg.role === "user") {
           return { role: "user", text: msg.content, time: msg.created_at || "Now" };
         }
@@ -332,6 +332,130 @@ export default function AiChat() {
     }
   };
 
+  const getModelEstimate = (modelId) => {
+    if (!modelId || modelId.includes("DeepSeek-R1")) return "30-60 seconds";
+    if (modelId.includes("gemma") || modelId.includes("Gemma")) return "10-20 seconds";
+    return "5-10 seconds";
+  };
+
+  const handleProposeModification = async (suggestion, modificationText) => {
+    const modModel = selectedModel;
+    const estimate = getModelEstimate(modModel);
+
+    setIsPreparingModification(true);
+
+    setMessages((prev) => [...prev, {
+      role: "ai",
+      text: `🔄 Preparing modification for "${suggestion.filename}" using ${modModel}...\n⏱ Estimated time: ${estimate}`,
+      time: "Now",
+      _isWorking: true,
+    }]);
+
+    try {
+      const result = await proposeModification(suggestion.filename, modificationText, modModel);
+
+      setMessages((prev) => {
+        const updated = [...prev];
+        for (let i = updated.length - 1; i >= 0; i--) {
+          if (updated[i]._isWorking) {
+            updated[i] = {
+              role: "ai",
+              text: "I've prepared the modification. Please review and approve it below:",
+              reasoning: null,
+              model: null,
+              playbook_suggestions: [],
+              modification_proposal: result,
+              time: "Now",
+            };
+            break;
+          }
+        }
+        return updated;
+      });
+    } catch (err) {
+      setMessages((prev) => [...prev, {
+        role: "ai",
+        text: `❌ Failed to prepare modification: ${err.message}`,
+        time: "Now",
+      }]);
+    } finally {
+      setIsPreparingModification(false);
+    }
+  };
+
+  const handleApproveModification = async (proposal) => {
+    const payload = {
+      original_name: proposal.original_name,
+      proposed_name: proposal.proposed_name,
+      modified_content: proposal.modified_content,
+      metadata: proposal.metadata,
+    };
+
+    setIsPreparingModification(true);
+
+    try {
+      const result = await approveModification(payload);
+      const filename = result.filename;
+      const metadata = proposal.metadata;
+
+      if (metadata && metadata.destructive) {
+        setPendingPlaybook({
+          filename: filename,
+          name: metadata.name || filename,
+          description: metadata.description || "",
+          tags: metadata.tags || [],
+          target_devices: metadata.target_devices || [],
+          severity: metadata.severity || "medium",
+          _isModified: true,
+        });
+      }
+
+      setMessages((prev) => {
+        const updated = [...prev];
+        for (let i = updated.length - 1; i >= 0; i--) {
+          if (updated[i].modification_proposal) {
+            updated[i] = {
+              ...updated[i],
+              _saved: true,
+              _savedFilename: filename,
+            };
+            break;
+          }
+        }
+        return updated;
+      });
+
+      setMessages((prev) => [...prev, {
+        role: "ai",
+        text: `✅ "${filename}" saved successfully! Would you like to execute it now?`,
+        _showExecutePrompt: true,
+        _executeFilename: filename,
+        time: "Now",
+      }]);
+    } catch (err) {
+      setMessages((prev) => [...prev, {
+        role: "ai",
+        text: `❌ Failed to save modification: ${err.message}`,
+        time: "Now",
+      }]);
+    } finally {
+      setIsPreparingModification(false);
+    }
+  };
+
+  const handleRejectModification = () => {
+    setMessages((prev) => [...prev, {
+      role: "ai",
+      text: "Modification cancelled.",
+      time: "Now",
+    }]);
+  };
+
+  const handleExecuteModified = (filename) => {
+    const name = filename.replace(/\.(yml|yaml)$/, "");
+    executePlaybook(name, filename);
+  };
+
   const sendMessage = async () => {
     if (!input.trim()) return;
     const userText = input.trim();
@@ -351,7 +475,9 @@ export default function AiChat() {
         try {
           const updatedSessions = await listSessions();
           setSessions(updatedSessions);
-        } catch (_) {}
+        } catch {
+          // Session refresh is best-effort
+        }
       }
 
       setMessages((prev) => {
@@ -506,7 +632,49 @@ export default function AiChat() {
 
                     {message.output && <ExpandableOutput output={message.output} />}
                     {message.playbook_suggestions && message.playbook_suggestions.length > 0 && (
-                      <PlaybookSuggestions suggestions={message.playbook_suggestions} onExecute={handleExecuteSuggestedPlaybook} />
+                      <PlaybookSuggestions
+                        suggestions={message.playbook_suggestions}
+                        onExecute={handleExecuteSuggestedPlaybook}
+                        onModify={(suggestion) => {
+                          const lastUserMsg = [...messages].reverse().find(m => m.role === "user");
+                          const modificationText = lastUserMsg?.text || `Modify ${suggestion.filename}`;
+                          handleProposeModification(suggestion, modificationText);
+                        }}
+                      />
+                    )}
+                    {message.modification_proposal && (
+                      <PlaybookModificationCard
+                        modification={message.modification_proposal}
+                        onApprove={() => handleApproveModification(message.modification_proposal)}
+                        onReject={handleRejectModification}
+                        onExecute={() => handleExecuteModified(message._savedFilename || message.modification_proposal.proposed_name)}
+                        isSaving={isPreparingModification}
+                        isSaved={message._saved}
+                      />
+                    )}
+                    {message._showExecutePrompt && message._executeFilename && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <button
+                          onClick={() => handleExecuteModified(message._executeFilename)}
+                          className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
+                        >
+                          <Play size={16} />
+                          Execute Now
+                        </button>
+                        <button
+                          onClick={() => {
+                            setMessages((prev) => {
+                              const updated = [...prev];
+                              const idx = updated.indexOf(message);
+                              if (idx !== -1) updated[idx] = { ...updated[idx], _showExecutePrompt: false };
+                              return updated;
+                            });
+                          }}
+                          className="flex items-center gap-2 rounded-lg border border-[#45475a] bg-[#313244] px-4 py-2 text-sm text-[#cdd6f4] transition-colors hover:bg-[#45475a]"
+                        >
+                          Not Now
+                        </button>
+                      </div>
                     )}
                   </div>
                 </div>
