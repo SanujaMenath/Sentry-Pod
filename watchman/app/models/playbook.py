@@ -33,6 +33,7 @@ class PlaybookSuggestion(BaseModel):
     severity: str
     target_devices: List[str]
     playbook_preview: str = ""
+    modification_potential: bool = False
 
 class PlaybookBlueprintResponse(BaseModel):
     id: str = Field(..., description="Unique configuration asset identifier")
@@ -73,3 +74,26 @@ class UpdatePlaybookRequest(BaseModel):
 
 class UpdatePlaybookStatusRequest(BaseModel):
     pipeline_status: str
+
+
+class ModifyProposeRequest(BaseModel):
+    playbook_name: str
+    modification: str
+    model: str = "Qwen/Qwen3.5-4B:featherless-ai"
+
+
+class ModifyProposeResponse(BaseModel):
+    original_name: str
+    proposed_name: str
+    original_content: str
+    modified_content: str
+    diff: str
+    metadata: dict
+    plain_explanation: str
+
+
+class ModifyApproveRequest(BaseModel):
+    original_name: str
+    proposed_name: str
+    modified_content: str
+    metadata: dict
