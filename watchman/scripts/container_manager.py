@@ -129,18 +129,54 @@ class SentryPodManager:
     #  Build
     # ------------------------------------------------------------------ #
 
+    _COMPOSE_BUILD_CONFIGS = {
+        "watchman": {
+            "context": "watchman",
+            "dockerfile": "Dockerfile",
+            "tag": "localhost/sentry-pod_watchman",
+        },
+        "syslog-ng": {
+            "context": "watchman",
+            "dockerfile": "Dockerfile.syslog-ng",
+            "tag": "localhost/sentry-pod_syslog-ng",
+        },
+        "command-center": {
+            "context": "frontend",
+            "dockerfile": "Dockerfile.prod",
+            "tag": "localhost/sentry-pod-command-center",
+        },
+    }
+
     def build(self, target: str = "all"):
         self._check_podman()
         if target == "all":
             print("Building all containers ...")
             self._build_ansible()
-            self._run_compose("build")
+            for svc in self.COMPOSE_SERVICES:
+                self._build_compose_service(svc)
             print("All containers built successfully!")
         elif target in self.COMPOSE_SERVICES:
-            self._run_compose("build", target)
+            self._build_compose_service(target)
             print(f"'{target}' built successfully!")
         elif target == "ansible":
             self._build_ansible()
+
+    def _build_compose_service(self, name: str):
+        cfg = self._COMPOSE_BUILD_CONFIGS.get(name)
+        if not cfg:
+            print(f"Error: Unknown service '{name}'")
+            sys.exit(1)
+        context = self.repo_root / cfg["context"]
+        dockerfile = context / cfg["dockerfile"]
+        if not dockerfile.exists():
+            print(f"Error: Dockerfile not found at {dockerfile}")
+            sys.exit(1)
+        tag = cfg["tag"]
+        print(f"Building '{name}' ({dockerfile.name}) ...")
+        subprocess.run(
+            ["podman", "build", "-f", str(dockerfile), "-t", tag, str(context)],
+            check=True,
+        )
 
     def _build_ansible(self):
         if not self.ansible_dockerfile.exists():
