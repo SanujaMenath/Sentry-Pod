@@ -39,8 +39,7 @@ export default function PlaybookManagement() {
     blueprints: []
   });
 
-  // Track if the page is still waiting to receive data from the database
-  const [loading, setLoading] = useState(true);
+  const [, setLoading] = useState(true);
 
   const [modalConfig, setModalConfig] = useState({ show: false, mode: "add", data: null });
   const [systemAlert, setSystemAlert] = useState(null);

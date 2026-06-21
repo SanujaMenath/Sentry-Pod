@@ -8,7 +8,7 @@ from datetime import datetime, timezone
 from typing import List, Dict, Optional
 
 from app.database import db
-from app.services.playbook_service import PLAYBOOKS_DIR, get_podman_command
+from app.services.execution_service import PLAYBOOKS_DIR, get_podman_command
 
 logger = logging.getLogger(__name__)
 

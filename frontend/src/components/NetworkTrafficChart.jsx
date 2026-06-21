@@ -18,7 +18,7 @@ export default function NetworkTrafficChart({ onRefresh, isRefreshing = false, r
       setLoading(true);
       const data = await fetchNetworkTrafficFor(opts);
       setChartData(data);
-    } catch (err) {
+    } catch {
       console.error("Failed to load telemetry data.");
     } finally {
       setLoading(false);

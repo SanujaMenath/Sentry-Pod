@@ -6,7 +6,7 @@ import { parseDiff, getDiffSummary } from '../utils/diffParser';
  * DiffViewer - Clean git-style diff viewer
  * Shows changes in context with proper formatting
  */
-export default function DiffViewer({ diffContent, compact = false, maxLines = null }) {
+export default function DiffViewer({ diffContent, maxLines = null }) {
   const diff = useMemo(() => parseDiff(diffContent), [diffContent]);
   const stats = useMemo(() => getDiffSummary(diff), [diff]);
 
