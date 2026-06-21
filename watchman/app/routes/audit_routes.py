@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List
 from ..database import db
 from app.core.dependencies import get_current_user
@@ -38,7 +38,7 @@ async def log_action(entry: AuditLogEntry, current_user: dict = Depends(get_curr
             "status": entry.status,
             "output": entry.output,
             "username": entry.username,
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
         }
         
         result = await audit_logs_collection.insert_one(audit_entry)
@@ -62,7 +62,7 @@ async def get_all_audit_logs(
 ):
     """Retrieve all audit logs"""
     try:
-        logs = await audit_logs_collection.find().sort("timestamp", -1).limit(limit).to_list(None)
+        logs = await audit_logs_collection.find().sort("timestamp", -1).limit(limit).to_list(limit)
         
         for log in logs:
             log["_id"] = str(log["_id"])
@@ -87,7 +87,7 @@ async def get_logs_by_user(
 ):
     """Retrieve audit logs for a specific user"""
     try:
-        logs = await audit_logs_collection.find({"username": username}).sort("timestamp", -1).limit(limit).to_list(None)
+        logs = await audit_logs_collection.find({"username": username}).sort("timestamp", -1).limit(limit).to_list(limit)
         
         for log in logs:
             log["_id"] = str(log["_id"])
@@ -141,7 +141,7 @@ async def get_logs_by_action(
 ):
     """Retrieve audit logs for a specific action"""
     try:
-        logs = await audit_logs_collection.find({"action_name": action_name}).sort("timestamp", -1).limit(limit).to_list(None)
+        logs = await audit_logs_collection.find({"action_name": action_name}).sort("timestamp", -1).limit(limit).to_list(limit)
         
         for log in logs:
             log["_id"] = str(log["_id"])

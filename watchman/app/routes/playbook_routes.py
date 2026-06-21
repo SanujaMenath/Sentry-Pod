@@ -2,7 +2,7 @@ import logging
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, status, Request, UploadFile, File, Form
 from fastapi.responses import StreamingResponse
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 
 logger = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ async def execute_playbook(request: PlaybookRequest):
                 "status": "success" if returncode == 0 else "failed",
                 "output": output,
                 "username": getattr(request, 'username', 'ChatConsole'),
-                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
             }
             await audit_col.insert_one(audit_entry)
         except Exception:
@@ -162,7 +162,7 @@ async def refresh_config_drift():
                 "output": output,
                 "username": "System",
                 "drift_count": drift_count,
-                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
             }
             await audit_col.insert_one(audit_entry)
         except Exception:
@@ -217,7 +217,7 @@ async def refresh_network_baselines():
                 "output": output,
                 "username": "System",
                 "baseline_count": len(devices),
-                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
             }
             await audit_col.insert_one(audit_entry)
         except Exception:
@@ -266,7 +266,7 @@ async def refresh_baseline_graph(current_user: dict = Depends(get_current_user))
                 "output": output,
                 "username": current_user["username"],
                 "host_count": host_count,
-                "timestamp": datetime.utcnow().isoformat() + "Z",
+                "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
             }
             await audit_col.insert_one(audit_entry)
         except Exception:
@@ -416,7 +416,7 @@ async def add_new_playbook(
             "severity": severity,
             "file_path": str(execution_service.PLAYBOOKS_DIR / saved_filename),
             "last_executed": "Never Executed",
-            "timestamp_created": datetime.utcnow().isoformat() + "Z"
+            "timestamp_created": datetime.now(timezone.utc).isoformat() + "Z"
         }
 
         result = await playbooks_col.insert_one(new_blueprint_doc)
@@ -478,7 +478,7 @@ async def update_playbook(playbook_id: str, request: UpdatePlaybookRequest):
                 catalog_service.update_catalog_entry(old_filename, catalog_updates)
 
         update_fields.pop("filename", None)
-        update_fields["last_modified"] = datetime.utcnow().isoformat() + "Z"
+        update_fields["last_modified"] = datetime.now(timezone.utc).isoformat() + "Z"
 
         await playbooks_col.update_one({"_id": mongo_id}, {"$set": update_fields})
 

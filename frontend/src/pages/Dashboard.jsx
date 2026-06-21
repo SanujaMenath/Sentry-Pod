@@ -1,18 +1,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard,
   Network,
   MessageSquare,
   ShieldAlert,
   Server,
   ClipboardList,
-  Users,
-  Settings,
-  Search,
-  Bell,
   CheckCircle2,
-  LogOut,
   AlertTriangle,
   X,
   Loader2,

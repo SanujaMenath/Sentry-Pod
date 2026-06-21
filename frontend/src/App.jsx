@@ -13,7 +13,6 @@ import NetworkDevices from "./pages/NetworkDevices";
 import AiChat from "./pages/AiChat";
 import StagingGate from "./pages/StagingGate";
 import Profile from "./pages/Profile";
-import { Network } from "lucide-react";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicRoute from "./routes/PublicRoute";
 import PlaybookManagement from "./pages/PlaybookManagement";

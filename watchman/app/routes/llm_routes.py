@@ -6,7 +6,7 @@ import httpx  # type: ignore
 import os
 import logging
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 
 # Import playbook matching utilities
@@ -169,7 +169,7 @@ async def save_conversation(session_id: str, messages: list):
     from app.database import conversations_collection
     await conversations_collection.update_one(
         {"_id": ObjectId(session_id)},
-        {"$set": {"messages": messages, "updated_at": datetime.utcnow()}}
+        {"$set": {"messages": messages, "updated_at": datetime.now(timezone.utc)}}
     )
 
 
@@ -239,8 +239,8 @@ async def chat(request: ChatRequest):
         result = await conversations_collection.insert_one({
             "title": title,
             "messages": [],
-            "created_at": datetime.utcnow(),
-            "updated_at": datetime.utcnow(),
+            "created_at": datetime.now(timezone.utc),
+            "updated_at": datetime.now(timezone.utc),
         })
         session_id = str(result.inserted_id)
         conversation = {"messages": []}
@@ -343,14 +343,14 @@ async def chat(request: ChatRequest):
             content = message_data.get("content", "")
 
             # --- Persist both messages to conversation ---
-            user_msg = {"role": "user", "content": request.prompt, "created_at": datetime.utcnow().isoformat()}
+            user_msg = {"role": "user", "content": request.prompt, "created_at": datetime.now(timezone.utc).isoformat()}
             assistant_msg = {
                 "role": "assistant",
                 "content": content,
                 "reasoning": reasoning,
                 "model": model,
                 "playbook_suggestions": [s.dict() if hasattr(s, 'dict') else s for s in suggestions] if suggestions else [],
-                "created_at": datetime.utcnow().isoformat(),
+                "created_at": datetime.now(timezone.utc).isoformat(),
             }
             updated_messages = history + [user_msg, assistant_msg]
             await save_conversation(session_id, updated_messages)
@@ -454,8 +454,8 @@ async def create_session(current_user: dict = Depends(get_current_user)):
     result = await conversations_collection.insert_one({
         "title": "New Chat",
         "messages": [],
-        "created_at": datetime.utcnow(),
-        "updated_at": datetime.utcnow(),
+        "created_at": datetime.now(timezone.utc),
+        "updated_at": datetime.now(timezone.utc),
     })
     
     return {
@@ -479,7 +479,7 @@ async def update_session(session_id: str, body: dict, current_user: dict = Depen
     
     result = await conversations_collection.update_one(
         {"_id": ObjectId(session_id)},
-        {"$set": {"title": title, "updated_at": datetime.utcnow()}}
+        {"$set": {"title": title, "updated_at": datetime.now(timezone.utc)}}
     )
     
     if result.matched_count == 0:
@@ -541,7 +541,7 @@ async def save_api_key(request: ApiKeyRequest):
                 "$set": {
                     "_id": "huggingface",
                     "key": request.api_key.strip(),
-                    "updated_at": datetime.utcnow(),
+                    "updated_at": datetime.now(timezone.utc),
                 }
             },
             upsert=True,
