@@ -20,7 +20,7 @@ from app.models.telemetry import (
     NetworkTerminalResponse,
     TrafficDataPoint,
 )
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 router = APIRouter(prefix="/api/network", tags=["Network Telemetry"])
 
@@ -662,7 +662,7 @@ async def add_network_device(device: NetworkDeviceCreate):
         "cpu": 0,
         "memory": 0,
         "online": False,
-        "created_at": datetime.utcnow(),
+        "created_at": datetime.now(timezone.utc),
     }
 
     await devices_collection.insert_one(new_device)
@@ -694,7 +694,7 @@ async def configure_network_device(device_id: str, request: DeviceConfigurationR
         "syslog_server": request.syslog_server,
         "ntp_server": request.ntp_server,
         "notes": request.notes,
-        "saved_at": datetime.utcnow(),
+        "saved_at": datetime.now(timezone.utc),
     }
     stored_configuration = dict(configuration)
 

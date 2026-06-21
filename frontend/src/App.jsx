@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import RootLayout from "./layouts/RootLayout";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 import HomePage from "./pages/Home";
 import Login from "./pages/Login";
@@ -12,7 +13,6 @@ import NetworkDevices from "./pages/NetworkDevices";
 import AiChat from "./pages/AiChat";
 import StagingGate from "./pages/StagingGate";
 import Profile from "./pages/Profile";
-import { Network } from "lucide-react";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicRoute from "./routes/PublicRoute";
 import PlaybookManagement from "./pages/PlaybookManagement";
@@ -24,6 +24,7 @@ import SetupWizard from "./pages/SetupWizard";
 function App() {
   return (
     <BrowserRouter>
+      <ErrorBoundary>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route
@@ -66,6 +67,7 @@ function App() {
           <Route path="/console" element={<Console />} />
         </Route>
       </Routes>
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }

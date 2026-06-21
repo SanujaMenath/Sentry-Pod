@@ -1,25 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  LayoutDashboard,
   Network,
   MessageSquare,
   ShieldAlert,
   Server,
   ClipboardList,
-  Users,
-  Settings,
-  Search,
-  Bell,
   CheckCircle2,
-  LogOut,
   AlertTriangle,
   X,
   Loader2,
   RefreshCw,
 } from "lucide-react";
 
-import logo from "../images/logo.png";
 import StatCard from "../components/StatCard";
 import DiffViewer from "../components/DiffViewer";
 import { getAllHostsDeviceCount } from "../services/inventoryService";

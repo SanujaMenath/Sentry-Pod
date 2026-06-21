@@ -3,7 +3,7 @@ from ..database import db
 from ..models.user import UserCreate, UserProfileUpdate, UserPasswordUpdate
 from bson import ObjectId 
 from fastapi import HTTPException, status
-from datetime import datetime
+from datetime import datetime, timezone
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 users_collection = db.get_collection("users")
@@ -29,7 +29,7 @@ async def create_new_user(user_data: UserCreate):
     user_dict["recent_activities"] = [
         {
         "event": "Account Created Successfully",
-        "timestamp": datetime.utcnow().isoformat() + "Z",  
+        "timestamp": datetime.now(timezone.utc).isoformat() + "Z",  
         "type": "info"
         }
     ]
@@ -67,7 +67,7 @@ async def update_user_profile(user_id: str, profile_data: UserProfileUpdate):
    
     new_activity = {
     "event": "Profile Information Updated",
-    "timestamp": datetime.utcnow().isoformat() + "Z",  # 🌟 Updated
+    "timestamp": datetime.now(timezone.utc).isoformat() + "Z",  # 🌟 Updated
     "type": "info"
     }
     await users_collection.update_one(
@@ -106,7 +106,7 @@ async def update_user_password(user_id: str, password_data: UserPasswordUpdate):
 
     new_activity = {
         "event": "Password Changed",
-        "timestamp": datetime.utcnow().isoformat() + "Z",  
+        "timestamp": datetime.now(timezone.utc).isoformat() + "Z",  
         "type": "security"
     }
     await users_collection.update_one(
