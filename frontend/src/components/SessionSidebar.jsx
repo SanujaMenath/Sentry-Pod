@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { MessageSquare, Plus, Trash2, ChevronLeft } from "lucide-react";
 
 function formatRelativeTime(dateStr) {
@@ -26,10 +26,16 @@ export default function SessionSidebar({
   isOpen,
   onToggle,
 }) {
+  const [deletingId, setDeletingId] = useState(null);
+
   const handleDelete = (e, sessionId) => {
     e.stopPropagation();
-    if (window.confirm("Are you sure you want to delete this session?")) {
+    if (deletingId === sessionId) {
       onDeleteSession(sessionId);
+      setDeletingId(null);
+    } else {
+      setDeletingId(sessionId);
+      setTimeout(() => setDeletingId(null), 3000);
     }
   };
 
@@ -95,8 +101,12 @@ export default function SessionSidebar({
                     </div>
                     <button
                       onClick={(e) => handleDelete(e, session.session_id)}
-                      className="shrink-0 rounded-lg p-1.5 text-slate-500 opacity-0 transition-all group-hover:opacity-100 hover:text-red-400 hover:opacity-100"
-                      title="Delete session"
+                      className={`shrink-0 rounded-lg p-1.5 transition-all ${
+                        deletingId === session.session_id
+                          ? "bg-red-500/20 text-red-400"
+                          : "text-slate-600 opacity-0 group-hover:opacity-100 hover:text-red-400 hover:opacity-100"
+                      }`}
+                      title={deletingId === session.session_id ? "Click again to confirm" : "Delete session"}
                     >
                       <Trash2 size={14} />
                     </button>

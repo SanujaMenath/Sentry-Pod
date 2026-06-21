@@ -39,8 +39,8 @@ const formatLogForDisplay = (log) => {
 
 export default function AuditLogs() {
   const [logs, setLogs] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [, setLoading] = useState(true);
+  const [, setError] = useState(null);
   const [showExport, setShowExport] = useState(false);
   const [selectedLog, setSelectedLog] = useState(null);
   const [loadingLogId, setLoadingLogId] = useState(null);

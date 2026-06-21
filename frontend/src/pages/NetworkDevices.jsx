@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Cable,
   Pencil,
@@ -13,12 +13,7 @@ import {
   X,
 } from "lucide-react";
 import AddDeviceModal from "../components/AddDeviceModal";
-import {
-  addNetworkDevice,
-  fetchNetworkDevices,
-  getNetworkTerminalSocketUrl,
-  saveDeviceConfiguration,
-} from "../services/networkService";
+import { addNetworkDevice, fetchNetworkDevices } from "../services/networkService";
 import PageHeader from "../components/PageHeader";
 import DeviceCard, { normalizeDevice } from "../components/DeviceCard";
 import TerminalDeviceModal from "../components/TerminalDeviceModal";
@@ -27,12 +22,6 @@ import UsageBar from "../components/UsageBar";
 import Cursor from "../components/Cursor";
 import ConfigSection from "../components/ConfigSection";
 import ConfigField from "../components/ConfigField";
-
-const getProgressColor = (value) => {
-  if (value >= 80) return "bg-rose-500";
-  if (value >= 55) return "bg-amber-500";
-  return "bg-blue-500";
-};
 
 export default function NetworkDevices() {
   const [devices, setDevices] = useState([]);
@@ -107,10 +96,4 @@ export default function NetworkDevices() {
   );
 }
 
-function getPrompt(device) {
-  if (device.type === "router") return "R1#";
-  if (device.type === "firewall") return "FW1#";
-  if (device.name?.startsWith("core")) return "CORE1#";
-  if (device.name?.startsWith("dist")) return "DIST1#";
-  return "SW1#";
-}
+

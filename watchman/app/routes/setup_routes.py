@@ -29,6 +29,34 @@ async def get_setup_status():
         )
 
 
+def _build_summary(payload: SetupPreviewRequest) -> dict:
+    total = (
+        len(payload.edge_routers)
+        + len(payload.core_switches)
+        + len(payload.distribution_switches)
+        + len(payload.access_switches)
+    )
+    return {
+        "total_devices": total,
+        "edge_routers": len(payload.edge_routers),
+        "core_switches": len(payload.core_switches),
+        "distribution_switches": len(payload.distribution_switches),
+        "hsrp_pairs": len(payload.hsrp_pairs),
+        "access_switches": len(payload.access_switches),
+    }
+
+
+async def _run_setup_pipeline(payload: SetupPreviewRequest):
+    current_ini = setup_service.read_current_ini()
+    generated_ini = setup_service.render_ini(payload)
+    diff_data = setup_service.compute_diff(current_ini, generated_ini)
+    warnings = setup_service._check_warnings(payload)
+    flush_plan = setup_service.get_flush_plan()
+    markdown = setup_service.generate_report_markdown(payload, diff_data, warnings, flush_plan)
+    report_path = setup_service.write_report(markdown)
+    return generated_ini, diff_data, warnings, flush_plan, markdown, report_path
+
+
 @router.post("/preview", response_model=SetupPreviewResponse)
 async def preview_setup(
     payload: SetupPreviewRequest,
@@ -37,36 +65,12 @@ async def preview_setup(
     Public endpoint — no auth required.
     """
     try:
-        current_ini = setup_service.read_current_ini()
-        generated_ini = setup_service.render_ini(payload)
-        diff_data = setup_service.compute_diff(current_ini, generated_ini)
-        diff = SetupDiff(**diff_data)
-        warnings = setup_service._check_warnings(payload)
-        flush_plan = setup_service.get_flush_plan()
-        markdown = setup_service.generate_report_markdown(payload, diff_data, warnings, flush_plan)
-        report_path = setup_service.write_report(markdown)
-
-        total = (
-            len(payload.edge_routers)
-            + len(payload.core_switches)
-            + len(payload.distribution_switches)
-            + len(payload.access_switches)
-        )
-
-        summary = {
-            "total_devices": total,
-            "edge_routers": len(payload.edge_routers),
-            "core_switches": len(payload.core_switches),
-            "distribution_switches": len(payload.distribution_switches),
-            "hsrp_pairs": len(payload.hsrp_pairs),
-            "access_switches": len(payload.access_switches),
-        }
-
+        generated_ini, diff_data, warnings, flush_plan, markdown, report_path = await _run_setup_pipeline(payload)
         return SetupPreviewResponse(
             status="preview",
-            summary=summary,
+            summary=_build_summary(payload),
             generated_ini=generated_ini,
-            diff=diff,
+            diff=SetupDiff(**diff_data),
             warnings=warnings,
             flush_plan=flush_plan,
             report_path=str(report_path),
@@ -89,12 +93,7 @@ async def apply_setup(
     Pass ?dry_run=true to validate without side effects.
     """
     try:
-        generated_ini = setup_service.render_ini(payload)
-        diff_data = setup_service.compute_diff(setup_service.read_current_ini(), generated_ini)
-        warnings = setup_service._check_warnings(payload)
-        flush_plan = setup_service.get_flush_plan()
-        markdown = setup_service.generate_report_markdown(payload, diff_data, warnings, flush_plan)
-        report_path = setup_service.write_report(markdown)
+        generated_ini, diff_data, warnings, flush_plan, markdown, report_path = await _run_setup_pipeline(payload)
 
         flushed_collections = []
         flushed_files = []
@@ -106,12 +105,7 @@ async def apply_setup(
             if payload.flush_disk:
                 flushed_files = setup_service.flush_disk_artifacts()
 
-        total = (
-            len(payload.edge_routers)
-            + len(payload.core_switches)
-            + len(payload.distribution_switches)
-            + len(payload.access_switches)
-        )
+        total = _build_summary(payload)["total_devices"]
 
         status_str = "dry_run" if dry_run else "success"
         message = (

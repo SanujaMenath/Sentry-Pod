@@ -13,6 +13,16 @@ import PlaybookModificationCard from "../components/PlaybookModificationCard";
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
+const GREETING = "Hello! I'm your AI Network Assistant. I can help you configure devices, analyze logs, troubleshoot issues, and answer questions about your network. What would you like to do today?";
+const THINKING = "Thinking...";
+const ANONYMOUS_USER = "Anonymous User";
+const QUICK_PROMPTS = ["High CPU devices", "Configure VLAN", "Security analysis"];
+const MODEL_ESTIMATES = {
+  "deepseek-ai/DeepSeek-R1:novita": "30-60 seconds",
+  "google/gemma-4-31B-it:novita": "10-20 seconds",
+};
+const DEFAULT_ESTIMATE = "5-10 seconds";
+
 const normalizeAssistantText = (rawText) => {
   if (!rawText) return "";
 
@@ -34,11 +44,7 @@ const normalizeAssistantText = (rawText) => {
 
 export default function AiChat() {
   const [messages, setMessages] = useState([
-    {
-      role: "ai",
-      text: "Hello! I'm your AI Network Assistant. I can help you configure devices, analyze logs, troubleshoot issues, and answer questions about your network. What would you like to do today?",
-      time: "10:48:11 PM",
-    },
+    { role: "ai", text: GREETING, time: "Now" },
   ]);
   const [input, setInput] = useState("");
   const [executingAction, setExecutingAction] = useState(null);
@@ -111,7 +117,7 @@ export default function AiChat() {
     { id: "deepseek-ai/DeepSeek-R1:novita", label: "DeepSeek R1 (Best reasoning)" },
     { id: "google/gemma-4-31B-it:novita", label: "Gemma 4 31B (Faster chat)" },
     { id: "Qwen/Qwen3.5-4B", label: "Qwen 3.5-4B (Balanced)" },
-    { id: "meta-llama/Llama-3.1-8B-Instruct:novita", label: "Llama-3.1-8B-Instruct(Fastest)" },
+    { id: "meta-llama/Llama-3.1-8B-Instruct:novita", label: "Llama-3.1-8B-Instruct (Fastest)" },
   ];
 
   const quickActions = [
@@ -150,7 +156,7 @@ export default function AiChat() {
                 const updated = [...prevMessages];
                 const lastAIMessage = updated[updated.length - 1];
                 if (lastAIMessage && lastAIMessage.role === "ai") {
-                  lastAIMessage.output = outputLines.join("\n");
+                  updated[updated.length - 1] = { ...lastAIMessage, output: outputLines.join("\n") };
                 }
                 return updated;
               });
@@ -175,7 +181,7 @@ export default function AiChat() {
           const updated = [...prevMessages];
           const lastAIMessage = updated[updated.length - 1];
           if (lastAIMessage && lastAIMessage.role === "ai") {
-            lastAIMessage.text = finalStatus === "success" ? `✅ ${actionName} completed successfully!` : `❌ ${actionName} failed!`;
+            updated[updated.length - 1] = { ...lastAIMessage, text: finalStatus === "success" ? `✅ ${actionName} completed successfully!` : `❌ ${actionName} failed!` };
           }
           return updated;
         });
@@ -187,7 +193,7 @@ export default function AiChat() {
         if (finalStatus !== "pending") {
           clearInterval(checkCompletion);
 
-          const username = localStorage.getItem("username") || "Anonymous User";
+          const username = localStorage.getItem("username") || ANONYMOUS_USER;
           logAction(actionName, playbookName, finalStatus, outputLines.join("\n"), username).catch((err) =>
             console.error("Failed to log action:", err)
           );
@@ -196,7 +202,7 @@ export default function AiChat() {
             const updated = [...prevMessages];
             const lastAIMessage = updated[updated.length - 1];
             if (lastAIMessage && lastAIMessage.role === "ai") {
-              lastAIMessage.text = finalStatus === "success" ? `✅ ${actionName} completed successfully!` : `❌ ${actionName} failed!`;
+              updated[updated.length - 1] = { ...lastAIMessage, text: finalStatus === "success" ? `✅ ${actionName} completed successfully!` : `❌ ${actionName} failed!` };
             }
             return updated;
           });
@@ -205,7 +211,7 @@ export default function AiChat() {
         }
       }, 100);
     } catch (error) {
-      const username = localStorage.getItem("username") || "Anonymous User";
+      const username = localStorage.getItem("username") || ANONYMOUS_USER;
       logAction(actionName, playbookName, "error", error.message, username).catch((err) => console.error("Failed to log action:", err));
 
       setMessages((prevMessages) => [
@@ -281,7 +287,7 @@ export default function AiChat() {
           time: msg.created_at || "Now",
         };
       });
-      setMessages(loaded.length > 0 ? loaded : [{ role: "ai", text: "Hello! I'm your AI Network Assistant. I can help you configure devices, analyze logs, troubleshoot issues, and answer questions about your network. What would you like to do today?", time: "Now" }]);
+      setMessages(loaded.length > 0 ? loaded : [{ role: "ai", text: GREETING, time: "Now" }]);
       setActiveSessionId(sessionId);
       localStorage.setItem("active_session_id", sessionId);
     } catch (err) {
@@ -301,9 +307,7 @@ export default function AiChat() {
       const newSession = await createSession();
       setActiveSessionId(newSession.session_id);
       localStorage.setItem("active_session_id", newSession.session_id);
-      setMessages([
-        { role: "ai", text: "Hello! I'm your AI Network Assistant. I can help you configure devices, analyze logs, troubleshoot issues, and answer questions about your network. What would you like to do today?", time: "Now" },
-      ]);
+      setMessages([{ role: "ai", text: GREETING, time: "Now" }]);
       setSidebarOpen(false);
       // Refresh session list
       const updatedSessions = await listSessions();
@@ -329,15 +333,10 @@ export default function AiChat() {
       }
     } catch (err) {
       console.error("Failed to delete session:", err);
-      alert("Failed to delete session: " + (err.response?.data?.detail || err.message));
     }
   };
 
-  const getModelEstimate = (modelId) => {
-    if (!modelId || modelId.includes("DeepSeek-R1")) return "30-60 seconds";
-    if (modelId.includes("gemma") || modelId.includes("Gemma")) return "10-20 seconds";
-    return "5-10 seconds";
-  };
+  const getModelEstimate = (modelId) => MODEL_ESTIMATES[modelId] || DEFAULT_ESTIMATE;
 
   const handleProposeModification = async (suggestion, modificationText) => {
     const modModel = selectedModel;
@@ -461,7 +460,7 @@ export default function AiChat() {
     if (!input.trim()) return;
     const userText = input.trim();
 
-    setMessages((prev) => [...prev, { role: "user", text: userText, time: "Now" }, { role: "ai", text: "Thinking...", time: "Now" }]);
+    setMessages((prev) => [...prev, { role: "user", text: userText, time: "Now" }, { role: "ai", text: THINKING, time: "Now" }]);
     setInput("");
 
     try {
@@ -484,7 +483,7 @@ export default function AiChat() {
       setMessages((prev) => {
         const updated = [...prev];
         for (let i = updated.length - 1; i >= 0; i--) {
-          if (updated[i].role === "ai" && updated[i].text === "Thinking...") {
+          if (updated[i].role === "ai" && updated[i].text === THINKING) {
             updated[i] = {
               role: "ai",
               text: cleanText,
@@ -502,7 +501,7 @@ export default function AiChat() {
       setMessages((prev) => {
         const updated = [...prev];
         for (let i = updated.length - 1; i >= 0; i--) {
-          if (updated[i].role === "ai" && updated[i].text === "Thinking...") {
+          if (updated[i].role === "ai" && updated[i].text === THINKING) {
             updated[i] = { role: "ai", text: `❌ Error: ${err.message}`, time: "Now" };
             break;
           }
@@ -700,7 +699,7 @@ export default function AiChat() {
             </div>
 
             <div className="mb-5 flex flex-wrap gap-3">
-              {["High CPU devices", "Configure VLAN", "Security analysis"].map((prompt) => (
+              {QUICK_PROMPTS.map((prompt) => (
                 <button
                   key={prompt}
                   onClick={() => setInput(prompt)}

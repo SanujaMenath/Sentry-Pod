@@ -1,6 +1,6 @@
 # Sentry-Pod
 
-Containerized NMS for Cisco-centric networks. FastAPI backend + two React/Vite UIs + MongoDB + Ansible in Podman.
+Containerized NMS for Cisco-centric networks. FastAPI backend + React/Vite UI + MongoDB + Ansible in Podman.
 
 ## Services
 
@@ -8,8 +8,7 @@ Containerized NMS for Cisco-centric networks. FastAPI backend + two React/Vite U
 |---|---|---|---|---|
 | vault | `vault/` | MongoDB | 27017 | Data in `vault-data` volume |
 | watchman | `watchman/` | FastAPI + motor (async MongoDB) | 8000 | Main backend |
-| command-center | `command-center/` | React 19 + Vite + Tailwind, nginx-served | 3000 | Production UI build |
-| frontend | `frontend/` | React 19 + Vite + Tailwind | 5173 (dev) | Dev-mode UI |
+| frontend | `frontend/` | React 19 + Vite + Tailwind | 5173 (dev), 3000 (prod/nginx) | Single UI; prod via `Dockerfile.prod` |
 
 ## Key commands
 
@@ -21,16 +20,14 @@ podman-compose up
 uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 # cd watchman first
 
-# Frontend dev servers
+# Frontend dev server
 cd frontend && npm run dev    # port 5173
-cd command-center && npm run dev  # port 5174
 
-# Lint frontends
+# Lint frontend
 cd frontend && npm run lint
-cd command-center && npm run lint
 
-# Build frontends
-npm run build   # either frontend/
+# Build frontend
+cd frontend && npm run build
 
 # Ansible container management (from repo root)
 python watchman/scripts/container_manager.py build   # build sentry-ansible image
@@ -48,9 +45,7 @@ python watchman/scripts/smoke_test.py --frontend-only # frontend only
 ## Architecture notes
 
 - **No test framework** detected in any service.
-- `brain/`, `deployments/` dirs are empty placeholders.
-- `watchman/app/route/` and `watchman/app/service/` are stale empties; actual routes are in `routes/`, services in `services/`.
-- The `frontend` dir is for dev; `command-center` is the same app but built for production (nginx). Both are independently runnable.
+- `frontend/` is the single canonical UI, serving both dev (Vite) and production (nginx via `Dockerfile.prod`).
 - `NetworkDevices.jsx` exists at repo root (legacy).
 - `.env` files contain hardcoded MongoDB credentials (`Admin123`). Not for prod use.
 - `HUGGINGFACE_API_KEY` env var required for LLM chat. Can also be set via the UI's API key management endpoints.
@@ -81,42 +76,28 @@ HUGGINGFACE_API_KEY=<hf_token>
 - `host_key_checking = False` in ansible.cfg.
 - Add new playbooks: write `.yml` in `playbooks/`, add entry in `catalog.json`.
 
-## TODO: Fix hardcoded API URLs in frontend
+## Fixed during Phase 2 — Hardcoded API URLs
 
-**9 files, 22 locations** hardcode `http://localhost:8000` / `http://127.0.0.1:8000` instead of using `VITE_API_BASE_URL` or the centralized `api.js` axios instance.
+All frontend API calls now use `import.meta.env.VITE_API_BASE_URL` (with fallback). Details:
 
-**How to fix each file:**
-
-1. **Services** (`auditService.js`, `userService.js`): Replace `axios.create({baseURL: 'http://localhost:8000'})` with `import api from './api'` and use `api.get/post` calls (the centralized instance already uses `VITE_API_BASE_URL`).
-
-2. **Raw `fetch()` calls** (Dashboard.jsx, DriftReports.jsx, DriftReportDetail.jsx, ApiKeyModal.jsx): Add at top of file:
-   ```js
-   const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
-   ```
-   Then replace `fetch("http://127.0.0.1:8000/...")` with `` fetch(`${API_BASE}/...`) ``.
-   
-   For Dashboard.jsx specifically, the 9 fetch calls should be migrated to use the imported `api` axios instance where possible.
-
-3. **SSE streams** (AiChat.jsx line 270: `EventSource(...)`): Pass the env-var-based URL instead of hardcoded. Axios doesn't support SSE, so use the `API_BASE` constant approach.
-
-4. **llmService.js**: Replace hardcoded URL with `import.meta.env.VITE_API_BASE_URL`.
-
-**Files involved:**
-| File | Lines | Approach |
-|---|---|---|
-| `frontend/src/services/auditService.js` | 3 | Use `api` import |
-| `frontend/src/services/userService.js` | 3 | Use `api` import |
-| `frontend/src/services/llmService.js` | 2 | Use `API_BASE` constant |
-| `frontend/src/pages/Dashboard.jsx` | 83,97,111,127,139,153,172,185,207 | Use `api` import |
-| `frontend/src/pages/AiChat.jsx` | 196,270 | Use `API_BASE` constant |
-| `frontend/src/pages/DriftReports.jsx` | 13 | Use `API_BASE` constant |
-| `frontend/src/pages/DriftReportDetail.jsx` | 18 | Use `API_BASE` constant |
-| `frontend/src/components/ApiKeyModal.jsx` | 18,43,77,109 | Use `API_BASE` constant |
+- **`auditService.js`**, **`userService.js`**: Already used centralized `api` axios instance.
+- **`llmService.js`**, **`Dashboard.jsx`**, **`AiChat.jsx`**, **`DriftReports.jsx`**, **`DriftReportDetail.jsx`**: All fetch calls use `${API_BASE}` where `API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://...fallback...'`.
+- **`SetupWizard.jsx`**: Inline fetch calls use `import.meta.env.VITE_API_BASE_URL || "http://localhost:8000"`.
+- **`ApiKeyModal.jsx`**: Fixed bug — fallback was literal `'${API_BASE}'` string, changed to proper `'http://localhost:8000'`.
+- **`networkService.js`**: Uses `api` instance and `import.meta.env.VITE_API_BASE_URL` for WebSocket URLs.
+- **`api.js`** (central axios): Already uses `import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000'`.
 
 ## Fixed during audit
 
 - **`frontend/package.json`**: Added `eslint-plugin-react@^7.37.5` to `devDependencies` (was missing, broke `npm run lint`).
 - **`podman-compose.yaml`**: Renamed `DATABASE_URL` → `MONGO_URI` to match what `database.py` reads; changed DB name from `sentry_nms` → `sentry_pod_db` to match the code.
+
+## Phase 1 optimizations (completed)
+
+- **Merged `command-center/` into `frontend/`**: Removed ~80 duplicated source files (~380KB). `command-center/` directory deleted. Frontend now serves both dev and production (via `Dockerfile.prod` + `nginx.conf`).
+- **Cherry-picked improvements**: SessionSidebar double-click-to-confirm delete UX; removed `alert()` dialog in AiChat (uses `console.error` instead).
+- **Removed malformed playbook**: `xx.yml` and its catalog entry deleted.
+- **Updated `podman-compose.yaml`**: `command-center` service replaced by `frontend` service pointing at `frontend/Dockerfile.prod`.
 
 ## Auth: MongoDB connection
 

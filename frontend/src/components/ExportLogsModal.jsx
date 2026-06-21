@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { X, Calendar, FileText, FileJson } from 'lucide-react';
 
-const filterOptions = ['All Logs', 'Configuration Changes', 'Authentication Events', 'Alerts & Warnings', 'System Events'];
-
 export default function ExportLogsModal({ onClose }) {
   const [format, setFormat] = useState('CSV');
-  const [activeFilter, setActiveFilter] = useState('All Logs');
+  const [activeFilter] = useState('All Logs');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
 

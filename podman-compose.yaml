@@ -36,18 +36,16 @@ services:
       - ./watchman/scripts/syslog_listener.sh:/usr/local/bin/syslog_listener.sh${VOLUME_OPTS}
       - ./watchman/playbooks/syslog/:/var/log/syslog/${VOLUME_OPTS}
 
-  command-center:
+  frontend:
     build:
-      context: .
-      dockerfile: command-center/Dockerfile.prod
-    image: localhost/fresh-command-center
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    image: localhost/sentry-pod-frontend
     restart: always
     depends_on:
       - watchman
     ports:
       - "3000:80"
-    environment:
-      - REACT_APP_API_URL=http://localhost:3000
 
 volumes:
   vault-data:

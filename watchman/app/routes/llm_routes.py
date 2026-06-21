@@ -11,7 +11,7 @@ from pathlib import Path
 
 # Import playbook matching utilities
 from . import playbook_routes
-import app.services.playbook_service as playbook_service
+import app.services.catalog_service as catalog_service
 from app.core.dependencies import get_current_user
 
 logger = logging.getLogger(__name__)
@@ -203,7 +203,7 @@ async def chat(request: ChatRequest):
     model = request.model if request.model in SUPPORTED_MODELS else "deepseek-ai/DeepSeek-R1:novita"
 
     # Find playbook suggestions
-    suggestions = playbook_service.find_playbook_suggestions(request.prompt, top_k=3)
+    suggestions = catalog_service.find_playbook_suggestions(request.prompt, top_k=3)
 
     # Build system prompt with playbook suggestions
     system_prompt = SYSTEM_PROMPT_BASE

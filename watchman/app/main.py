@@ -6,7 +6,7 @@ from app.routes import auth_routes
 from app.routes import playbook_routes
 from app.routes import audit_routes
 from app.routes import llm_routes
-from app.routes import network_routes
+from app.routes import telemetry_routes, device_routes, terminal_routes
 from app.routes import syslog_routes
 from app.routes import console_routes
 from app.routes import topology_routes
@@ -28,7 +28,9 @@ app.include_router(auth_routes.router)
 app.include_router(playbook_routes.router)
 app.include_router(audit_routes.router)
 app.include_router(llm_routes.router)
-app.include_router(network_routes.router)
+app.include_router(telemetry_routes.router)
+app.include_router(device_routes.router)
+app.include_router(terminal_routes.router)
 app.include_router(syslog_routes.router)
 app.include_router(console_routes.router)
 app.include_router(topology_routes.router)
