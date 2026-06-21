@@ -1,7 +1,7 @@
 import React from "react";
-import { Zap, Play } from "lucide-react";
+import { Zap, Play, Edit3 } from "lucide-react";
 
-const PlaybookSuggestions = ({ suggestions, onExecute }) => {
+const PlaybookSuggestions = ({ suggestions, onExecute, onModify }) => {
   if (!suggestions || suggestions.length === 0) return null;
 
   return (
@@ -16,7 +16,7 @@ const PlaybookSuggestions = ({ suggestions, onExecute }) => {
             key={suggestion.filename}
             className="flex items-start justify-between rounded-lg border border-[#45475a]/50 bg-[#1e1e2e] p-3"
           >
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <h4 className="mb-1 text-sm font-semibold text-[#cdd6f4]">{suggestion.name}</h4>
               <p className="mb-2 text-xs text-[#bac2de]">{suggestion.description}</p>
               {suggestion.playbook_preview && (
@@ -31,13 +31,24 @@ const PlaybookSuggestions = ({ suggestions, onExecute }) => {
               </div>
               <p className="mt-2 text-xs text-[#6c7086]">Match: {suggestion.reason}</p>
             </div>
-            <button
-              onClick={() => onExecute(suggestion)}
-              className="ml-3 flex items-center gap-2 whitespace-nowrap rounded-lg border border-blue-600/50 bg-blue-600/20 px-3 py-2 text-xs text-blue-300 transition-colors hover:bg-blue-600/30"
-            >
-              <Play size={14} />
-              <span>Run</span>
-            </button>
+            <div className="ml-3 flex shrink-0 flex-col gap-2">
+              <button
+                onClick={() => onExecute(suggestion)}
+                className="flex items-center gap-2 whitespace-nowrap rounded-lg border border-blue-600/50 bg-blue-600/20 px-3 py-2 text-xs text-blue-300 transition-colors hover:bg-blue-600/30"
+              >
+                <Play size={14} />
+                <span>Run</span>
+              </button>
+              {onModify && suggestion.modification_potential && (
+                <button
+                  onClick={() => onModify(suggestion)}
+                  className="flex items-center gap-2 whitespace-nowrap rounded-lg border border-violet-600/50 bg-violet-600/20 px-3 py-2 text-xs text-violet-300 transition-colors hover:bg-violet-600/30"
+                >
+                  <Edit3 size={14} />
+                  <span>Modify</span>
+                </button>
+              )}
+            </div>
           </div>
         ))}
       </div>

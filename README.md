@@ -51,10 +51,10 @@ Containerized Network Management System for Cisco-centric environments. Uses Int
      └──────────────────┘    │
                              │
                ┌─────────────▼──────────────┐
-               │   MongoDB Atlas (cloud)     │
-               │   sentrypod.n5boezy.net     │
-               │   users, devices, sessions  │
-               └─────────────────────────────┘
+               │   MongoDB Atlas (cloud)    │
+               │   sentrypod.n5boezy.net    │
+               │   users, devices, sessions │
+               └────────────────────────────┘
 ```
 
 ## Tech Stack
@@ -106,10 +106,17 @@ sentry-pod/
 │   └── pyproject.toml               # Ruff config
 │
 ├── command-center/              # Production React UI (nginx)
-│   └── .prettierrc               # Prettier config
+│   ├── Dockerfile.prod           # Multi-stage build from frontend/
+│   ├── nginx.conf                # nginx production config
+│   ├── package.json
+│   ├── src/
+│   └── vite.config.js
 │
-├── frontend/                    # Dev-mode React UI
-│   └── .prettierrc               # Prettier config
+├── frontend/                    # Dev-mode React UI (single source of truth)
+│   ├── package.json
+│   ├── src/
+│   ├── vite.config.js
+│   └── eslint.config.js
 │
 ├── vault/                       # MongoDB data (empty, volume-mounted)
 │
@@ -166,8 +173,6 @@ python watchman/scripts/container_manager.py status
 
 # After code changes, rebuild and restart:
 #   python watchman/scripts/container_manager.py build all
-#   python watchman/scripts/container_manager.py down
-#   python watchman/scripts/container_manager.py up
 ```
 
 The UI is available at **http://localhost:3000** (command-center) or **http://localhost:5173** (frontend dev mode).
@@ -195,8 +200,9 @@ The UI is available at **http://localhost:3000** (command-center) or **http://lo
 
 ```bash
 # Build
-python watchman/scripts/container_manager.py build all       # all images
-python watchman/scripts/container_manager.py build watchman  # single service
+python watchman/scripts/container_manager.py build all             # all images
+python watchman/scripts/container_manager.py build watchman        # single service
+python watchman/scripts/container_manager.py build command-center  # frontend UI only
 
 # Stack lifecycle
 python watchman/scripts/container_manager.py up     # start all services
@@ -375,14 +381,13 @@ cd command-center && npm run lint
 | `podman-compose: command not found` | Run `pip install podman-compose` |
 | `sentry-ansible image not found` | Run `python container_manager.py build ansible` |
 | Playbook execution fails with `localhost` registry pull error | Run `python container_manager.py build all` to regenerate `sentry-ansible.tar` and bake it into watchman |
-| White screen on `/ai-chat` | Rebuild the frontend container (`build command-center`) or rebuild the `dist/` manually — missing component imports from refactor are now fixed in source |
+| White screen on `/ai-chat` | Rebuild the frontend container: `python container_manager.py build command-center` |
 | Live syslog not showing in frontend dev | Ensure `podman-compose up syslog-ng` is running alongside the uvicorn backend |
 | `npm run lint` crashes | Ensure `eslint-plugin-react` is in `devDependencies` (already fixed after health check) |
 | `playbook not found` | Check the file exists in `watchman/playbooks/` |
 | `MongoDB connection refused` | Ensure Atlas credentials in `watchman/.env` are correct, or run vault locally and switch auth (see `AGENTS.md`) |
 | `Login returns 401 Invalid credentials` | User may not exist in Atlas. Create via the UI sign-up or `curl -X POST ... /users/` |
 | `Short-name errors in build` | Podman 5.8.2+ needs fully-qualified names. Use `docker.io/library/...` in `FROM` lines |
-| `COPY dist: no items matching glob` | Ensure `dist/` is not listed in `.dockerignore` |
 | Playbook SSH connection fails | Verify credentials in `hosts.ini` and network reachability |
 | AI chat returns errors | Set `HUGGINGFACE_API_KEY` in `.env` or via the UI |
 | SELinux volume mount errors (Linux) | Ensure `:Z` flag is present on volume mounts in compose file |

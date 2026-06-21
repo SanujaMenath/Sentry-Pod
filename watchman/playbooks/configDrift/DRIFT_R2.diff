@@ -1,12 +1,10 @@
 --- before
 +++ after
-@@ -1,10 +1,12 @@
+@@ -1,10 +1,10 @@
  Building configuration...
  
 -Current configuration : 5857 bytes
-+Current configuration : 5951 bytes
-+!
-+! Last configuration change at 16:58:48 SLST Wed Jun 10 2026 by admin
++Current configuration : 5879 bytes
  !
  version 15.2
  service timestamps debug datetime msec
@@ -15,7 +13,7 @@
  !
  hostname R2
  !
-@@ -100,6 +102,7 @@
+@@ -100,6 +100,7 @@
  ip route 192.168.8.101 255.255.255.255 FastEthernet1/0
  !
  logging trap notifications
