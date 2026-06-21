@@ -8,7 +8,7 @@ Containerized NMS for Cisco-centric networks. FastAPI backend + React/Vite UI + 
 |---|---|---|---|---|
 | vault | `vault/` | MongoDB | 27017 | Data in `vault-data` volume |
 | watchman | `watchman/` | FastAPI + motor (async MongoDB) | 8000 | Main backend |
-| frontend | `frontend/` | React 19 + Vite + Tailwind | 5173 (dev), 3000 (prod/nginx) | Single UI; prod via `Dockerfile.prod` |
+| command-center | `frontend/` | React 19 + Vite + Tailwind | 5173 (dev), 3000 (prod/nginx) | Production compose service; code in `frontend/`; dev via `npm run dev` |
 
 ## Key commands
 
@@ -97,7 +97,7 @@ All frontend API calls now use `import.meta.env.VITE_API_BASE_URL` (with fallbac
 - **Merged `command-center/` into `frontend/`**: Removed ~80 duplicated source files (~380KB). `command-center/` directory deleted. Frontend now serves both dev and production (via `Dockerfile.prod` + `nginx.conf`).
 - **Cherry-picked improvements**: SessionSidebar double-click-to-confirm delete UX; removed `alert()` dialog in AiChat (uses `console.error` instead).
 - **Removed malformed playbook**: `xx.yml` and its catalog entry deleted.
-- **Updated `podman-compose.yaml`**: `command-center` service replaced by `frontend` service pointing at `frontend/Dockerfile.prod`.
+- **Updated `podman-compose.yaml`**: renamed `frontend` service back to `command-center`, sourcing build from `frontend/Dockerfile.prod`.
 
 ## Auth: MongoDB connection
 

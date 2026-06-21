@@ -36,11 +36,11 @@ services:
       - ./watchman/scripts/syslog_listener.sh:/usr/local/bin/syslog_listener.sh${VOLUME_OPTS}
       - ./watchman/playbooks/syslog/:/var/log/syslog/${VOLUME_OPTS}
 
-  frontend:
+  command-center:
     build:
       context: ./frontend
       dockerfile: Dockerfile.prod
-    image: localhost/sentry-pod-frontend
+    image: localhost/sentry-pod-command-center
     restart: always
     depends_on:
       - watchman
