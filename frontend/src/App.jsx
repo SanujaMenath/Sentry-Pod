@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import RootLayout from "./layouts/RootLayout";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 import HomePage from "./pages/Home";
 import Login from "./pages/Login";
@@ -24,6 +25,7 @@ import SetupWizard from "./pages/SetupWizard";
 function App() {
   return (
     <BrowserRouter>
+      <ErrorBoundary>
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route
@@ -66,6 +68,7 @@ function App() {
           <Route path="/console" element={<Console />} />
         </Route>
       </Routes>
+      </ErrorBoundary>
     </BrowserRouter>
   );
 }
