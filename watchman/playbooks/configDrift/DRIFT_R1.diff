@@ -1,12 +1,10 @@
 --- before
 +++ after
-@@ -1,10 +1,12 @@
+@@ -1,10 +1,10 @@
  Building configuration...
  
 -Current configuration : 5802 bytes
-+Current configuration : 5896 bytes
-+!
-+! Last configuration change at 16:58:44 SLST Wed Jun 10 2026 by admin
++Current configuration : 5824 bytes
  !
  version 15.2
  service timestamps debug datetime msec
@@ -15,7 +13,7 @@
  !
  hostname R1
  !
-@@ -100,6 +102,7 @@
+@@ -100,6 +100,7 @@
  no ip http secure-server
  !
  logging trap notifications

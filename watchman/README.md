@@ -66,12 +66,23 @@ Watchman (Backend)
 │   ├── routes/              # FastAPI endpoints
 │   │   ├── playbook_routes.py
 │   │   ├── llm_routes.py
-│   │   └── audit_routes.py
+│   │   ├── auth_routes.py
+│   │   ├── user_routes.py
+│   │   ├── network_routes.py
+│   │   ├── audit_routes.py
+│   │   ├── syslog_routes.py
+│   │   ├── topology_routes.py
+│   │   ├── console_routes.py
+│   │   └── setup_routes.py
 │   ├── services/            # Business logic
-│   │   ├── playbook_service.py    # Podman integration ⭐
-│   │   └── llm_service.py
+│   │   ├── playbook_service.py    # Podman integration
+│   │   ├── auth_service.py
+│   │   ├── user_service.py
+│   │   ├── topology_service.py
+│   │   └── setup_service.py
 │   ├── models/              # Pydantic models
-│   └── database.py          # SQLite operations
+│   ├── core/                # Config, security, dependencies
+│   └── database.py          # MongoDB (motor) connection
 ├── playbooks/               # Ansible playbooks
 │   ├── get_facts.yml
 │   ├── catalog.json
@@ -82,17 +93,17 @@ Watchman (Backend)
 │   ├── run_playbook.bat      # Windows wrapper
 │   └── ...
 ├── Dockerfile               # FastAPI backend container
-├── Dockerfile.ansible       # Ansible runtime container ⭐
+├── Dockerfile.ansible       # Ansible runtime container
 └── main.py                  # Application entry point
 ```
 
 ## Key Components
 
-### 1. Podman Container Integration (NEW ⭐)
+### 1. Podman Container Integration
 
 **File**: `watchman/app/services/playbook_service.py`
 
-The playbook service now executes Ansible playbooks inside a Podman container instead of relying on host-installed Ansible:
+The playbook service executes Ansible playbooks inside a Podman container instead of relying on host-installed Ansible:
 
 ```python
 def get_podman_command(playbook_name: str) -> List[str]:
@@ -212,14 +223,18 @@ ansible_network_os=ios
 Create `.env` in the watchman directory:
 
 ```env
-# Database
-DATABASE_URL=sqlite:///./data/sentry_pod.db
+# MongoDB
+MONGO_URI="mongodb://user:pass@host:27017/sentry_pod_db?authSource=admin"
+# or individual fields:
+DB_USER=<user>
+DB_PASS=<pass>
+DB_HOST=<host>
 
-# Hugging Face API
+# JWT
+SECRET_KEY=<change-this-to-a-random-string>
+
+# Hugging Face API (required for AI chat)
 HUGGINGFACE_API_KEY=your_api_key_here
-
-# Ansible
-ANSIBLE_VAULT_PASSWORD_FILE=.vault_pass
 ```
 
 ## Running the Backend
@@ -231,15 +246,10 @@ cd watchman
 python -m uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 ```
 
-### Production (Docker)
+### Production (Podman Compose)
 
 ```bash
 # Inside the Sentry-Pod root
-docker-compose up watchman
-```
-
-Or with Podman:
-```bash
 podman-compose up watchman
 ```
 
@@ -266,7 +276,7 @@ POST /playbooks/execute
 Body:
 ```json
 {
-  "playbook_name": "get_facts.yml"
+  "name": "get_facts.yml"
 }
 ```
 
@@ -276,15 +286,19 @@ Body:
 - `GET /playbooks/catalog` - Get playbook metadata
 - `POST /playbooks/suggest` - Get AI suggestions
 - `GET /playbooks/inventory/all-hosts-count` - Get device count
-- `GET /playbooks/drift` - Get configuration drift reports
+- `GET /api/network/drift/reports` - Get configuration drift reports
+- `GET /api/network/devices` - List network devices
 
 ## Database Schema
 
-SQLite database stores:
+MongoDB (via motor async driver) stores:
+- Users and roles
+- Network device inventory
+- Configuration snapshots and golden baselines
+- Drift reports and diffs
+- LLM chat sessions (conversations collection)
 - Audit logs (user actions, timestamps)
-- Configuration snapshots
-- Drift reports
-- Execution history
+- API keys
 
 ## Troubleshooting
 
@@ -388,7 +402,6 @@ Example playbook header:
 
 ## References
 
-- [Complete Setup Guide](../PODMAN_SETUP.md)
 - [Podman Documentation](https://podman.io/docs/)
 - [Ansible Best Practices](https://docs.ansible.com/ansible/latest/tips_tricks/ansible_tips_tricks.html)
 - [Cisco IOS Collection](https://github.com/ansible-collections/cisco.ios)

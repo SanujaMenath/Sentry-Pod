@@ -257,6 +257,169 @@ def test_compiled_assets():
 
 
 # --------------------------------------------------------------------------- #
+#  Setup Wizard Tests
+# --------------------------------------------------------------------------- #
+
+
+def test_setup_wizard():
+    info("--- Setup Wizard ---")
+
+    PLAYBOOKS_DIR = os.path.join(WATCHMAN_DIR, "playbooks")
+    HOSTS_INI = os.path.join(PLAYBOOKS_DIR, "hosts.ini")
+    DOCS_DIR = os.path.join(REPO_ROOT, "docs")
+
+    # Phase 1: status when hosts.ini is missing
+    info("Phase 1: No inventory file")
+    ini_exists = os.path.exists(HOSTS_INI)
+
+    status, body = http_get("http://localhost:8000/setup/status")
+    if status == 200:
+        data = json.loads(body)
+        if ini_exists:
+            info(f"hosts.ini present — expecting demo or configured ({data.get('device_count', 0)} devices)")
+            if data.get("is_demo") is True:
+                ok("Setup status detects demo inventory")
+            else:
+                info("Setup status reports configured inventory (not demo)")
+        else:
+            if data.get("setup_complete") is False and data.get("device_count") == 0:
+                ok("Setup status correctly reports incomplete when hosts.ini is missing")
+            else:
+                fail(f"Unexpected setup status: {body[:200]}")
+    else:
+        fail(f"Setup status returned {status}: {body[:200]}")
+
+    if not ini_exists:
+        info("hosts.ini is missing — skipping preview/apply tests (restore it first)")
+        return
+
+    # Phase 2: build a demo payload by parsing hosts.ini
+    info("Phase 2: Preview and dry-run apply with demo data")
+    demo_payload = _build_demo_payload(HOSTS_INI)
+    if demo_payload is None:
+        fail("Could not parse hosts.ini into demo payload")
+        return
+
+    payload_bytes = json.dumps(demo_payload).encode("utf-8")
+    req = urllib.request.Request(
+        "http://localhost:8000/setup/preview",
+        data=payload_bytes,
+        method="POST",
+        headers={"Content-Type": "application/json"},
+    )
+    try:
+        resp = urllib.request.urlopen(req, timeout=30)
+        body = resp.read().decode()
+        data = json.loads(body)
+
+        if data.get("status") == "preview" and data.get("report_markdown"):
+            ok(f"Preview returned markdown report ({len(data['report_markdown'])} chars)")
+            md = data["report_markdown"]
+            if "## Summary" in md and "## Generated hosts.ini" in md and "## Changes" in md:
+                ok("Report markdown contains expected sections")
+            else:
+                fail("Report markdown missing expected sections")
+        else:
+            fail(f"Preview response unexpected: {body[:300]}")
+    except urllib.error.HTTPError as e:
+        fail(f"Preview returned {e.code}: {e.read().decode()[:200]}")
+    except Exception as e:
+        fail(f"Preview request failed: {e}")
+        return
+
+    # Clean up generated report
+    info("Phase 3: Cleanup")
+    if os.path.isdir(DOCS_DIR):
+        for f in os.listdir(DOCS_DIR):
+            if f.startswith("onboarding_report_") and f.endswith(".md"):
+                os.remove(os.path.join(DOCS_DIR, f))
+                ok(f"Cleaned up report file: {f}")
+                break
+
+
+def _build_demo_payload(hosts_ini_path):
+    import re
+
+    payload = {
+        "global_creds": {
+            "ansible_user": "admin",
+            "ansible_password": "cisco",
+            "ansible_become_password": "",
+            "snmp_community": "public",
+        },
+        "edge_routers": [],
+        "core_switches": [],
+        "distribution_switches": [],
+        "hsrp_pairs": [],
+        "access_switches": [],
+    }
+
+    try:
+        with open(hosts_ini_path, encoding="utf-8") as fh:
+            content = fh.read()
+    except Exception:
+        return None
+
+    vars_match = re.search(r"\[allHosts:vars\](.*?)(?=\n\[|\Z)", content, re.DOTALL)
+    if vars_match:
+        vars_text = vars_match.group(1)
+        for line in vars_text.splitlines():
+            line = line.strip()
+            if "=" in line:
+                key, val = line.split("=", 1)
+                key = key.strip()
+                val = val.strip()
+                if key == "ansible_user":
+                    payload["global_creds"]["ansible_user"] = val
+                elif key == "ansible_password":
+                    payload["global_creds"]["ansible_password"] = val
+
+    host_re = re.compile(r"^(?P<name>\S+)\s+ansible_host=(?P<ip>\S+)")
+    access_re = re.compile(r"^(?P<name>\S+)\s+ansible_host=(?P<ip>\S+)\s+(?P<extra>.+)$")
+    current_section = None
+
+    for line in content.splitlines():
+        stripped = line.strip()
+        if not stripped or stripped.startswith("#") or stripped.startswith(";"):
+            continue
+        if stripped.startswith("[") and stripped.endswith("]"):
+            section = stripped.strip("[]").lower()
+            current_section = section if not section.endswith(":vars") else None
+            continue
+        if current_section is None:
+            continue
+
+        m = host_re.match(stripped)
+        if not m:
+            continue
+
+        hostname = m.group("name")
+        ip = m.group("ip")
+
+        if current_section == "edge_routers":
+            payload["edge_routers"].append({"hostname": hostname, "ip": ip})
+        elif current_section == "core_switches":
+            payload["core_switches"].append({"hostname": hostname, "ip": ip})
+        elif current_section == "distribution_switches":
+            payload["distribution_switches"].append({"hostname": hostname, "ip": ip})
+        elif current_section == "hsrp_routers":
+            payload["hsrp_pairs"].append(hostname)
+        elif current_section == "access_switches":
+            am = access_re.match(stripped)
+            entry = {"hostname": hostname, "ip": ip, "vlan_id": None, "vlan_name": None, "default_gateway": None}
+            if am:
+                extra = am.group("extra")
+                for token in extra.split():
+                    if "=" in token:
+                        k, v = token.split("=", 1)
+                        if k in entry:
+                            entry[k] = v
+            payload["access_switches"].append(entry)
+
+    return payload
+
+
+# --------------------------------------------------------------------------- #
 #  Main
 # --------------------------------------------------------------------------- #
 
@@ -274,6 +437,11 @@ def main():
         "--skip-env",
         action="store_true",
         help="Skip tool and environment checks",
+    )
+    parser.add_argument(
+        "--setup",
+        action="store_true",
+        help="Run setup wizard tests (moves hosts.ini in/out of place)",
     )
     parser.add_argument(
         "--backend-only",
@@ -295,6 +463,10 @@ def main():
     if args.backend_only and args.frontend_only:
         fail("Cannot use both --backend-only and --frontend-only")
         return 1
+
+    if args.setup:
+        test_setup_wizard()
+        return
 
     if not args.skip_env:
         test_tools()

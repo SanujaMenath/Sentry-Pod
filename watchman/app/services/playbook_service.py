@@ -250,6 +250,42 @@ def score_playbook_match(catalog_item: PlaybookCatalogItem, prompt: str) -> Tupl
     reason = "; ".join(reasons) if reasons else "no keyword match"
     return score, reason
 
+def check_modification_potential(prompt: str, catalog_item: PlaybookCatalogItem) -> bool:
+    """Check if a playbook could be modified to better match the user's request.
+
+    Returns True when there's a scope mismatch in either direction:
+    - User wants broad scope (all/every) but playbook targets a specific group
+    - User mentions a specific group but playbook targets allHosts
+    """
+    prompt_lower = prompt.lower()
+
+    broad_keywords = ["all", "every", "entire", "whole", "any", "each"]
+    has_broad_scope = any(kw in prompt_lower for kw in broad_keywords)
+
+    specific_keywords = [
+        "edge", "core", "distribution", "access", "router", "switch",
+        "gateway", "firewall", "border", "dmz", "spine", "leaf",
+    ]
+    has_specific_group = any(kw in prompt_lower for kw in specific_keywords)
+
+    is_all_hosts = all(
+        t.lower() in ("allhosts", "all", "all_devices", "all devices")
+        for t in catalog_item.target_devices
+    )
+    is_specific_scope = any(
+        t.lower() not in ("allhosts", "all", "all_devices", "all devices")
+        for t in catalog_item.target_devices
+    )
+
+    if has_broad_scope and is_specific_scope:
+        return True
+
+    if has_specific_group and is_all_hosts:
+        return True
+
+    return False
+
+
 def find_playbook_suggestions(prompt: str, top_k: int = 3) -> List[PlaybookSuggestion]:
     """Find the best matching playbooks for a user prompt ranked by relevance."""
     catalog = load_catalog()
@@ -261,6 +297,7 @@ def find_playbook_suggestions(prompt: str, top_k: int = 3) -> List[PlaybookSugge
         score, reason = score_playbook_match(item, prompt)
         if score >= 2:
             preview = extract_playbook_preview(item.filename)
+            mod_potential = check_modification_potential(prompt, item)
             suggestions.append(
                 PlaybookSuggestion(
                     filename=item.filename,
@@ -273,6 +310,7 @@ def find_playbook_suggestions(prompt: str, top_k: int = 3) -> List[PlaybookSugge
                     severity=getattr(item, "severity", "medium"),
                     target_devices=item.target_devices,
                     playbook_preview=preview,
+                    modification_potential=mod_potential,
                 )
             )
     
@@ -305,6 +343,19 @@ def get_all_hosts_from_inventory() -> List[str]:
             hostnames.append(hostname)
 
     return hostnames
+
+def get_inventory_groups() -> List[str]:
+    """Return all Ansible group names from hosts.ini (e.g. allHosts, Edge_routers, etc.)."""
+    if not HOSTS_INI_PATH.exists():
+        return []
+    groups: List[str] = []
+    with HOSTS_INI_PATH.open("r", encoding="utf-8") as f:
+        for raw_line in f:
+            line = raw_line.strip()
+            if line.startswith("[") and line.endswith("]"):
+                group_name = line[1:-1]
+                groups.append(group_name)
+    return groups
 
 def validate_playbook_path(playbook_name: str) -> Path:
     """Helper to validate playbook file presence and extension constraints."""
@@ -572,6 +623,238 @@ def parse_config_drift_reports() -> List[dict]:
             continue
 
     return results
+
+
+def read_playbook_content(filename: str) -> str:
+    """Read a playbook YAML file and return its content as a string."""
+    content = read_playbook_file(filename)
+    if content is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Playbook '{filename}' not found"
+        )
+    return content
+
+
+MODIFY_SYSTEM_PROMPT = """You are a YAML modification expert for Ansible playbooks.
+
+Given an original playbook YAML and a modification request, you must:
+
+1. Change ONLY what the user explicitly asked to modify. Keep everything else exactly as-is.
+2. The modified playbook MUST be valid YAML — same structure, indentation, and format as the original.
+3. Output the full modified playbook YAML inside a ```yaml code block.
+4. After the YAML block, output metadata inside a ```json code block.
+
+CRITICAL — only change what the user asked:
+- Wrong: User asks "change hosts to Edge_routers" and you also change gather_facts, gather_subset, etc.
+- Right: Only change hosts. Everything else identical to the original.
+
+CRITICAL — exact host group names (Ansible is case-sensitive):
+When changing the "hosts:" value, you MUST use one of the exact group names listed in
+"Valid inventory groups for this playbook" below. Match capitalization precisely.
+If the user says "edge" or "edge routers" and the valid group is "Edge_routers",
+use "Edge_routers". Never change capitalization or use generic names.
+
+Wrong: hosts: edge_routers    → will match 0 devices, playbook fails
+Wrong: hosts: edge            → doesn't exist
+Right: hosts: Edge_routers    → matches correctly
+
+Example:
+Original (partial):
+  hosts: allHosts
+  gather_facts: false
+  
+  tasks:
+    - name: Collect all available facts
+      cisco.ios.ios_facts:
+        gather_subset: all
+
+User: "Change hosts from allHosts to edge routers"
+Valid groups: allHosts, Edge_routers, Core_Switches
+
+Correct modified YAML (only hosts changed, exact group name used):
+  hosts: Edge_routers
+  gather_facts: false
+  
+  tasks:
+    - name: Collect all available facts
+      cisco.ios.ios_facts:
+        gather_subset: all
+
+Format your response exactly like this (no other text before or after):
+
+```yaml
+<full modified playbook YAML>
+```
+
+```json
+{
+  "name": "<short display name>",
+  "description": "<description>",
+  "tags": ["<include original tags>"],
+  "severity": "<low|medium|high|critical>",
+  "destructive": <true|false>,
+  "target_devices": ["<target device groups>"],
+  "example_intents": ["<keep original intents, add new ones for this modification>"],
+  "plain_explanation": "<one sentence on what changed>"
+}
+```"""
+
+
+async def generate_playbook_modification(
+    playbook_name: str,
+    modification: str,
+    hf_api_key: str,
+    model: str = "deepseek-ai/DeepSeek-R1:novita"
+) -> dict:
+    """Call the HF API to generate a modified playbook YAML based on a description."""
+    import httpx
+    import json as json_mod
+
+    original_content = read_playbook_content(playbook_name)
+
+    hf_api_url = "https://router.huggingface.co/v1/chat/completions"
+
+    valid_groups = get_inventory_groups()
+    groups_str = ", ".join(valid_groups) if valid_groups else "N/A"
+
+    messages = [
+        {"role": "system", "content": MODIFY_SYSTEM_PROMPT},
+        {"role": "user", "content": f"Original playbook YAML:\n```yaml\n{original_content}\n```\n\nModification request: {modification}\n\nValid inventory groups for this playbook (use exact capitalization): {groups_str}"}
+    ]
+
+    headers = {
+        "Authorization": f"Bearer {hf_api_key}",
+        "Content-Type": "application/json",
+    }
+    payload = {
+        "messages": messages,
+        "model": model,
+    }
+
+    async with httpx.AsyncClient(timeout=120.0) as client:
+        response = await client.post(hf_api_url, json=payload, headers=headers)
+
+    if response.status_code != 200:
+        error_text = response.text[:300]
+        raise HTTPException(
+            status_code=response.status_code,
+            detail=f"HF API error during modification generation: {error_text}",
+        )
+
+    data = response.json()
+    content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+
+    # Extract YAML from ```yaml block and metadata from ```json block
+    import re
+    yaml_match = re.search(r'```yaml\n([\s\S]*?)```', content)
+    json_match = re.search(r'```json\n([\s\S]*?)```', content)
+
+    if not yaml_match:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"LLM response missing ```yaml code block. Response: {content[:500]}",
+        )
+
+    modified_yaml = yaml_match.group(1).strip()
+
+    metadata = {}
+    if json_match:
+        try:
+            metadata = json_mod.loads(json_match.group(1))
+        except json_mod.JSONDecodeError:
+            logger.warning(f"Failed to parse metadata JSON from LLM response: {content[:300]}")
+
+    return {
+        "original_content": original_content,
+        "modified_content": modified_yaml,
+        "name": metadata.get("name", f"{Path(playbook_name).stem} (Modified)"),
+        "description": metadata.get("description", f"Modified version of {playbook_name}"),
+        "tags": metadata.get("tags", []),
+        "severity": metadata.get("severity", "medium"),
+        "destructive": metadata.get("destructive", False),
+        "target_devices": metadata.get("target_devices", []),
+        "example_intents": metadata.get("example_intents", []),
+        "plain_explanation": metadata.get("plain_explanation", f"Modified {playbook_name} based on request."),
+    }
+
+
+def derive_modified_filename(original_name: str) -> str:
+    """Derive a new filename for the modified playbook, avoiding collisions."""
+    p = Path(original_name)
+    stem = p.stem
+    suffix = p.suffix or ".yml"
+    new_name = f"{stem}_modified{suffix}"
+    filepath = PLAYBOOKS_DIR / new_name
+    counter = 1
+    while filepath.exists():
+        new_name = f"{stem}_modified_{counter}{suffix}"
+        filepath = PLAYBOOKS_DIR / new_name
+        counter += 1
+    return new_name
+
+
+def compute_yaml_diff(original: str, modified: str) -> str:
+    """Compute a unified diff between original and modified YAML content."""
+    import difflib
+    original_lines = original.splitlines(keepends=True)
+    modified_lines = modified.splitlines(keepends=True)
+    diff_lines = list(difflib.unified_diff(
+        original_lines,
+        modified_lines,
+        fromfile="original",
+        tofile="modified",
+        n=3,
+    ))
+    return "".join(diff_lines)
+
+
+def save_modified_playbook(
+    original_name: str,
+    proposed_name: str,
+    modified_content: str,
+    metadata: dict,
+) -> tuple:
+    """Save a modified playbook: write YAML, update catalog.
+
+    Returns (filename, catalog_entry_dict) so the caller can persist to MongoDB.
+    """
+    filename = save_playbook_file(proposed_name, modified_content.encode("utf-8"))
+
+    # Read original catalog entry to inherit example_intents and other metadata
+    catalog = read_catalog_raw()
+    original_entry = {}
+    for entry in catalog:
+        if entry.get("filename") == original_name:
+            original_entry = entry
+            break
+
+    original_intents = original_entry.get("example_intents", [])
+    new_intents = metadata.get("example_intents", [])
+    merged_intents = list(dict.fromkeys(original_intents + new_intents))
+
+    # Build catalog entry
+    catalog_entry = {
+        "filename": filename,
+        "name": metadata.get("name", f"{Path(original_name).stem} (Modified)"),
+        "description": metadata.get("description", f"Modified version of {original_name}"),
+        "tags": metadata.get("tags", original_entry.get("tags", [])),
+        "target_devices": metadata.get("target_devices", original_entry.get("target_devices", [])),
+        "example_intents": merged_intents,
+        "destructive": metadata.get("destructive", original_entry.get("destructive", False)),
+        "severity": metadata.get("severity", original_entry.get("severity", "medium")),
+    }
+
+    # Add to catalog
+    catalog.append(catalog_entry)
+    if not save_catalog(catalog):
+        delete_playbook_file(filename)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to write catalog.json",
+        )
+
+    return filename, catalog_entry
 
 
 def read_config_drift_file(hostname: str) -> str:

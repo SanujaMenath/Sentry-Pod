@@ -1,10 +1,13 @@
+import logging
 from bson import ObjectId
 from fastapi import APIRouter, Depends, HTTPException, status, Request, UploadFile, File, Form
 from fastapi.responses import StreamingResponse
 from datetime import datetime, timezone
 from typing import Optional
 
-from app.models.playbook import PlaybookRequest, PlaybookResponse, AddPlaybookRequest, UpdatePlaybookRequest, UpdatePlaybookStatusRequest
+logger = logging.getLogger(__name__)
+
+from app.models.playbook import PlaybookRequest, PlaybookResponse, AddPlaybookRequest, UpdatePlaybookRequest, UpdatePlaybookStatusRequest, ModifyProposeRequest, ModifyApproveRequest
 import app.services.playbook_service as playbook_service
 from app.database import db
 from app.core.dependencies import get_current_user
@@ -568,6 +571,129 @@ async def get_playbook_dashboard_data():
         )
     
     
+
+@router.post("/modify/propose")
+async def propose_modification(request: ModifyProposeRequest):
+    """Propose a modification to a playbook using the LLM.
+
+    Reads the original playbook, calls HuggingFace API to generate
+    a modified version, and returns the diff + metadata for user approval.
+    """
+    try:
+        import os
+        from app.routes.llm_routes import SUPPORTED_MODELS
+
+        hf_api_key = os.getenv("HUGGINGFACE_API_KEY")
+
+        # Check for stored API key in MongoDB
+        try:
+            from app.database import api_keys_collection
+            stored = await api_keys_collection.find_one({"_id": "huggingface"})
+            if stored and stored.get("key"):
+                hf_api_key = stored["key"]
+        except Exception:
+            pass
+
+        if not hf_api_key:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Hugging Face API key not configured",
+            )
+
+        model = request.model or "Qwen/Qwen3.5-4B:featherless-ai"
+
+        result = await playbook_service.generate_playbook_modification(
+            playbook_name=request.playbook_name,
+            modification=request.modification,
+            hf_api_key=hf_api_key,
+            model=model,
+        )
+
+        diff = playbook_service.compute_yaml_diff(
+            result["original_content"],
+            result["modified_content"],
+        )
+
+        proposed_name = playbook_service.derive_modified_filename(request.playbook_name)
+
+        return {
+            "status": "success",
+            "original_name": request.playbook_name,
+            "proposed_name": proposed_name,
+            "original_content": result["original_content"],
+            "modified_content": result["modified_content"],
+            "diff": diff,
+            "metadata": {
+                "name": result["name"],
+                "description": result["description"],
+                "tags": result["tags"],
+                "severity": result["severity"],
+                "destructive": result["destructive"],
+                "target_devices": result["target_devices"],
+                "example_intents": result["example_intents"],
+            },
+            "plain_explanation": result["plain_explanation"],
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Modification proposal failed: {str(e)}",
+        )
+
+
+@router.post("/modify/approve")
+async def approve_modification(request: ModifyApproveRequest):
+    """Approve and save a playbook modification.
+
+    Writes the modified YAML, updates catalog.json, and persists to MongoDB.
+    """
+    try:
+        filename, catalog_entry = playbook_service.save_modified_playbook(
+            original_name=request.original_name,
+            proposed_name=request.proposed_name,
+            modified_content=request.modified_content,
+            metadata=request.metadata,
+        )
+
+        # Persist to MongoDB
+        try:
+            playbooks_col = db.get_collection("playbooks")
+            from datetime import datetime
+            new_doc = {
+                "name": catalog_entry["name"],
+                "filename": filename,
+                "description": catalog_entry["description"],
+                "engine_type": "Ansible",
+                "subnet_scope": ", ".join(catalog_entry["target_devices"]),
+                "pipeline_status": "Draft",
+                "tags": catalog_entry["tags"],
+                "target_devices": catalog_entry["target_devices"],
+                "example_intents": catalog_entry["example_intents"],
+                "destructive": catalog_entry["destructive"],
+                "severity": catalog_entry["severity"],
+                "file_path": str(playbook_service.PLAYBOOKS_DIR / filename),
+                "last_executed": "Never Executed",
+                "timestamp_created": datetime.utcnow().isoformat() + "Z",
+            }
+            await playbooks_col.insert_one(new_doc)
+        except Exception as mongo_err:
+            logger.warning(f"Failed to persist modified playbook to MongoDB: {str(mongo_err)}")
+
+        return {
+            "status": "success",
+            "filename": filename,
+            "message": f"Modified playbook saved as {filename}",
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to save modified playbook: {str(e)}",
+        )
+
 
 @router.delete("/delete/{playbook_id}")
 async def delete_playbook_entry(playbook_id: str):

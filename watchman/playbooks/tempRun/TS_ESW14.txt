@@ -1,9 +1,8 @@
 Building configuration...
 
-Current configuration : 5635 bytes
+Current configuration : 5540 bytes
 !
-! Last configuration change at 17:19:22 SLST Wed Jun 10 2026 by admin
-! NVRAM config last updated at 20:53:02 SLST Wed Jun 10 2026 by admin
+! No configuration change since last restart
 !
 version 12.4
 service timestamps debug datetime msec
@@ -107,11 +106,11 @@ interface FastEthernet1/6
  speed 100
 !
 interface FastEthernet1/7
- shutdown
  duplex full
  speed 100
 !
 interface FastEthernet1/8
+ shutdown
  duplex full
  speed 100
 !
