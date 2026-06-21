@@ -389,24 +389,12 @@
     "severity": "low"
   },
   {
-    "filename": "xx.yml",
-    "name": "xx.yml",
-    "description": "xaa",
-    "tags": [],
-    "target_devices": [
-      "allHosts"
-    ],
-    "example_intents": [],
-    "destructive": false,
-    "severity": "medium"
-  },
-  {
     "filename": "get_facts_modified.yml",
     "name": "Gather Info from Cisco IOS",
-    "description": "Collects IOS facts from edge routers and displays the OS version.",
+    "description": "Collects and prints OS version facts from Cisco IOS devices",
     "tags": [],
     "target_devices": [
-      "edge_routers"
+      "Edge_routers"
     ],
     "example_intents": [
       "gather device info",
@@ -414,7 +402,7 @@
       "get device information",
       "backup device facts",
       "discover devices",
-      "Gather information from edge routers"
+      "get information on the edge routers"
     ],
     "destructive": false,
     "severity": "low"
@@ -434,6 +422,52 @@
       "backup device facts",
       "discover devices",
       "get information on the edge routers"
+    ],
+    "destructive": false,
+    "severity": "low"
+  },
+  {
+    "filename": "get_facts_modified_1.yml",
+    "name": "Edge Device Modification",
+    "description": "Modify the playbook to target edge devices",
+    "tags": [
+      "device-modification",
+      "cisco"
+    ],
+    "target_devices": [
+      "Edge_routers"
+    ],
+    "example_intents": [
+      "gather device info",
+      "collect facts",
+      "get device information",
+      "backup device facts",
+      "discover devices",
+      "gather-info",
+      "cisco"
+    ],
+    "destructive": false,
+    "severity": "low"
+  },
+  {
+    "filename": "get_facts_modified_2.yml",
+    "name": "Edge Device Information",
+    "description": "Gather information from edge devices",
+    "tags": [
+      "network",
+      "cisco",
+      "ios"
+    ],
+    "target_devices": [
+      "Edge_routers"
+    ],
+    "example_intents": [
+      "gather device info",
+      "collect facts",
+      "get device information",
+      "backup device facts",
+      "discover devices",
+      "Gather information from Cisco IOS devices"
     ],
     "destructive": false,
     "severity": "low"

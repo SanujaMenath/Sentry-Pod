@@ -21,7 +21,14 @@ import PageHeader from "../components/PageHeader";
 import api from "../services/api";
 import { getSetupStatus } from "../services/setupService";
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL || '${API_BASE}';
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://127.0.0.1:8000';
+const FONT_FAMILY = '"Inter", sans-serif';
+
+const SEVERITY_COLORS = {
+  critical: { bg: 'bg-rose-500/5', border: 'border-rose-500/10', icon: 'bg-rose-500/10', iconBorder: 'border-rose-500/20', text: 'text-rose-500', badge: 'bg-rose-500/20 text-rose-500 border-rose-500/20' },
+  warning: { bg: 'bg-orange-500/5', border: 'border-orange-500/10', icon: 'bg-orange-500/10', iconBorder: 'border-orange-500/20', text: 'text-orange-500', badge: 'bg-orange-500/20 text-orange-500 border-orange-500/20' },
+  info: { bg: 'bg-amber-500/5', border: 'border-amber-500/10', icon: 'bg-amber-500/10', iconBorder: 'border-amber-500/20', text: 'text-amber-500', badge: 'bg-amber-500/20 text-amber-500 border-amber-500/20' },
+};
 
 //  MAIN DASHBOARD
 const Dashboard = () => {
@@ -32,7 +39,6 @@ const Dashboard = () => {
   const [activeDevicesCount, setActiveDevicesCount] = useState(0);
   const [isScanning, setIsScanning] = useState(false);
 
-  // const [showNotifications, setShowNotifications] = useState(false);
   const [driftReports, setDriftReports] = useState([]);
   const [isRefreshingDrift, setIsRefreshingDrift] = useState(false);
   const [baselineCount, setBaselineCount] = useState(0);
@@ -240,32 +246,20 @@ const Dashboard = () => {
   };
 
   const styles = {
-    sidebar: {
-      backgroundColor: "#020618ED",
-      fontFamily: '"Inter", sans-serif',
-    },
-
+    sidebar: { backgroundColor: "#020618ED", fontFamily: FONT_FAMILY },
     main: {
       background: "linear-gradient(135deg, #F8FAFC 0%, #D1D5DB 100%)",
       backgroundAttachment: "fixed",
-      fontFamily: '"Inter", sans-serif',
+      fontFamily: FONT_FAMILY,
     },
-
-    card: { backgroundColor: "#1D293DED", fontFamily: '"Inter", sans-serif' },
-
+    card: { backgroundColor: "#1D293DED", fontFamily: FONT_FAMILY },
     headline: {
-      color: "#0F172A",
-      fontSize: "30px",
-      fontWeight: "800",
-      fontFamily: '"Inter", sans-serif',
-      letterSpacing: "-0.025em",
+      color: "#0F172A", fontSize: "30px", fontWeight: "800",
+      fontFamily: FONT_FAMILY, letterSpacing: "-0.025em",
     },
-
     subtext: {
-      color: "#475569",
-      fontSize: "16px",
-      fontWeight: "500",
-      fontFamily: '"Inter", sans-serif',
+      color: "#475569", fontSize: "16px", fontWeight: "500",
+      fontFamily: FONT_FAMILY,
     },
   };
   return (
@@ -695,11 +689,7 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   syslogAlerts.map((alert, idx) => {
-                    const sevColor = alert.severity <= 1
-                      ? { bg: 'bg-rose-500/5', border: 'border-rose-500/10', icon: 'bg-rose-500/10', iconBorder: 'border-rose-500/20', text: 'text-rose-500', badge: 'bg-rose-500/20 text-rose-500 border-rose-500/20' }
-                      : alert.severity <= 3
-                      ? { bg: 'bg-orange-500/5', border: 'border-orange-500/10', icon: 'bg-orange-500/10', iconBorder: 'border-orange-500/20', text: 'text-orange-500', badge: 'bg-orange-500/20 text-orange-500 border-orange-500/20' }
-                      : { bg: 'bg-amber-500/5', border: 'border-amber-500/10', icon: 'bg-amber-500/10', iconBorder: 'border-amber-500/20', text: 'text-amber-500', badge: 'bg-amber-500/20 text-amber-500 border-amber-500/20' };
+                    const sevColor = alert.severity <= 1 ? SEVERITY_COLORS.critical : alert.severity <= 3 ? SEVERITY_COLORS.warning : SEVERITY_COLORS.info;
                     const ago = Math.floor((Date.now() - new Date(alert.timestamp).getTime()) / 60000);
                     return (
                       <div key={idx} className={`${sevColor.bg} ${sevColor.border} rounded-2xl p-4 flex gap-3`}>

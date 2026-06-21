@@ -5,7 +5,7 @@ from fastapi import APIRouter, HTTPException, status
 from fastapi.responses import StreamingResponse
 
 import app.services.topology_service as topology_service
-from app.services.playbook_service import get_podman_command
+from app.services.execution_service import get_podman_command
 
 router = APIRouter(prefix="/api/topology", tags=["Topology"])
 

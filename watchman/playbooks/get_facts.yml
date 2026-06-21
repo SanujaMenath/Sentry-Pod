@@ -26,3 +26,16 @@
          default(0) | int, 'memtotal_mb': ansible_net_memtotal_mb |
           default(1) | int, 'cpu': ansible_net_cpu | default(0) | int} | to_json }}"
         dest: "/ansible/facts/{{ inventory_hostname }}.json"
+
+    - name: Print device facts to terminal
+      ansible.builtin.debug:
+        msg: >-
+              {{ {'hostname': ansible_net_hostname | default(inventory_hostname),
+                   'model': ansible_net_model | default('Unknown'),
+                   'version': ansible_net_version | default('Unknown'),
+                   'uptime': ansible_net_uptime | default('N/A'),
+                   'serial': ansible_net_serialnum | default(''),
+                   'memfree_mb': ansible_net_memfree_mb | default(0) | int,
+                   'memtotal_mb': ansible_net_memtotal_mb | default(1) | int,
+                   'cpu': ansible_net_cpu | default(0) | int} | to_nice_json }}
+      

@@ -38,16 +38,14 @@ services:
 
   command-center:
     build:
-      context: .
-      dockerfile: command-center/Dockerfile.prod
-    image: localhost/fresh-command-center
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    image: localhost/sentry-pod-command-center
     restart: always
     depends_on:
       - watchman
     ports:
       - "3000:80"
-    environment:
-      - REACT_APP_API_URL=http://localhost:3000
 
 volumes:
   vault-data:
