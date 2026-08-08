@@ -1,6 +1,8 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+import logging
 from app.core.config import settings
 from app.routes import user_routes
 from app.routes import auth_routes
@@ -13,7 +15,22 @@ from app.routes import console_routes
 from app.routes import topology_routes
 from app.routes import setup_routes
 
-app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION)
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    try:
+        from app.database import db
+        from app.services.catalog_service import sync_catalog_from_db
+        count = await sync_catalog_from_db(db.get_collection("playbooks"))
+        logger.info(f"Catalog reconciled with MongoDB on startup: {count} playbooks")
+    except Exception as e:
+        logger.warning(f"Could not reconcile catalog on startup: {str(e)}")
+    yield
+
+
+app = FastAPI(title=settings.PROJECT_NAME, version=settings.VERSION, lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
