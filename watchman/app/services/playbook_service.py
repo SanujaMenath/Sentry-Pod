@@ -1,7 +1,9 @@
 import json as json_mod
 import logging
 import re
+from datetime import datetime, timezone
 from pathlib import Path
+from typing import Optional
 
 from fastapi import HTTPException, status
 
@@ -9,7 +11,7 @@ from app.services.execution_service import (
     PLAYBOOKS_DIR, save_playbook_file, delete_playbook_file, read_playbook_content,
 )
 from app.services.catalog_service import (
-    get_inventory_groups, read_catalog_raw, save_catalog,
+    get_inventory_groups, read_catalog_raw, save_catalog, remove_catalog_entry,
 )
 
 logger = logging.getLogger(__name__)
@@ -180,7 +182,7 @@ def save_modified_playbook(
     modified_content: str,
     metadata: dict,
 ) -> tuple:
-    filename = save_playbook_file(proposed_name, modified_content.encode("utf-8"))
+    filename = proposed_name
 
     catalog = read_catalog_raw()
     original_entry = {}
@@ -204,12 +206,129 @@ def save_modified_playbook(
         "severity": metadata.get("severity", original_entry.get("severity", "medium")),
     }
 
-    catalog.append(catalog_entry)
-    if not save_catalog(catalog):
-        delete_playbook_file(filename)
+    return filename, catalog_entry
+
+
+async def persist_playbook(
+    name: str,
+    filename: str,
+    description: str,
+    engine_type: str,
+    subnet_scope: str,
+    pipeline_status: str,
+    tags: list,
+    target_devices: list,
+    example_intents: list,
+    destructive: bool,
+    severity: str,
+    file_content: Optional[bytes] = None,
+    blueprint_extra: Optional[dict] = None,
+):
+    """Persist a playbook to YAML file + catalog.json + MongoDB in one atomic flow.
+
+    MongoDB and catalog.json are updated together; on any failure the
+    previously-written artifacts are rolled back so the two never drift.
+    Returns (inserted_id, saved_filename).
+    """
+    from app.database import db
+
+    playbooks_col = db.get_collection("playbooks")
+
+    saved_filename = filename
+    catalog_updated = False
+    file_saved = False
+    mongo_inserted = False
+
+    try:
+        existing = read_catalog_raw()
+        if any(e.get("filename") == saved_filename for e in existing):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"A catalog entry with filename '{saved_filename}' already exists",
+            )
+
+        if file_content:
+            saved_filename = save_playbook_file(filename, file_content)
+            file_saved = True
+
+        catalog_entry = {
+            "filename": saved_filename,
+            "name": name,
+            "description": description,
+            "tags": tags,
+            "target_devices": target_devices,
+            "example_intents": example_intents,
+            "destructive": destructive,
+            "severity": severity,
+        }
+
+        existing.append(catalog_entry)
+        save_catalog(existing)
+        catalog_updated = True
+
+        new_blueprint_doc = {
+            "name": name,
+            "filename": saved_filename,
+            "description": description,
+            "engine_type": engine_type,
+            "subnet_scope": subnet_scope,
+            "pipeline_status": pipeline_status,
+            "tags": tags,
+            "target_devices": target_devices,
+            "example_intents": example_intents,
+            "destructive": destructive,
+            "severity": severity,
+            "file_path": str(PLAYBOOKS_DIR / saved_filename),
+            "last_executed": "Never Executed",
+            "timestamp_created": datetime.now(timezone.utc).isoformat() + "Z",
+        }
+        if blueprint_extra:
+            new_blueprint_doc.update(blueprint_extra)
+
+        result = await playbooks_col.insert_one(new_blueprint_doc)
+        mongo_inserted = True
+
+        return str(result.inserted_id), saved_filename
+
+    except Exception:
+        if catalog_updated and saved_filename:
+            try:
+                remove_catalog_entry(saved_filename)
+            except Exception:
+                logger.warning(f"Rollback: could not remove catalog entry {saved_filename}")
+        if file_saved and saved_filename and not mongo_inserted:
+            try:
+                delete_playbook_file(saved_filename)
+            except Exception:
+                logger.warning(f"Rollback: could not delete file {saved_filename}")
+        raise
+
+
+async def remove_playbook(playbook_id: str):
+    """Remove a playbook from MongoDB and catalog.json together (atomic)."""
+    from bson import ObjectId
+    from app.database import db
+
+    playbooks_col = db.get_collection("playbooks")
+    try:
+        mongo_id = ObjectId(playbook_id)
+    except Exception:
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Failed to write catalog.json",
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Provided blueprint asset tracking ID format is completely invalid.",
         )
 
-    return filename, catalog_entry
+    existing = await playbooks_col.find_one({"_id": mongo_id})
+    if not existing:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Target configuration entry could not be located in database layer.",
+        )
+
+    filename = existing.get("filename")
+    if filename:
+        remove_catalog_entry(filename)
+        delete_playbook_file(filename)
+
+    await playbooks_col.delete_one({"_id": mongo_id})
+    return {"status": "success", "detail": "Blueprint document and associated files successfully removed."}

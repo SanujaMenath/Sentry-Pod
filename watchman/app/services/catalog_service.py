@@ -54,6 +54,8 @@ def read_catalog_raw() -> list:
 
 
 def save_catalog(entries: list) -> bool:
+    """Atomically write the catalog. Raises RuntimeError on failure so callers
+    can never silently end up with a stale catalog while the DB was updated."""
     try:
         temp_path = CATALOG_PATH.with_suffix('.json.tmp')
         with open(temp_path, 'w') as f:
@@ -64,7 +66,7 @@ def save_catalog(entries: list) -> bool:
         return True
     except Exception as e:
         logger.error(f"Error saving catalog: {str(e)}")
-        return False
+        raise RuntimeError(f"Failed to write catalog.json: {str(e)}")
 
 
 def update_catalog_entry(filename: str, updates: dict) -> bool:
@@ -86,6 +88,30 @@ def remove_catalog_entry(filename: str) -> bool:
     if len(new_entries) == len(entries):
         return False
     return save_catalog(new_entries)
+
+
+async def sync_catalog_from_db(playbooks_col) -> int:
+    """Rebuild catalog.json from the MongoDB playbooks collection.
+
+    MongoDB is the source of truth; catalog.json is a derived artifact that
+    drives the suggestion engine. Returns the number of entries written.
+    """
+    entries = []
+    async for doc in playbooks_col.find({}):
+        if not doc.get("filename"):
+            continue
+        entries.append({
+            "filename": doc.get("filename"),
+            "name": doc.get("name"),
+            "description": doc.get("description"),
+            "tags": doc.get("tags", []),
+            "target_devices": doc.get("target_devices", []),
+            "example_intents": doc.get("example_intents", []),
+            "destructive": doc.get("destructive", False),
+            "severity": doc.get("severity", "medium"),
+        })
+    save_catalog(entries)
+    return len(entries)
 
 
 def get_playbook_files() -> List[str]:
