@@ -10,7 +10,7 @@ from ..services.user_service import (
     update_user_password,
     get_all_users
 )
-from ..core.dependencies import get_current_user, require_super_admin 
+from ..core.dependencies import get_current_user, require_super_admin, require_network_admin, require_security_admin, require_auditor
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -65,7 +65,7 @@ async def change_password(
     return await update_user_password(str(current_user["_id"]), password_data)
 
 @router.get("/", response_model=List[UserResponse])
-async def list_users(current_user: dict = Depends(get_current_user)):
+async def list_users(current_user: dict = Depends(require_super_admin)):
     try:
         return await get_all_users()
     except Exception as e:
@@ -79,10 +79,7 @@ async def get_profile_cards_summary(current_user: dict = Depends(get_current_use
     dependency to safely pull the user document from MongoDB.
     """
     try:
-        # Convert MongoDB ObjectId safely to a standard string
         user_id_str = str(current_user["_id"])
-        
-        # Pulls data straight from your database using your service file's routine
         user_profile = await get_user_by_id(user_id_str)
         
         if "role_title" not in user_profile or not user_profile["role_title"]:
@@ -101,12 +98,8 @@ async def get_profile_cards_summary(current_user: dict = Depends(get_current_use
 @router.get("/security-activity")
 async def get_security_activity(current_user: dict = Depends(get_current_user)):
     try:
-        # Pull user data using  existing database helper function
         user_profile = await get_user_by_id(str(current_user["_id"]))
-        
-        # 2. Extract exclusively from the database. Returns an empty list if no logs exist yet.
         activities = user_profile.get("recent_activities", [])
-
         return activities[:3]
     
     except Exception as e:
