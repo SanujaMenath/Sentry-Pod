@@ -24,21 +24,21 @@ const navItems = [
 
 // 1. ADD THIS MATRIX: Define which roles can access each route
 const PAGE_PERMISSIONS = {
-  '/dashboard': ['System Administrator', 'Network Engineer', 'Operator', 'Security Analyst', 'Guest'],
-  '/topology': ['System Administrator', 'Network Engineer'],
-  '/ai-chat': ['System Administrator', 'Network Engineer', 'Operator', 'Security Analyst'],
-  '/network-devices': ['System Administrator', 'Network Engineer', 'Operator'],
-  '/audit-logs': ['System Administrator', 'Auditor'],
-  '/drift-reports': ['System Administrator', 'Security Analyst', 'Network Engineer'],
-  '/users': ['System Administrator'],
-  '/playbooks': ['System Administrator', 'Network Engineer'],
-  '/profile': ['System Administrator', 'Network Engineer', 'Operator', 'Auditor', 'Security Analyst', 'Guest'],
-  '/console': ['System Administrator', 'Network Engineer', 'Operator'],
-  '/settings': ['System Administrator'],
+  '/dashboard': ['Super Admin', 'System Administrator', 'Network Engineer', 'Operator', 'Security Analyst', 'Guest'],
+  '/topology': ['Super Admin', 'System Administrator', 'Network Engineer'],
+  '/ai-chat': ['Super Admin', 'System Administrator', 'Network Engineer', 'Operator', 'Security Analyst'],
+  '/network-devices': ['Super Admin', 'System Administrator', 'Network Engineer', 'Operator'],
+  '/audit-logs': ['Super Admin', 'System Administrator', 'Auditor'],
+  '/drift-reports': ['Super Admin', 'System Administrator', 'Security Analyst', 'Network Engineer'],
+  '/users': ['Super Admin', 'System Administrator'],
+  '/playbooks': ['Super Admin', 'System Administrator', 'Network Engineer'],
+  '/profile': ['Super Admin', 'System Administrator', 'Network Engineer', 'Operator', 'Auditor', 'Security Analyst', 'Guest'],
+  '/console': ['Super Admin', 'System Administrator', 'Network Engineer', 'Operator'],
+  '/settings': ['Super Admin', 'System Administrator'],
 };
 
 const MOCK_TEST_USERS = [
-  { username: 'super_admin', role: 'System Administrator' },
+  { username: 'super_admin', role: 'Super Admin' },
   { username: 'net_eng_alan', role: 'Network Engineer' },
   { username: 'operator_max', role: 'Operator' },
   { username: 'auditor_steph', role: 'Auditor' },
@@ -46,12 +46,28 @@ const MOCK_TEST_USERS = [
   { username: 'guest_user', role: 'Guest' }
 ];
 
+const MOCK_USER_STORAGE_KEY = "sidebar_mock_user";
+
+const getInitialMockUser = () => {
+  try {
+    const raw = localStorage.getItem(MOCK_USER_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const match = MOCK_TEST_USERS.find((u) => u.username === parsed.username);
+      if (match) return match;
+    }
+  } catch {
+    /* ignore */
+  }
+  return MOCK_TEST_USERS[0];
+};
+
 export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
 
   // 3. Track active simulation user and control the modal
-  const [currentUser, setCurrentUser] = useState(MOCK_TEST_USERS[0]); // Defaults to Super Admin
+  const [currentUser, setCurrentUser] = useState(getInitialMockUser); // Defaults to Super Admin, persisted across reloads
   const [modalState, setModalState] = useState({ isOpen: false, requiredRole: "" });
 
   const handleLogout = () => {
@@ -119,7 +135,10 @@ export default function Sidebar() {
           value={currentUser.username}
           onChange={(e) => {
             const selected = MOCK_TEST_USERS.find(u => u.username === e.target.value);
-            if (selected) setCurrentUser(selected);
+            if (selected) {
+              setCurrentUser(selected);
+              localStorage.setItem(MOCK_USER_STORAGE_KEY, JSON.stringify(selected));
+            }
           }}
           className="w-full bg-[#0b1329] border border-slate-700 text-xs rounded p-1.5 text-slate-300 focus:outline-none focus:border-blue-500"
         >

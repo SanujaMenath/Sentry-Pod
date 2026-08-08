@@ -58,7 +58,7 @@ async def log_action(entry: AuditLogEntry, current_user: dict = Depends(get_curr
 @router.get("/all")
 async def get_all_audit_logs(
     limit: int = 50,
-    current_user: dict = Depends(verify_role_clearance(["System Administrator", "Auditor"]))
+    current_user: dict = Depends(verify_role_clearance(["Super Admin", "System Administrator", "Auditor"]))
 ):
     """Retrieve all audit logs"""
     try:
@@ -83,7 +83,7 @@ async def get_all_audit_logs(
 async def get_logs_by_user(
     username: str, 
     limit: int = 50,
-    current_user: dict = Depends(verify_role_clearance(["System Administrator", "Auditor"]))
+    current_user: dict = Depends(verify_role_clearance(["Super Admin", "System Administrator", "Auditor"]))
 ):
     """Retrieve audit logs for a specific user"""
     try:
@@ -108,7 +108,7 @@ async def get_logs_by_user(
 @router.get("/{log_id}")
 async def get_audit_log(
     log_id: str,
-    current_user: dict = Depends(verify_role_clearance(["System Administrator", "Auditor"]))
+    current_user: dict = Depends(verify_role_clearance(["Super Admin", "System Administrator", "Auditor"]))
 ):
     """Retrieve a specific audit log by ID"""
     try:
@@ -137,7 +137,7 @@ async def get_audit_log(
 async def get_logs_by_action(
     action_name: str, 
     limit: int = 50,
-    current_user: dict = Depends(verify_role_clearance(["System Administrator", "Auditor"]))
+    current_user: dict = Depends(verify_role_clearance(["Super Admin", "System Administrator", "Auditor"]))
 ):
     """Retrieve audit logs for a specific action"""
     try:
