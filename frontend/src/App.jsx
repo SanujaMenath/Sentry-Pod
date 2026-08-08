@@ -15,6 +15,7 @@ import StagingGate from "./pages/StagingGate";
 import Profile from "./pages/Profile";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import PublicRoute from "./routes/PublicRoute";
+import RoleProtectedRoute from "./routes/RoleProtectedRoute";
 import PlaybookManagement from "./pages/PlaybookManagement";
 import DriftReports from "./pages/DriftReports";
 import DriftReportDetail from "./pages/DriftReportDetail";
@@ -25,48 +26,68 @@ function App() {
   return (
     <BrowserRouter>
       <ErrorBoundary>
-      <Routes>
-        <Route path="/" element={<HomePage />} />
-        <Route
-          path="/login"
-          element={
-            <PublicRoute>
-              <Login />
-            </PublicRoute>
-          }
-        />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route
+            path="/login"
+            element={
+              <PublicRoute>
+                <Login />
+              </PublicRoute>
+            }
+          />
 
-        <Route
-          path="/setup"
-          element={
-            <ProtectedRoute>
-              <SetupWizard />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/setup"
+            element={
+              <ProtectedRoute>
+                <SetupWizard />
+              </ProtectedRoute>
+            }
+          />
 
-        <Route
-          element={
-            <ProtectedRoute>
-              <RootLayout />
-            </ProtectedRoute>
-          }
-        >
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/topology" element={<TopologyMap />} />
-          <Route path="/ai-chat" element={<AiChat />} />
-          <Route path="/staging" element={<StagingGate />} />
-          <Route path="/network-devices" element={<NetworkDevices />} />
-          <Route path="/audit-logs" element={<AuditLogs />} />
-          <Route path="/users" element={<RBACUsers />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="/settings" element={<SettingsPage />} />
-          <Route path="/playbooks" element={<PlaybookManagement />} />
-          <Route path="/drift-reports" element={<DriftReports />} />
-          <Route path="/drift-reports/:hostname" element={<DriftReportDetail />} />
-          <Route path="/console" element={<Console />} />
-        </Route>
-      </Routes>
+          <Route
+            element={
+              <ProtectedRoute>
+                <RootLayout />
+              </ProtectedRoute>
+            }
+          >
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/topology" element={<TopologyMap />} />
+            <Route path="/ai-chat" element={<AiChat />} />
+            <Route path="/staging" element={<StagingGate />} />
+            <Route path="/profile" element={<Profile />} />
+            <Route path="/settings" element={<SettingsPage />} />
+            <Route path="/drift-reports" element={<DriftReports />} />
+            <Route path="/drift-reports/:hostname" element={<DriftReportDetail />} />
+            <Route path="/console" element={<Console />} />
+
+            <Route path="/network-devices" element={
+              <RoleProtectedRoute allowedRoles={["Super Admin", "Network Admin", "Security Admin"]}>
+                <NetworkDevices />
+              </RoleProtectedRoute>
+            } />
+
+            <Route path="/audit-logs" element={
+              <RoleProtectedRoute allowedRoles={["Super Admin", "Auditor"]}>
+                <AuditLogs />
+              </RoleProtectedRoute>
+            } />
+
+            <Route path="/users" element={
+              <RoleProtectedRoute allowedRoles={["Super Admin"]}>
+                <RBACUsers />
+              </RoleProtectedRoute>
+            } />
+
+            <Route path="/playbooks" element={
+              <RoleProtectedRoute allowedRoles={["Super Admin", "Network Admin"]}>
+                <PlaybookManagement />
+              </RoleProtectedRoute>
+            } />
+          </Route>
+        </Routes>
       </ErrorBoundary>
     </BrowserRouter>
   );
