@@ -1,0 +1,29 @@
+# Force Unix line endings for shell scripts (run inside Linux containers)
+*.sh     text eol=lf
+
+# Ansible and config files
+*.yml    text eol=lf
+*.yaml   text eol=lf
+*.ini    text eol=lf
+*.cfg    text eol=lf
+
+# Python (cross-platform safe)
+*.py     text eol=lf
+
+# JavaScript / JSX / CSS / JSON (frontend files)
+*.js     text eol=lf
+*.jsx    text eol=lf
+*.css    text eol=lf
+*.json   text eol=lf
+
+# Markdown documentation
+*.md     text eol=lf
+
+# Batch scripts (Windows-native, keep CRLF)
+*.bat    text eol=crlf
+
+# Binary files
+*.png    binary
+*.jpg    binary
+*.ico    binary
+*.woff2  binary

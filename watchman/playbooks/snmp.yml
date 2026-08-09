@@ -1,5 +1,5 @@
 - name: SNMP configuration
-  hosts: Edge_routers
+  hosts: allHosts
   gather_facts: false
 
   tasks:

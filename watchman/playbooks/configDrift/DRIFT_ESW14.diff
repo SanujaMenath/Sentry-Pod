@@ -1,0 +1,34 @@
+--- before
++++ after
+@@ -1,12 +1,12 @@
+ Building configuration...
+ 
+-Current configuration : 5508 bytes
++Current configuration : 5540 bytes
+ !
+ ! No configuration change since last restart
+ !
+ version 12.4
+ service timestamps debug datetime msec
+-service timestamps log datetime localtime
++service timestamps log datetime msec
+ no service password-encryption
+ no service dhcp
+ !
+@@ -110,6 +110,7 @@
+  speed 100
+ !
+ interface FastEthernet1/8
++ shutdown
+  duplex full
+  speed 100
+ !
+@@ -156,6 +157,7 @@
+ no ip http secure-server
+ !
+ logging trap notifications
++logging origin-id hostname
+ logging host 192.168.122.1 transport udp port 10514
+ snmp-server community sentryPod RO
+ snmp-server enable traps snmp authentication linkdown linkup coldstart warmstart
+

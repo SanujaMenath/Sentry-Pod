@@ -1,0 +1,24 @@
+--- before
++++ after
+@@ -1,10 +1,10 @@
+ Building configuration...
+ 
+-Current configuration : 5857 bytes
++Current configuration : 5879 bytes
+ !
+ version 15.2
+ service timestamps debug datetime msec
+-service timestamps log datetime localtime
++service timestamps log datetime msec
+ !
+ hostname R2
+ !
+@@ -100,6 +100,7 @@
+ ip route 192.168.8.101 255.255.255.255 FastEthernet1/0
+ !
+ logging trap notifications
++logging origin-id hostname
+ logging host 192.168.122.1 transport udp port 10514
+ !
+ snmp-server community sentryPod RO
+

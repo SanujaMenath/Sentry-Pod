@@ -21,7 +21,7 @@ const staticRoleMetadata = [
   { name: "Auditor", desc: "View logs and reports", color: "text-yellow-400" },
   { name: "Read Only", desc: "View-only access", color: "text-gray-400" },
   {
-    name: "pending",
+    name: "Pending",
     desc: "Awaiting Administrator Activation",
     color: "text-rose-400",
   },
@@ -66,6 +66,7 @@ export default function RBACUsers() {
   const [systemAlert, setSystemAlert] = useState(null);
   const { search } = useOutletContext();
 
+  // Load backend data profiles
   useEffect(() => {
     const initializeDashboard = async () => {
       try {
@@ -88,11 +89,13 @@ export default function RBACUsers() {
     initializeDashboard();
   }, []);
 
+  // Handle live role updates triggered from selection boxes
   const handleRoleChange = async (userId, targetRole) => {
     try {
       setSystemAlert(null);
       await modifyUserRole(userId, targetRole);
 
+      // Update UI state immediately after a successful server confirmation
       setUsersList((prev) =>
         prev.map((u) => (u.id === userId ? { ...u, role: targetRole } : u)),
       );
@@ -112,13 +115,6 @@ export default function RBACUsers() {
     count: usersList.filter((u) => u.role === roleItem.name).length,
   }));
 
-  if (isLoading) {
-    return (
-      <div className="flex-1 min-h-screen bg-[#f0f2f5] flex items-center justify-center">
-        <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
-      </div>
-    );
-  }
   const filteredUsers = usersList.filter((user) => {
     const query = search.toLowerCase();
 
@@ -210,7 +206,22 @@ export default function RBACUsers() {
             </tr>
           </thead>
           <tbody>
-            {filteredUsers.map((user) => (
+            {isLoading ? (
+              <tr>
+                <td colSpan={6} className="px-5 py-12 text-center">
+                  <div className="flex items-center justify-center gap-2 text-gray-400">
+                    <Loader2 size={18} className="animate-spin" />
+                    <span className="text-sm">Loading users...</span>
+                  </div>
+                </td>
+              </tr>
+            ) : filteredUsers.length === 0 ? (
+              <tr>
+                <td colSpan={6} className="px-5 py-12 text-center text-gray-500 text-sm">
+                  No users found
+                </td>
+              </tr>
+            ) : (filteredUsers.map((user) => (
               <tr
                 key={user.id}
                 className="border-b border-[#1e2530] hover:bg-[#1e2530]/50 transition-colors"
@@ -282,7 +293,7 @@ export default function RBACUsers() {
                   {isAuthorizedToEdit ? "Granted" : "Restricted"}
                 </td>
               </tr>
-            ))}
+            )))}
           </tbody>
         </table>
       </div>

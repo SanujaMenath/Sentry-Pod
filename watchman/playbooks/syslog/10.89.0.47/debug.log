@@ -1,0 +1,15 @@
+Jun  5 07:30:00 10.89.0.47 %LINEPROTO-5-UPDOWN: Line protocol on Interface GigabitEthernet0/1, changed state to down
+Jun  5 13:00:58 10.89.0.47 %SYS-5-CONFIG_I: Configured from console by admin on vty0 (192.168.122.1)
+Jun  5 13:01:06 10.89.0.47 %SYS-5-CONFIG_I: Configured from console by admin on vty0 (192.168.122.1)
+Jun  5 13:01:22 10.89.0.47 %SYS-5-CONFIG_I: Configured from console by admin on vty0 (192.168.122.1)
+Jun  5 13:01:30 10.89.0.47 %OSPF-5-ADJCHG: Process 1, Nbr 10.0.0.2 on FastEthernet0/1 from FULL to DOWN, Neighbor Down: Interface down or detached
+Jun  5 13:01:30 10.89.0.47 %SYS-5-CONFIG_I: Configured from console by admin on vty0 (192.168.122.1)
+Jun  5 13:01:35 10.89.0.47 %OSPF-5-ADJCHG: Process 1, Nbr 10.0.0.2 on FastEthernet0/1 from LOADING to FULL, Loading Done
+Jun  5 12:05:17 10.89.0.47 %OSPF-5-ADJCHG: Process 1, Nbr 10.0.0.1 on FastEthernet0/1 from LOADING to FULL, Loading Done
+Jun  5 13:01:38 10.89.0.47 %OSPF-5-ADJCHG: Process 1, Nbr 10.0.0.2 on FastEthernet0/1 from FULL to DOWN, Neighbor Down: Interface down or detached
+Jun  5 13:01:38 10.89.0.47 %SYS-5-CONFIG_I: Configured from console by admin on vty0 (192.168.122.1)
+Jun  5 13:01:43 10.89.0.47 %OSPF-5-ADJCHG: Process 1, Nbr 10.0.0.2 on FastEthernet0/1 from LOADING to FULL, Loading Done
+Jun  5 12:05:22 10.89.0.47 %OSPF-5-ADJCHG: Process 1, Nbr 10.0.0.1 on FastEthernet0/1 from LOADING to FULL, Loading Done
+Jun  5 07:31:00 10.89.0.47 %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/1, changed state to down
+Jun  5 07:31:00 10.89.0.47 %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/1, changed state to up
+Jun  5 07:31:00 10.89.0.47 %LINEPROTO-5-UPDOWN: Line protocol on Interface FastEthernet0/1, changed state to down

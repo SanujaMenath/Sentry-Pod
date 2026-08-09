@@ -1,238 +1,334 @@
-import os
-import json
-import yaml
+import json as json_mod
 import logging
-import subprocess
+import re
+from datetime import datetime, timezone
 from pathlib import Path
-from typing import List, Tuple, Generator
+from typing import Optional
+
 from fastapi import HTTPException, status
 
-from app.models.playbook import PlaybookCatalogItem, PlaybookSuggestion
+from app.services.execution_service import (
+    PLAYBOOKS_DIR, save_playbook_file, delete_playbook_file, read_playbook_content,
+)
+from app.services.catalog_service import (
+    get_inventory_groups, read_catalog_raw, save_catalog, remove_catalog_entry,
+)
 
 logger = logging.getLogger(__name__)
 
-BASE_DIR = Path(__file__).parent.parent.parent
-PLAYBOOKS_DIR = BASE_DIR / "playbooks"
-HOSTS_INI_PATH = PLAYBOOKS_DIR / "hosts.ini"
-CATALOG_PATH = PLAYBOOKS_DIR / "catalog.json"
 
-_catalog_cache = None
+MODIFY_SYSTEM_PROMPT = """You are a YAML modification expert for Ansible playbooks.
 
-def load_catalog() -> List[PlaybookCatalogItem]:
-    """Load playbook catalog from JSON file with caching."""
-    global _catalog_cache
-    
-    if _catalog_cache is not None:
-        return _catalog_cache
-    
-    if not CATALOG_PATH.exists():
-        logger.warning(f"Catalog file not found at {CATALOG_PATH}")
-        return []
-    
+Given an original playbook YAML and a modification request, you must:
+
+1. Change ONLY what the user explicitly asked to modify. Keep everything else exactly as-is.
+2. The modified playbook MUST be valid YAML — same structure, indentation, and format as the original.
+3. Output the full modified playbook YAML inside a ```yaml code block.
+4. After the YAML block, output metadata inside a ```json code block.
+
+CRITICAL — only change what the user asked:
+- Wrong: User asks "change hosts to Edge_routers" and you also change gather_facts, gather_subset, etc.
+- Right: Only change hosts. Everything else identical to the original.
+
+CRITICAL — exact host group names (Ansible is case-sensitive):
+When changing the "hosts:" value, you MUST use one of the exact group names listed in
+"Valid inventory groups for this playbook" below. Match capitalization precisely.
+If the user says "edge" or "edge routers" and the valid group is "Edge_routers",
+use "Edge_routers". Never change capitalization or use generic names.
+
+Wrong: hosts: edge_routers    → will match 0 devices, playbook fails
+Wrong: hosts: edge            → doesn't exist
+Right: hosts: Edge_routers    → matches correctly
+
+Example:
+Original (partial):
+  hosts: allHosts
+  gather_facts: false
+  
+  tasks:
+    - name: Collect all available facts
+      cisco.ios.ios_facts:
+        gather_subset: all
+
+User: "Change hosts from allHosts to edge routers"
+Valid groups: allHosts, Edge_routers, Core_Switches
+
+Correct modified YAML (only hosts changed, exact group name used):
+  hosts: Edge_routers
+  gather_facts: false
+  
+  tasks:
+    - name: Collect all available facts
+      cisco.ios.ios_facts:
+        gather_subset: all
+
+Format your response exactly like this (no other text before or after):
+
+```yaml
+<full modified playbook YAML>
+```
+
+```json
+{
+  "name": "<short display name>",
+  "description": "<description>",
+  "tags": ["<include original tags>"],
+  "severity": "<low|medium|high|critical>",
+  "destructive": <true|false>,
+  "target_devices": ["<target device groups>"],
+  "example_intents": ["<keep original intents, add new ones for this modification>"],
+  "plain_explanation": "<one sentence on what changed>"
+}
+```"""
+
+
+async def generate_playbook_modification(
+    playbook_name: str,
+    modification: str,
+    hf_api_key: str,
+    model: str = "deepseek-ai/DeepSeek-R1:novita"
+) -> dict:
+    import httpx
+
+    original_content = read_playbook_content(playbook_name)
+    hf_api_url = "https://router.huggingface.co/v1/chat/completions"
+    valid_groups = get_inventory_groups()
+    groups_str = ", ".join(valid_groups) if valid_groups else "N/A"
+
+    messages = [
+        {"role": "system", "content": MODIFY_SYSTEM_PROMPT},
+        {"role": "user", "content": f"Original playbook YAML:\n```yaml\n{original_content}\n```\n\nModification request: {modification}\n\nValid inventory groups for this playbook (use exact capitalization): {groups_str}"}
+    ]
+
+    headers = {
+        "Authorization": f"Bearer {hf_api_key}",
+        "Content-Type": "application/json",
+    }
+    payload = {"messages": messages, "model": model}
+
+    async with httpx.AsyncClient(timeout=120.0) as client:
+        response = await client.post(hf_api_url, json=payload, headers=headers)
+
+    if response.status_code != 200:
+        error_text = response.text[:300]
+        raise HTTPException(
+            status_code=response.status_code,
+            detail=f"HF API error during modification generation: {error_text}",
+        )
+
+    data = response.json()
+    content = data.get("choices", [{}])[0].get("message", {}).get("content", "")
+
+    yaml_match = re.search(r'```yaml\n([\s\S]*?)```', content)
+    json_match = re.search(r'```json\n([\s\S]*?)```', content)
+
+    if not yaml_match:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"LLM response missing ```yaml code block. Response: {content[:500]}",
+        )
+
+    modified_yaml = yaml_match.group(1).strip()
+
+    metadata = {}
+    if json_match:
+        try:
+            metadata = json_mod.loads(json_match.group(1))
+        except json_mod.JSONDecodeError:
+            logger.warning(f"Failed to parse metadata JSON from LLM response: {content[:300]}")
+
+    return {
+        "original_content": original_content,
+        "modified_content": modified_yaml,
+        "name": metadata.get("name", f"{Path(playbook_name).stem} (Modified)"),
+        "description": metadata.get("description", f"Modified version of {playbook_name}"),
+        "tags": metadata.get("tags", []),
+        "severity": metadata.get("severity", "medium"),
+        "destructive": metadata.get("destructive", False),
+        "target_devices": metadata.get("target_devices", []),
+        "example_intents": metadata.get("example_intents", []),
+        "plain_explanation": metadata.get("plain_explanation", f"Modified {playbook_name} based on request."),
+    }
+
+
+def derive_modified_filename(original_name: str) -> str:
+    p = Path(original_name)
+    stem = p.stem
+    suffix = p.suffix or ".yml"
+    new_name = f"{stem}_modified{suffix}"
+    filepath = PLAYBOOKS_DIR / new_name
+    counter = 1
+    while filepath.exists():
+        new_name = f"{stem}_modified_{counter}{suffix}"
+        filepath = PLAYBOOKS_DIR / new_name
+        counter += 1
+    return new_name
+
+
+def compute_yaml_diff(original: str, modified: str) -> str:
+    import difflib
+    original_lines = original.splitlines(keepends=True)
+    modified_lines = modified.splitlines(keepends=True)
+    diff_lines = list(difflib.unified_diff(
+        original_lines, modified_lines,
+        fromfile="original", tofile="modified", n=3,
+    ))
+    return "".join(diff_lines)
+
+
+def save_modified_playbook(
+    original_name: str,
+    proposed_name: str,
+    modified_content: str,
+    metadata: dict,
+) -> tuple:
+    filename = proposed_name
+
+    catalog = read_catalog_raw()
+    original_entry = {}
+    for entry in catalog:
+        if entry.get("filename") == original_name:
+            original_entry = entry
+            break
+
+    original_intents = original_entry.get("example_intents", [])
+    new_intents = metadata.get("example_intents", [])
+    merged_intents = list(dict.fromkeys(original_intents + new_intents))
+
+    catalog_entry = {
+        "filename": filename,
+        "name": metadata.get("name", f"{Path(original_name).stem} (Modified)"),
+        "description": metadata.get("description", f"Modified version of {original_name}"),
+        "tags": metadata.get("tags", original_entry.get("tags", [])),
+        "target_devices": metadata.get("target_devices", original_entry.get("target_devices", [])),
+        "example_intents": merged_intents,
+        "destructive": metadata.get("destructive", original_entry.get("destructive", False)),
+        "severity": metadata.get("severity", original_entry.get("severity", "medium")),
+    }
+
+    return filename, catalog_entry
+
+
+async def persist_playbook(
+    name: str,
+    filename: str,
+    description: str,
+    engine_type: str,
+    subnet_scope: str,
+    pipeline_status: str,
+    tags: list,
+    target_devices: list,
+    example_intents: list,
+    destructive: bool,
+    severity: str,
+    file_content: Optional[bytes] = None,
+    blueprint_extra: Optional[dict] = None,
+):
+    """Persist a playbook to YAML file + catalog.json + MongoDB in one atomic flow.
+
+    MongoDB and catalog.json are updated together; on any failure the
+    previously-written artifacts are rolled back so the two never drift.
+    Returns (inserted_id, saved_filename).
+    """
+    from app.database import db
+
+    playbooks_col = db.get_collection("playbooks")
+
+    saved_filename = filename
+    catalog_updated = False
+    file_saved = False
+    mongo_inserted = False
+
     try:
-        with open(CATALOG_PATH, 'r') as f:
-            data = json.load(f)
-        _catalog_cache = [PlaybookCatalogItem(**item) for item in data]
-        return _catalog_cache
-    except Exception as e:
-        logger.error(f"Error loading catalog: {str(e)}")
-        return []
-
-def extract_playbook_preview(filename: str) -> str:
-    """Read a playbook YAML file and extract key task information."""
-    try:
-        playbook_path = PLAYBOOKS_DIR / filename
-        if not playbook_path.exists():
-            return ""
-            
-        with open(playbook_path, 'r') as f:
-            content = yaml.safe_load(f)
-        
-        if not content or not isinstance(content, list):
-            return ""
-        
-        play = content[0]
-        if not isinstance(play, dict):
-            return ""
-        
-        tasks = play.get('tasks', [])
-        if not tasks:
-            return ""
-        
-        task_names = []
-        modules_used = set()
-        
-        for task in tasks[:4]:
-            if isinstance(task, dict):
-                task_name = task.get('name', 'unnamed task')
-                task_names.append(task_name)
-                
-                for key in task.keys():
-                    if key not in ['name', 'register', 'when', 'debug', 'copy', 'set_fact']:
-                        if '.' in key or key in ['command', 'shell', 'copy', 'debug']:
-                            modules_used.add(key)
-        
-        preview_parts = []
-        if task_names:
-            preview_parts.append("Tasks: " + "; ".join(task_names[:3]))
-        if modules_used:
-            modules_list = "; ".join(sorted(list(modules_used))[:3])
-            preview_parts.append("Uses: " + modules_list)
-        
-        return " | ".join(preview_parts) if preview_parts else ""
-    except Exception as e:
-        logger.warning(f"Could not extract preview from {filename}: {str(e)}")
-        return ""
-
-def score_playbook_match(catalog_item: PlaybookCatalogItem, prompt: str) -> Tuple[float, str]:
-    """Score how well a playbook matches a user prompt using multiple matching strategies."""
-    prompt_lower = prompt.lower()
-    prompt_words = set(prompt_lower.split())
-    score = 0.0
-    reasons = []
-    
-    if catalog_item.filename.lower() in prompt_lower:
-        score += 5
-        reasons.append(f"filename match: {catalog_item.filename}")
-    
-    if catalog_item.name.lower() in prompt_lower:
-        score += 4
-        reasons.append(f"name match: {catalog_item.name}")
-    
-    for tag in catalog_item.tags:
-        if tag.lower() in prompt_lower or tag.lower() in prompt_words:
-            score += 2
-            reasons.append(f"tag match: {tag}")
-    
-    for intent in catalog_item.example_intents:
-        if intent.lower() in prompt_lower:
-            score += 3
-            reasons.append(f"intent match: {intent}")
-    
-    score = min(score, 10.0)
-    reason = "; ".join(reasons) if reasons else "no keyword match"
-    return score, reason
-
-def find_playbook_suggestions(prompt: str, top_k: int = 3) -> List[PlaybookSuggestion]:
-    """Find the best matching playbooks for a user prompt ranked by relevance."""
-    catalog = load_catalog()
-    if not catalog:
-        return []
-    
-    suggestions = []
-    for item in catalog:
-        score, reason = score_playbook_match(item, prompt)
-        if score >= 2:
-            preview = extract_playbook_preview(item.filename)
-            suggestions.append(
-                PlaybookSuggestion(
-                    filename=item.filename,
-                    name=item.name,
-                    description=item.description,
-                    tags=item.tags,
-                    match_score=score,
-                    reason=reason,
-                    destructive=item.destructive,
-                    severity=getattr(item, "severity", "medium"),
-                    target_devices=item.target_devices,
-                    playbook_preview=preview,
-                )
+        existing = read_catalog_raw()
+        if any(e.get("filename") == saved_filename for e in existing):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"A catalog entry with filename '{saved_filename}' already exists",
             )
-    
-    suggestions.sort(key=lambda x: x.match_score, reverse=True)
-    return suggestions[:top_k]
 
-def get_all_hosts_from_inventory() -> List[str]:
-    """Return all hostnames listed under [allHosts] in hosts.ini."""
-    if not HOSTS_INI_PATH.exists():
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Inventory file 'hosts.ini' not found"
-        )
+        if file_content:
+            saved_filename = save_playbook_file(filename, file_content)
+            file_saved = True
 
-    hostnames: List[str] = []
-    in_all_hosts = False
+        catalog_entry = {
+            "filename": saved_filename,
+            "name": name,
+            "description": description,
+            "tags": tags,
+            "target_devices": target_devices,
+            "example_intents": example_intents,
+            "destructive": destructive,
+            "severity": severity,
+        }
 
-    with HOSTS_INI_PATH.open("r", encoding="utf-8") as inventory_file:
-        for raw_line in inventory_file:
-            line = raw_line.strip()
-            if not line or line.startswith("#") or line.startswith(";"):
-                continue
-            if line.startswith("[") and line.endswith("]"):
-                in_all_hosts = line.lower() == "[allhosts]"
-                continue
-            if not in_all_hosts:
-                continue
+        existing.append(catalog_entry)
+        save_catalog(existing)
+        catalog_updated = True
 
-            hostname = line.split()[0]
-            hostnames.append(hostname)
+        new_blueprint_doc = {
+            "name": name,
+            "filename": saved_filename,
+            "description": description,
+            "engine_type": engine_type,
+            "subnet_scope": subnet_scope,
+            "pipeline_status": pipeline_status,
+            "tags": tags,
+            "target_devices": target_devices,
+            "example_intents": example_intents,
+            "destructive": destructive,
+            "severity": severity,
+            "file_path": str(PLAYBOOKS_DIR / saved_filename),
+            "last_executed": "Never Executed",
+            "timestamp_created": datetime.now(timezone.utc).isoformat() + "Z",
+        }
+        if blueprint_extra:
+            new_blueprint_doc.update(blueprint_extra)
 
-    return hostnames
+        result = await playbooks_col.insert_one(new_blueprint_doc)
+        mongo_inserted = True
 
-def validate_playbook_path(playbook_name: str) -> Path:
-    """Helper to validate playbook file presence and extension constraints."""
-    playbook_path = PLAYBOOKS_DIR / playbook_name
-    if not playbook_path.exists():
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Playbook '{playbook_name}' not found"
-        )
-    if not playbook_name.endswith(('.yml', '.yaml')):
+        return str(result.inserted_id), saved_filename
+
+    except Exception:
+        if catalog_updated and saved_filename:
+            try:
+                remove_catalog_entry(saved_filename)
+            except Exception:
+                logger.warning(f"Rollback: could not remove catalog entry {saved_filename}")
+        if file_saved and saved_filename and not mongo_inserted:
+            try:
+                delete_playbook_file(saved_filename)
+            except Exception:
+                logger.warning(f"Rollback: could not delete file {saved_filename}")
+        raise
+
+
+async def remove_playbook(playbook_id: str):
+    """Remove a playbook from MongoDB and catalog.json together (atomic)."""
+    from bson import ObjectId
+    from app.database import db
+
+    playbooks_col = db.get_collection("playbooks")
+    try:
+        mongo_id = ObjectId(playbook_id)
+    except Exception:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Only .yml and .yaml files are allowed"
+            detail="Provided blueprint asset tracking ID format is completely invalid.",
         )
-    return playbook_path
 
-def run_playbook(playbook_name: str) -> Tuple[int, str]:
-    """Executes an Ansible playbook blocking system process call."""
-    playbook_path = validate_playbook_path(playbook_name)
-    try:
-        result = subprocess.run(
-            ['ansible-playbook', str(playbook_path), '-i', str(PLAYBOOKS_DIR / 'hosts.ini')],
-            cwd=str(PLAYBOOKS_DIR),
-            capture_output=True,
-            text=True,
-            timeout=300
-        )
-        return result.returncode, result.stdout + result.stderr
-    except subprocess.TimeoutExpired:
+    existing = await playbooks_col.find_one({"_id": mongo_id})
+    if not existing:
         raise HTTPException(
-            status_code=status.HTTP_408_REQUEST_TIMEOUT,
-            detail="Playbook execution timeout"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Target configuration entry could not be located in database layer.",
         )
 
-def run_playbook_stream_generator(playbook_name: str) -> Generator[str, None, None]:
-    """Starts the subprocess and yields SSE formatted event payloads data."""
-    playbook_path = validate_playbook_path(playbook_name)
-    try:
-        process = subprocess.Popen(
-            ['ansible-playbook', str(playbook_path), '-i', str(PLAYBOOKS_DIR / 'hosts.ini')],
-            cwd=str(PLAYBOOKS_DIR),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.STDOUT,
-            text=True,
-            bufsize=1,
-        )
-        
-        for line in iter(process.stdout.readline, ''):
-            if line:
-                event_data = json.dumps({"type": "output", "line": line.rstrip('\n')})
-                yield f"data: {event_data}\n\n"
-        
-        returncode = process.wait()
-        completion_data = json.dumps({
-            "type": "complete",
-            "status": "success" if returncode == 0 else "failed",
-            "returncode": returncode
-        })
-        yield f"data: {completion_data}\n\n"
-        
-    except Exception as e:
-        error_data = json.dumps({"type": "error", "message": str(e)})
-        yield f"data: {error_data}\n\n"
+    filename = existing.get("filename")
+    if filename:
+        remove_catalog_entry(filename)
+        delete_playbook_file(filename)
 
-def get_playbook_files() -> List[str]:
-    """Gather physical playbook files inside directory paths."""
-    playbooks = [f.name for f in PLAYBOOKS_DIR.glob('*.yml')] + [f.name for f in PLAYBOOKS_DIR.glob('*.yaml')]
-    return sorted([p for p in playbooks if not p.startswith('.')])
+    await playbooks_col.delete_one({"_id": mongo_id})
+    return {"status": "success", "detail": "Blueprint document and associated files successfully removed."}

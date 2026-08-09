@@ -3,6 +3,7 @@ from ..database import db
 from ..models.user import UserCreate, UserProfileUpdate, UserPasswordUpdate
 from bson import ObjectId 
 from fastapi import HTTPException, status
+from datetime import datetime, timezone
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 users_collection = db.get_collection("users")
@@ -24,6 +25,14 @@ async def create_new_user(user_data: UserCreate):
     user_dict["username"] = normalized_username
     user_dict["password"] = hashed_password
     user_dict["role"] = "pending" 
+    
+    user_dict["recent_activities"] = [
+        {
+        "event": "Account Created Successfully",
+        "timestamp": datetime.now(timezone.utc).isoformat() + "Z",  
+        "type": "info"
+        }
+    ]
     
     result = await users_collection.insert_one(user_dict)
     return format_user_response(user_dict)
@@ -55,10 +64,24 @@ async def update_user_profile(user_id: str, profile_data: UserProfileUpdate):
     update_dict = {k: v for k, v in profile_data.model_dump().items() if v is not None}
     if not update_dict:
         raise HTTPException(status_code=400, detail="No valid update data provided")
-        
+   
+    new_activity = {
+    "event": "Profile Information Updated",
+    "timestamp": datetime.now(timezone.utc).isoformat() + "Z",  # 🌟 Updated
+    "type": "info"
+    }
     await users_collection.update_one(
         {"_id": ObjectId(user_id)},
-        {"$set": update_dict}
+        {
+            "$set": update_dict,
+            "$push": {
+                "recent_activities": {
+                    "$each": [new_activity],
+                    "$position": 0,
+                    "$slice": 5
+                }
+            }
+        }  
     )
     return await get_user_by_id(user_id)
 
@@ -67,6 +90,12 @@ async def update_user_password(user_id: str, password_data: UserPasswordUpdate):
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     
+    if password_data.new_password != password_data.confirm_password:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="New password and confirmation do not match"
+        )
+    
     if not pwd_context.verify(password_data.current_password, user["password"]):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -74,8 +103,22 @@ async def update_user_password(user_id: str, password_data: UserPasswordUpdate):
         )
         
     hashed_password = pwd_context.hash(password_data.new_password)
+
+    new_activity = {
+        "event": "Password Changed",
+        "timestamp": datetime.now(timezone.utc).isoformat() + "Z",  
+        "type": "security"
+    }
     await users_collection.update_one(
         {"_id": ObjectId(user_id)},
-        {"$set": {"password": hashed_password}}
+        {"$set": {"password": hashed_password},
+         "$push":{
+                "recent_activities": {
+                    "$each": [new_activity],
+                    "$position": 0,
+                    "$slice": 5
+                }
+         }
+         }
     )
     return {"status": "success", "message": "Password updated successfully"}

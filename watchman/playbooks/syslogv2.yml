@@ -1,0 +1,19 @@
+- name: configure syslog
+  hosts: allHosts
+  gather_facts: false
+
+  vars:
+     syslog_host: "{{ extra_syslog_host | default('192.168.122.1') }}"
+     syslog_port: "{{ extra_syslog_port | default(10514) }}"
+
+  tasks:
+    - name: push syslog configuration
+      cisco.ios.ios_config:
+        lines:
+          - logging host {{ syslog_host }} transport udp port {{ syslog_port }}
+          - logging trap 5
+          - logging facility local7
+          - service timestamps log datetime msec 
+          - logging origin-id hostname 
+          - logging on
+          

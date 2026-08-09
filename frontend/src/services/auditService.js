@@ -1,10 +1,8 @@
-import axios from 'axios';
-
-const API_URL = 'http://localhost:8000';
+import api from "./api";
 
 export const logAction = async (actionName, playbookName, status, output, username = 'Anonymous User') => {
   try {
-    const response = await axios.post(`${API_URL}/audit-logs/log-action`, {
+    const response = await api.post('/audit-logs/log-action', {
       action_name: actionName,
       playbook_name: playbookName,
       status: status,
@@ -21,7 +19,7 @@ export const logAction = async (actionName, playbookName, status, output, userna
 
 export const getAllAuditLogs = async (limit = 50) => {
   try {
-    const response = await axios.get(`${API_URL}/audit-logs/all`, {
+    const response = await api.get('/audit-logs/all', {
       params: { limit }
     });
     
@@ -32,9 +30,19 @@ export const getAllAuditLogs = async (limit = 50) => {
   }
 };
 
+export const getAuditLogById = async (logId) => {
+  try {
+    const response = await api.get(`/audit-logs/${logId}`);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching audit log:', error);
+    throw error.response?.data?.detail || "Failed to fetch audit log";
+  }
+};
+
 export const getLogsByUser = async (username, limit = 50) => {
   try {
-    const response = await axios.get(`${API_URL}/audit-logs/by-user/${username}`, {
+    const response = await api.get(`/audit-logs/by-user/${username}`, {
       params: { limit }
     });
     

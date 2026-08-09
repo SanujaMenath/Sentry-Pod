@@ -11,7 +11,7 @@ export default function PageHeader({ title, description, isSmallSubtext = false 
     },
     subtext: {
       color: "#475569",
-      fontSize: isSmallSubtext ? "14px" : "16px", // Dynamically switches size!
+      fontSize: isSmallSubtext ? "14px" : "16px",
       fontWeight: "500",
       fontFamily: '"Inter", sans-serif',
     },
