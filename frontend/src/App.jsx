@@ -61,8 +61,12 @@ function App() {
             <Route path="/settings" element={<SettingsPage />} />
             <Route path="/drift-reports" element={<DriftReports />} />
             <Route path="/drift-reports/:hostname" element={<DriftReportDetail />} />
-            <Route path="/console" element={<Console />} />
 
+            <Route path="/console" element={
+              <RoleProtectedRoute allowedRoles={["Super Admin", "Network Admin"]}>
+                <Console />
+              </RoleProtectedRoute>
+            } />
             <Route path="/network-devices" element={
               <RoleProtectedRoute allowedRoles={["Super Admin", "Network Admin", "Security Admin"]}>
                 <NetworkDevices />

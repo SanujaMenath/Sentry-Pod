@@ -4,20 +4,19 @@ import { FitAddon } from "@xterm/addon-fit";
 import "@xterm/xterm/css/xterm.css";
 import { useTerminalConfig } from "../hooks/useTerminalConfig";
 import { resolveTheme } from "../config/terminalThemes";
+import ConsoleAuthGate from "../components/ConsoleAuthGate";
 
 const WS_BASE = import.meta.env.VITE_WS_BASE_URL || "ws://localhost:8000";
 
-export default function Console() {
+function TerminalView() {
   const terminalRef = useRef(null);
   const termRef = useRef(null);
   const socketRef = useRef(null);
   const dimsRef = useRef({ cols: 0, rows: 0 });
   const { consoleConfig: { fontSize, fontFamily, colorScheme, cursorStyle, cursorBlink } } = useTerminalConfig();
 
-  // eslint-disable react-hooks/exhaustive-deps
   useEffect(() => {
     const scheme = resolveTheme(colorScheme).theme;
-
     const term = new Terminal({
       cursorBlink,
       cursorStyle,
@@ -27,7 +26,6 @@ export default function Console() {
       theme: scheme,
       allowProposedApi: true,
     });
-
     const fitAddon = new FitAddon();
     term.loadAddon(fitAddon);
     term.open(terminalRef.current);
@@ -93,7 +91,6 @@ export default function Console() {
       term.dispose();
     };
   }, []);
-  // eslint-enable react-hooks/exhaustive-deps
 
   useEffect(() => {
     const term = termRef.current;
@@ -114,5 +111,13 @@ export default function Console() {
         style={{ minHeight: "100%" }}
       />
     </div>
+  );
+}
+
+export default function Console() {
+  return (
+    <ConsoleAuthGate>
+      <TerminalView />
+    </ConsoleAuthGate>
   );
 }
