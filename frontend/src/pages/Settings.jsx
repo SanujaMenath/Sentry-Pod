@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useOutletContext } from 'react-router-dom';
 import { Bell, Shield, Globe, Database } from 'lucide-react';
 import PageHeader from "../components/PageHeader";
 import Toggle from "../components/Toggle";
@@ -6,6 +7,7 @@ import SettingRow from "../components/SettingRow";
 import TerminalConfigCard from "../components/TerminalConfigCard";
 
 export default function SettingsPage() {
+  const { search } = useOutletContext() || { search: "" };
   const [settings, setSettings] = useState({
     emailAlerts: true,
     criticalOnly: false,
@@ -21,6 +23,20 @@ export default function SettingsPage() {
     syslog: '10.0.0.10',
     ntp: 'time.nist.gov',
   });
+  const query = search ? search.trim().toLowerCase() : "";
+
+  const matches = (keywords = []) => {
+    if (!query) return true;
+    return keywords.some(k => k.toLowerCase().includes(query));
+  };
+
+  const showNotifications = matches(["Notifications", "Email Alerts", "Critical Only", "Slack Integration", "alert", "notification"]);
+  const showSecurity = matches(["Security", "Two-Factor Authentication", "2FA", "Session Timeout", "Audit Logging"]);
+  const showNetwork = matches(["Network Settings", "SNMP", "Syslog", "NTP", "Server", "Community String"]);
+  const showBackup = matches(["Backup & Restore", "Automatic Backup", "Last Backup", "Restore"]);
+  const showTerminal = matches(["Terminal Customization", "Terminal", "Theme", "Font", "Appearance"]);
+
+  const hasResults = showNotifications || showSecurity || showNetwork || showBackup || showTerminal;
 
   const toggle = (key) => setSettings(prev => ({ ...prev, [key]: !prev[key] }));
 
@@ -46,13 +62,19 @@ export default function SettingsPage() {
           <p style={styles.subtext}>Manage system configuration and preferences</p>
         </div>
 
-        <div className="grid grid-cols-2 gap-6">
+        {!hasResults ? (
+          <div className="py-16 text-center text-slate-500 font-medium">
+            No settings matching "{search}"
+          </div>
+        ) : (
+          <div className="grid grid-cols-2 gap-6">
           {/* Notifications */}
-          <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]" style={styles.card}>
-            <div className="flex items-center gap-2 mb-1">
-              <Bell size={18} className="text-blue-400" strokeWidth={1.5} />
-              <h2 className="text-base font-bold text-slate-200">Notifications</h2>
-            </div>
+          {showNotifications && (
+            <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]" style={styles.card}>
+              <div className="flex items-center gap-2 mb-1">
+                <Bell size={18} className="text-blue-400" strokeWidth={1.5} />
+                <h2 className="text-base font-bold text-slate-200">Notifications</h2>
+              </div>
             <p className="text-xs text-slate-500 mb-5">Configure alert and notification preferences</p>
             <div>
               <SettingRow label="Email Alerts" desc="Receive alerts via email" enabled={settings.emailAlerts} onChange={() => toggle('emailAlerts')} />
@@ -60,9 +82,11 @@ export default function SettingsPage() {
               <SettingRow label="Slack Integration" desc="Send alerts to Slack" enabled={settings.slackIntegration} onChange={() => toggle('slackIntegration')} />
             </div>
           </div>
+          )}
 
           {/* Security */}
-          <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]" style={styles.card}>
+          {showSecurity && (
+            <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]" style={styles.card}>
             <div className="flex items-center gap-2 mb-1">
               <Shield size={18} className="text-emerald-400" strokeWidth={1.5} />
               <h2 className="text-base font-bold text-slate-200">Security</h2>
@@ -74,14 +98,16 @@ export default function SettingsPage() {
               <SettingRow label="Audit Logging" desc="Log all system activities" enabled={settings.auditLogging} onChange={() => toggle('auditLogging')} />
             </div>
           </div>
+          )}
 
           {/* Network Settings */}
-          <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]" style={styles.card}>
-            <div className="flex items-center gap-2 mb-1">
-              <Globe size={18} className="text-purple-400" strokeWidth={1.5} />
-              <h2 className="text-base font-bold text-slate-200">Network Settings</h2>
-            </div>
-            <p className="text-xs text-slate-500 mb-5">Configure network parameters</p>
+          {showNetwork && (
+            <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]" style={styles.card}>
+              <div className="flex items-center gap-2 mb-1">
+                <Globe size={18} className="text-purple-400" strokeWidth={1.5} />
+                <h2 className="text-base font-bold text-slate-200">Network Settings</h2>
+              </div>
+              <p className="text-xs text-slate-500 mb-5">Configure network parameters</p>
             <div className="space-y-4">
               <div>
                 <label className="text-xs text-slate-500 mb-1.5 block font-medium">SNMP Community String</label>
@@ -103,9 +129,11 @@ export default function SettingsPage() {
               </button>
             </div>
           </div>
+          )}
 
           {/* Backup & Restore */}
-          <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]" style={styles.card}>
+          {showBackup && (
+            <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]" style={styles.card}>
             <div className="flex items-center gap-2 mb-1">
               <Database size={18} className="text-amber-400" strokeWidth={1.5} />
               <h2 className="text-base font-bold text-slate-200">Backup & Restore</h2>
@@ -133,12 +161,16 @@ export default function SettingsPage() {
               </div>
             </div>
           </div>
+          )}
 
         {/* Terminal Customization — full-width row */}
-        <div className="col-span-2">
-          <TerminalConfigCard />
+        {showTerminal && (
+          <div className="col-span-2">
+            <TerminalConfigCard />
+          </div>
+        )}
         </div>
-        </div>
+        )}
       </div>
     </div>
   );

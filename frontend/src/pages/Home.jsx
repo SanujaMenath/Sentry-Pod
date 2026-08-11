@@ -37,7 +37,7 @@ const SentryPodLanding = () => {
           
           <div className="z-10 -mt-15 lg:-mt-16">
             <div className="mb-4">
-              <img src={logo} alt="SentryPod AI" className="h-32 md:h-40 w-auto object-contain" />
+              <img src={logo} alt="SentryPod AI" className="h-40 md:h-52 w-auto object-contain" />
             </div>
             
             <h2 className="text-3xl lg:text-4xl font-bold leading-tight mb-5 text-transparent bg-clip-text bg-linear-to-r from-[#51A2FF] to-[#00D492]">
