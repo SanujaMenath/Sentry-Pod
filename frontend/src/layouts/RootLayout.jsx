@@ -14,7 +14,7 @@ const RootLayout = () => {
         <Navbar search={search} setSearch={setSearch} />
 
         <main className="flex-1 overflow-auto">
-          <Outlet context={{ search }} />
+          <Outlet context={{ search, setSearch }} />
         </main>
       </div>
     </div>

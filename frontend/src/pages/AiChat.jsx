@@ -10,6 +10,7 @@ import SessionSidebar from "../components/SessionSidebar";
 import ExpandableOutput from "../components/ExpandableOutput";
 import PlaybookSuggestions from "../components/PlaybookSuggestions";
 import PlaybookModificationCard from "../components/PlaybookModificationCard";
+import { useOutletContext } from 'react-router-dom';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
@@ -43,6 +44,7 @@ const normalizeAssistantText = (rawText) => {
 
 
 export default function AiChat() {
+  const { search } = useOutletContext() || { search: "" };
   const [messages, setMessages] = useState([
     { role: "ai", text: GREETING, time: "Now" },
   ]);
@@ -515,6 +517,18 @@ export default function AiChat() {
     localStorage.setItem("hf_model", modelId);
   };
 
+  const query = search ? search.trim().toLowerCase() : "";
+
+  const filteredMessages = messages.filter((msg) => {
+    if (!query) return true;
+    return msg.text?.toLowerCase().includes(query);
+  });
+
+  const filteredSessions = sessions.filter((session) => {
+    if (!query) return true;
+    return session.title?.toLowerCase().includes(query);
+  });
+
   return (
     <div className="min-h-full bg-linear-to-br from-[#F8FAFC] to-[#D1D5DB] p-8 font-sans">
       <PlaybookStagingGate playbook={pendingPlaybook} onApprove={handleStagingGateApprove} onReject={handleStagingGateReject} isOpen={!!pendingPlaybook} />
@@ -529,7 +543,7 @@ export default function AiChat() {
       )}
 
       <SessionSidebar
-        sessions={sessions}
+        sessions={filteredSessions}
         activeSessionId={activeSessionId}
         onSelectSession={handleSelectSession}
         onNewSession={handleNewSession}
@@ -596,12 +610,18 @@ export default function AiChat() {
         {/* LARGE GRAY CHAT BOX (Updated shadow classes here) */}
         <div className="flex min-h-131.25 flex-col overflow-hidden rounded-3xl border border-slate-700/50 bg-[#1D293DED] shadow-2xl shadow-black/50">
           <div className="flex-1 space-y-5 p-6">
-            {loadingSession ? (
+           {loadingSession ? (
               <div className="flex items-center justify-center py-20 text-slate-400">
                 <div className="animate-pulse text-sm">Loading session...</div>
               </div>
+            ) : filteredMessages.length === 0 ? (
+              <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                <p className="text-sm">
+                  {query ? `No chat messages matching "${search}"` : "No messages in this chat."}
+                </p>
+              </div>
             ) : (
-              messages.map((message, index) => (
+              filteredMessages.map((message, index) => (
                 <div key={index} className={`flex gap-4 ${message.role === "user" ? "justify-end" : ""}`}>
                   {message.role === "ai" && (
                     <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-violet-600 text-white">
@@ -618,7 +638,6 @@ export default function AiChat() {
                         <span className="text-xs text-slate-500">{message.time}</span>
                       </div>
                     )}
-
                     {message.reasoning && (
                       <div className="mb-4 rounded-lg border border-purple-500/30 bg-purple-900/20 p-3">
                         <p className="mb-2 text-xs font-semibold text-purple-300">Thinking Process:</p>

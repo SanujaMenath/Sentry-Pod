@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useOutletContext} from "react-router-dom";
 import {
   Network,
   MessageSquare,
@@ -33,6 +33,7 @@ const SEVERITY_COLORS = {
 //  MAIN DASHBOARD
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { search } = useOutletContext() || { search: "" };
 
   const [status, setStatus] = useState("pending");
   const [totalDevices, setTotalDevices] = useState("--");
@@ -244,7 +245,7 @@ const Dashboard = () => {
       setIsRefreshingGraph(false);
     }
   };
-
+  
   const styles = {
     sidebar: { backgroundColor: "#020618ED", fontFamily: FONT_FAMILY },
     main: {
@@ -262,6 +263,26 @@ const Dashboard = () => {
       fontFamily: FONT_FAMILY,
     },
   };
+const query = search ? search.trim().toLowerCase() : "";
+
+const filteredDevices = networkStatus.devices.filter((device) => {
+  if (!query) return true;
+  return (
+    device.name?.toLowerCase().includes(query) ||
+    device.ip?.toLowerCase().includes(query) ||
+    device.model?.toLowerCase().includes(query) ||
+    device.tier?.toLowerCase().includes(query)
+  );
+});
+
+const filteredSyslogs = syslogAlerts.filter((alert) => {
+  if (!query) return true;
+  return (
+    alert.device?.toLowerCase().includes(query) ||
+    alert.message?.toLowerCase().includes(query) ||
+    alert.mnemonic?.toLowerCase().includes(query)
+  );
+});
   return (
     <>
     <div className="flex min-h-screen" style={styles.main}>
@@ -549,14 +570,14 @@ const Dashboard = () => {
                   </tr>
                 </thead>
                 <tbody className="text-[13px]">
-                  {networkStatus.devices.length === 0 ? (
+                  {filteredDevices.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="py-8 text-center text-slate-500 text-sm">
-                        No devices loaded. Click Refresh to scan the network.
+                        {query ? `No devices matching "${search}"` : "No devices loaded. Click Refresh to scan the network."}
                       </td>
                     </tr>
                   ) : (
-                    [...networkStatus.devices]
+                    [...filteredDevices]
                       .sort((a, b) => a.name.localeCompare(b.name, undefined, { numeric: true }))
                       .map((device) => {
                         const tierColors = {
@@ -675,20 +696,20 @@ const Dashboard = () => {
                   Syslog Intelligence
                 </h4>
                 <span className="ml-auto text-[10px] text-slate-500 font-medium">
-                  {syslogAlerts.length > 0
-                    ? `${syslogAlerts.length} alert${syslogAlerts.length !== 1 ? 's' : ''}`
-                    : 'Listening...'}
-                </span>
+                {filteredSyslogs.length > 0
+                  ? `${filteredSyslogs.length} alert${filteredSyslogs.length !== 1 ? 's' : ''}`
+                  : 'Listening...'}
+              </span>
               </div>
 
               <div className="space-y-3 max-h-100 overflow-y-auto pr-1">
-                {syslogAlerts.length === 0 ? (
+                {filteredSyslogs.length === 0 ? (
                   <div className="text-slate-500 text-sm text-center py-8">
                     No critical syslog messages received yet.<br />
                     <span className="text-[10px]">Flap an interface on a device to trigger an alert.</span>
                   </div>
                 ) : (
-                  syslogAlerts.map((alert, idx) => {
+                  filteredSyslogs.map((alert, idx) => {
                     const sevColor = alert.severity <= 1 ? SEVERITY_COLORS.critical : alert.severity <= 3 ? SEVERITY_COLORS.warning : SEVERITY_COLORS.info;
                     const ago = Math.floor((Date.now() - new Date(alert.timestamp).getTime()) / 60000);
                     return (

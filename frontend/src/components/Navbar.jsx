@@ -75,8 +75,26 @@ export default function Navbar({ search, setSearch }) {
   return (
     <header className="h-16 border-b border-slate-800 flex items-center justify-between px-8 shrink-0" style={{ backgroundColor: "#020618ED", fontFamily: '"Inter", sans-serif' }}>
       <div className="relative flex-1 max-w-2xl">
-        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" size={18} />
-        <input type="text" value={search} onChange={(event) => setSearch(event.target.value)} placeholder={placeholder} className="w-full bg-[#0D121F] border border-slate-700/50 rounded-xl py-2 pl-12 pr-4 text-sm text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500/30 transition-all" />
+        <Search
+          className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500"
+          size={18}
+        />
+
+        <input
+          type="text"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder={placeholder}
+          className="w-full bg-[#0D121F] border border-slate-700/50 rounded-xl py-2 pl-12 pr-4 text-sm text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500/30 transition-all"
+        />
+        {search && (
+    <button
+      onClick={() => setSearch("")}
+      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+    >
+      <X size={14} />
+    </button>
+  )}
       </div>
 
       <div className="flex items-center gap-6 ml-8">

@@ -15,7 +15,6 @@ import {
   Maximize2,
   RefreshCw,
   Router,
-  Search,
   Server,
   Shield,
   X,
@@ -26,6 +25,7 @@ import Panel from "../components/TopoPanel";
 import LegendDot from "../components/LegendDot";
 import Stat from "../components/TopoStat";
 import { getTopologyGraph, refreshTopology } from "../services/topologyService";
+import { useOutletContext } from "react-router-dom";
 
 const TIER_ORDER = ["edge", "core", "distribution", "access"];
 
@@ -160,13 +160,13 @@ export default function TopologyMap() {
   const [selectedNode, setSelectedNode] = useState(null);
   const [stats, setStats] = useState({ total: 0, edge: 0, core: 0, distribution: 0, access: 0 });
   const [lastRefreshed, setLastRefreshed] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
+  const { search } = useOutletContext() || { search: "" };
   const [highlightedNodeId, setHighlightedNodeId] = useState(null);
   const baseNodesRef = useRef([]);
   const baseEdgesRef = useRef([]);
   const searchQueryRef = useRef("");
   const highlightRef = useRef(null);
-  searchQueryRef.current = searchQuery;
+  searchQueryRef.current = search;
   highlightRef.current = highlightedNodeId;
 
   const syncStyles = useCallback(() => {
@@ -188,7 +188,12 @@ export default function TopologyMap() {
     }
 
     const updatedNodes = baseNodes.map((n) => {
-      const searchMatch = !searchActive || n.data.label.toLowerCase().includes(sq) || n.data.tier.includes(sq);
+      const searchMatch =
+        !searchActive ||
+        n.data.label?.toLowerCase().includes(sq) ||
+        n.data.tier?.toLowerCase().includes(sq) ||
+        n.data.ip?.toLowerCase().includes(sq) ||
+        n.data.platform?.toLowerCase().includes(sq);
       const highlightMatch = !hn || neighborIds.has(n.id);
       const dimmed = !searchMatch || !highlightMatch;
       return {
@@ -288,8 +293,8 @@ export default function TopologyMap() {
   }, [empty]);
 
   useEffect(() => {
-    syncStyles();
-  }, [searchQuery, highlightedNodeId, syncStyles]);
+  syncStyles();
+}, [search, highlightedNodeId, syncStyles]);
 
   const onNodeClick = useCallback((_, node) => {
     setSelectedNode(node.data);
@@ -304,36 +309,24 @@ export default function TopologyMap() {
   const edgeCount = rfEdges.length;
 
   return (
-    <div className="relative min-h-full bg-linear-to-br from-[#0f172a] to-[#1e293b] p-8 font-sans">
-      <div className="flex items-start justify-between mb-5">
-        <div>
-          <PageHeader
-            title="Network Topology Map"
-            description="CDP-discovered network topology"
-            isSmallSubtext={true}
-            textColor="#f1f5f9"
-            subtextColor="#94a3b8"
-          />
-        </div>
+    <div
+    className="relative min-h-full p-8 font-sans"
+    style={{
+      background: "linear-gradient(135deg, #F8FAFC 0%, #D1D5DB 100%)",
+      backgroundAttachment: "fixed",
+    }}
+  >
+    <div className="flex items-start justify-between mb-5">
+      <div>
+        <PageHeader
+          title="Network Topology Map"
+          description="CDP-discovered network topology"
+          isSmallSubtext={true}
+          textColor="#0F172A"
+          subtextColor="#475569"
+        />
+      </div>
         <div className="flex items-center gap-4">
-          <div className="relative">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search topology nodes..."
-              className="w-56 rounded-xl bg-[#1D293D] pl-9 pr-8 py-3 text-sm text-slate-200 placeholder-slate-500 border border-slate-700/50 focus:outline-none focus:border-blue-500/50 transition"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => setSearchQuery("")}
-                className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300"
-              >
-                <X size={15} />
-              </button>
-            )}
-          </div>
           <button
             onClick={handleRefresh}
             disabled={refreshing}
