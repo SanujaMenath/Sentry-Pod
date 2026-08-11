@@ -14,6 +14,7 @@ import app.services.drift_service as drift_service
 import app.services.playbook_service as modification_service
 from app.database import db
 from app.core.dependencies import get_current_user
+from app.services.notification_service import publish_notification
 
 router = APIRouter(prefix="/playbooks", tags=["Playbooks"])
 
@@ -41,6 +42,14 @@ async def execute_playbook(request: PlaybookRequest):
         except Exception:
             # Don't fail the playbook response if audit logging fails
             pass
+
+        await publish_notification(
+            title=f"Playbook {'completed' if returncode == 0 else 'failed'}",
+            message=f"{request.playbook_name} {'completed successfully' if returncode == 0 else 'finished with errors'}.",
+            category="completion",
+            severity="success" if returncode == 0 else "critical",
+            link="/playbooks",
+        )
         
         return PlaybookResponse(
             status="success" if returncode == 0 else "failed",
