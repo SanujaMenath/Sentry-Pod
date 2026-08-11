@@ -1,0 +1,44 @@
+FROM docker.io/library/ubuntu:24.04
+
+ENV DEBIAN_FRONTEND=noninteractive
+ENV ANSIBLE_CONFIG=/ansible/ansible.cfg
+
+# Install system dependencies, ssh client, sshpass, snmpwalk, and nmap
+RUN apt-get update && apt-get install -y \
+    software-properties-common \
+    python3-pip \
+    build-essential \
+    openssh-client \
+    sshpass \
+    snmp \
+    nmap \
+    && add-apt-repository --yes --update ppa:ansible/ansible \
+    && apt-get install -y ansible \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Configure native SSH client inside the container to allow legacy key exchange and host key algorithms
+RUN mkdir -p /etc/ssh/ssh_config.d && \
+    printf "Host *\n    HostKeyAlgorithms +ssh-rsa\n    PubkeyAcceptedAlgorithms +ssh-rsa\n    KexAlgorithms +diffie-hellman-group1-sha1,diffie-hellman-group14-sha1\n" > /etc/ssh/ssh_config.d/legacy.conf
+
+# Install required python packages for network connections (using paramiko for legacy cipher support)
+RUN pip3 install --no-cache-dir --break-system-packages paramiko
+
+# Install the Cisco IOS Ansible collection
+RUN ansible-galaxy collection install cisco.ios
+
+# Copy ansible.cfg to /etc/ansible/ so Ansible always finds it
+# regardless of world-writable directory warnings
+COPY ansible.cfg /etc/ansible/ansible.cfg
+
+# Small debugging tools (kept separate to preserve cache of larger layers above)
+RUN apt-get update && apt-get install -y \
+    nano \
+    curl \
+    dnsutils \
+    iputils-ping \
+    traceroute \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /ansible

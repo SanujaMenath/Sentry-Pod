@@ -19,7 +19,7 @@ class Settings(BaseSettings):
     DB_USER: str
     DB_PASS: str
     DB_HOST: str
-    DB_NAME: str = "watchman"
+    DB_NAME: str = "sentry_pod_db"
 
     @computed_field
     @property

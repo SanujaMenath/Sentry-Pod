@@ -9,5 +9,7 @@
           - logging host 192.168.122.1 transport udp port 10514
           - logging trap 5
           - logging facility local7
-          - service timestamps log datetime msec  
+          - service timestamps log datetime msec 
+          - logging origin-id hostname 
+          - logging on
           

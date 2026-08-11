@@ -1,29 +1,91 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { 
   LayoutDashboard, Network, MessageSquare, ShieldAlert, 
-  Server, ClipboardList, Users, Settings, LogOut,UserCircle
+  Server, ClipboardList, Users, Settings, LogOut, UserCircle, Terminal
 } from 'lucide-react';
 import { logout } from "../services/authService";
 import logo from '../images/logo.png'; 
+import PermissionModal from "./PermissionModal"; // <-- Import the modal you created
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', id: 'dashboard', path: '/dashboard' },
   { icon: Network, label: 'Topology Map', id: 'topology', path: '/topology' },
   { icon: MessageSquare, label: 'AI Chat Console', id: 'ai-chat', path: '/ai-chat' },
-  // { icon: ShieldAlert, label: 'Staging Gate', id: 'staging', path: '/staging' },
+  { icon: Terminal, label: 'Console', id: 'console', path: '/console' },
   { icon: Server, label: 'Network Devices', id: 'network', path: '/network-devices' },
   { icon: ClipboardList, label: 'Audit Logs', id: 'audit', path: '/audit-logs' }, 
+  { icon: ShieldAlert, label: 'Drift Reports', id: 'drift', path: '/drift-reports' },
   { icon: Users, label: 'Users', id: 'users', path: '/users' },
+  { icon: ShieldAlert, label: 'Playbook Manage', id: 'playbooks', path: '/playbooks' },
   { icon: UserCircle, label: 'Profile', id: 'profile', path: '/profile' },
   { icon: Settings, label: 'Settings', id: 'settings', path: '/settings' },
 ];
 
+// 1. ADD THIS MATRIX: Define which roles can access each route
+const PAGE_PERMISSIONS = {
+  '/dashboard': ['Super Admin', 'System Administrator', 'Network Engineer', 'Operator', 'Security Analyst', 'Guest'],
+  '/topology': ['Super Admin', 'System Administrator', 'Network Engineer'],
+  '/ai-chat': ['Super Admin', 'System Administrator', 'Network Engineer', 'Operator', 'Security Analyst'],
+  '/network-devices': ['Super Admin', 'System Administrator', 'Network Engineer', 'Operator'],
+  '/audit-logs': ['Super Admin', 'System Administrator', 'Auditor'],
+  '/drift-reports': ['Super Admin', 'System Administrator', 'Security Analyst', 'Network Engineer'],
+  '/users': ['Super Admin', 'System Administrator'],
+  '/playbooks': ['Super Admin', 'System Administrator', 'Network Engineer'],
+  '/profile': ['Super Admin', 'System Administrator', 'Network Engineer', 'Operator', 'Auditor', 'Security Analyst', 'Guest'],
+  '/console': ['Super Admin', 'System Administrator', 'Network Engineer', 'Operator'],
+  '/settings': ['Super Admin', 'System Administrator'],
+};
+
+const MOCK_TEST_USERS = [
+  { username: 'super_admin', role: 'Super Admin' },
+  { username: 'net_eng_alan', role: 'Network Engineer' },
+  { username: 'operator_max', role: 'Operator' },
+  { username: 'auditor_steph', role: 'Auditor' },
+  { username: 'sec_eng_val', role: 'Security Analyst' },
+  { username: 'guest_user', role: 'Guest' }
+];
+
+const MOCK_USER_STORAGE_KEY = "sidebar_mock_user";
+
+const getInitialMockUser = () => {
+  try {
+    const raw = localStorage.getItem(MOCK_USER_STORAGE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      const match = MOCK_TEST_USERS.find((u) => u.username === parsed.username);
+      if (match) return match;
+    }
+  } catch {
+    /* ignore */
+  }
+  return MOCK_TEST_USERS[0];
+};
+
 export default function Sidebar() {
   const navigate = useNavigate();
   const location = useLocation();
+
+  // 3. Track active simulation user and control the modal
+  const [currentUser, setCurrentUser] = useState(getInitialMockUser); // Defaults to Super Admin, persisted across reloads
+  const [modalState, setModalState] = useState({ isOpen: false, requiredRole: "" });
+
   const handleLogout = () => {
      logout();
+  };
+
+  // 4. Handles access validation
+  const handleNavigation = (path) => {
+    const allowedRoles = PAGE_PERMISSIONS[path] || [];
+    
+    if (allowedRoles.includes(currentUser.role)) {
+      navigate(path);
+    } else {
+      setModalState({
+        isOpen: true,
+        requiredRole: allowedRoles.join(", ")
+      });
+    }
   };
 
   return (
@@ -40,28 +102,58 @@ export default function Sidebar() {
       <nav className="space-y-2 flex-1">
         {navItems.map(({ icon: Icon, label, path }) => {
           const isActive = location.pathname === path;
+          const allowedRoles = PAGE_PERMISSIONS[path] || [];
+          const hasAccess = allowedRoles.includes(currentUser.role);
 
           return (
             <button
               key={path}
-              onClick={() => navigate(path)}
+              // Change from onClick={() => navigate(path)} to use our handler:
+              onClick={() => handleNavigation(path)}
+              // Visual polish: dim elements the simulated user cannot access
               className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-150 text-left
                 ${isActive
                   ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20'
-                  : 'text-slate-400 hover:text-white hover:bg-slate-800'
+                  : hasAccess 
+                    ? 'text-slate-400 hover:text-white hover:bg-slate-800'
+                    : 'text-slate-600 hover:bg-red-950/10 cursor-not-allowed' // Indicates locked state
                 }`}
             >
-              <Icon size={18} />
+              <Icon size={18} className={!hasAccess ? 'text-slate-700' : ''} />
               <span>{label}</span>
             </button>
           );
         })}
       </nav>
 
+      {/* 5. Allows you to switch test profiles on the fly */}
+      <div className="mt-auto mb-4 p-3 bg-slate-900/50 rounded-lg border border-slate-800">
+        <label className="block text-[10px] font-semibold text-slate-500 uppercase tracking-wider mb-1">
+          Simulate Test User
+        </label>
+        <select 
+          value={currentUser.username}
+          onChange={(e) => {
+            const selected = MOCK_TEST_USERS.find(u => u.username === e.target.value);
+            if (selected) {
+              setCurrentUser(selected);
+              localStorage.setItem(MOCK_USER_STORAGE_KEY, JSON.stringify(selected));
+            }
+          }}
+          className="w-full bg-[#0b1329] border border-slate-700 text-xs rounded p-1.5 text-slate-300 focus:outline-none focus:border-blue-500"
+        >
+          {MOCK_TEST_USERS.map(user => (
+            <option key={user.username} value={user.username}>
+              {user.username} ({user.role})
+            </option>
+          ))}
+        </select>
+      </div>
+
       {/* LOGOUT BUTTON */}
       <button 
         onClick={handleLogout} 
-        className="mt-auto flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-rose-400 transition-colors group"
+        className="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-rose-400 transition-colors group"
       >
         <LogOut size={18} className="group-hover:rotate-12 transition-transform" />
         <span className="text-sm font-medium">Logout</span>
@@ -70,6 +162,13 @@ export default function Sidebar() {
       <div className="mt-4 px-4 text-[10px] text-slate-600 font-medium uppercase tracking-widest">
         v2.1.0 • © 2026 Sentry-Pod
       </div>
+
+      {/* 6. RENDER THE DIALOG GUARDIAN COMPONENT */}
+      <PermissionModal 
+        isOpen={modalState.isOpen}
+        onClose={() => setModalState({ ...modalState, isOpen: false })}
+        requiredRole={modalState.requiredRole}
+      />
     </aside>
   );
 }

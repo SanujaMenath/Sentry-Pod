@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { AlertTriangle, Check, Clock, X } from "lucide-react";
+import PageHeader from "../components/PageHeader";
+import SeverityBadge from "../components/SeverityBadge";
 
 const initialChanges = [
   {
@@ -53,12 +55,11 @@ export default function StagingGate() {
 
   return (
     <div className="min-h-full bg-linear-to-br from-[#F8FAFC] to-[#D1D5DB] p-8 font-sans">
-      <h1 className="text-[#0F172A] text-[30px] font-extrabold tracking-tight drop-shadow-sm">
-        Staging Gate
-      </h1>
-      <p className="mb-5 text-[#64748B] text-base font-medium">
-        Review and approve configuration changes before deployment
-      </p>
+      <PageHeader 
+        title="Staging Gate" 
+        description="Review and approve configuration changes before deployment" 
+        isSmallSubtext={true}
+      />
 
       <div className="mb-6 flex w-fit rounded-xl bg-slate-400 p-1 shadow">
         <button className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-bold text-white">
@@ -110,16 +111,3 @@ export default function StagingGate() {
   );
 }
 
-function SeverityBadge({ severity }) {
-  const styles = {
-    medium: "border-yellow-400/40 bg-yellow-500/10 text-yellow-300",
-    high: "border-orange-400/40 bg-orange-500/10 text-orange-300",
-    critical: "border-rose-400/40 bg-rose-500/10 text-rose-300",
-  };
-
-  return (
-    <span className={`flex items-center gap-1 rounded-lg border px-3 py-1 text-xs font-bold uppercase ${styles[severity]}`}>
-      <AlertTriangle size={12} /> {severity}
-    </span>
-  );
-}

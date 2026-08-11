@@ -1,39 +1,27 @@
-import React, { useEffect, useState } from "react";
-import { Bot, Send, Zap, Shield, Wrench, BarChart3, ChevronDown, ChevronUp, Copy, Check, Play } from "lucide-react";
+import React, { useEffect, useState, useCallback } from "react";
+import { Bot, Send, Zap, Shield, Wrench, BarChart3, ChevronDown, ChevronUp, Copy, Check, Play, Settings, MessageSquare } from "lucide-react";
 import { logAction } from "../services/auditService";
-import { generateText } from "../services/llmService";
+import { generateText, proposeModification, approveModification } from "../services/llmService";
+import { listSessions, getSession, createSession, deleteSession } from "../services/sessionService";
 import PlaybookStagingGate from "../components/PlaybookStagingGate";
+import ApiKeyModal from "../components/ApiKeyModal";
+import PageHeader from "../components/PageHeader";
+import SessionSidebar from "../components/SessionSidebar";
+import ExpandableOutput from "../components/ExpandableOutput";
+import PlaybookSuggestions from "../components/PlaybookSuggestions";
+import PlaybookModificationCard from "../components/PlaybookModificationCard";
 
-const mocha = {
-  base: "#1e1e2e",
-  mantle: "#181825",
-  surface0: "#313244",
-  surface1: "#45475a",
-  text: "#cdd6f4",
-  subtext1: "#bac2de",
-  lavender: "#b4befe",
-  blue: "#89b4fa",
-  green: "#a6e3a1",
-  yellow: "#f9e2af",
-  red: "#f38ba8",
-  peach: "#fab387",
-  sapphire: "#74c7ec",
-  sky: "#89dceb",
-};
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
-const classifyLine = (line) => {
-  if (!line.trim()) return { color: mocha.subtext1 };
-  if (line.startsWith("PLAY RECAP")) return { color: mocha.lavender, weight: 700 };
-  if (line.startsWith("PLAY [")) return { color: mocha.blue, weight: 700 };
-  if (line.startsWith("TASK [")) return { color: mocha.sapphire, weight: 700 };
-  if (line.startsWith("ok:")) return { color: mocha.green };
-  if (line.startsWith("changed:")) return { color: mocha.yellow };
-  if (line.startsWith("failed:")) return { color: mocha.red, weight: 700 };
-  if (line.startsWith("skipped:")) return { color: mocha.peach };
-  if (line.startsWith("fatal:")) return { color: mocha.red, weight: 700 };
-  if (line.startsWith("[")) return { color: mocha.subtext1 };
-  return { color: mocha.text };
+const GREETING = "Hello! I'm your AI Network Assistant. I can help you configure devices, analyze logs, troubleshoot issues, and answer questions about your network. What would you like to do today?";
+const THINKING = "Thinking...";
+const ANONYMOUS_USER = "Anonymous User";
+const QUICK_PROMPTS = ["High CPU devices", "Configure VLAN", "Security analysis"];
+const MODEL_ESTIMATES = {
+  "deepseek-ai/DeepSeek-R1:novita": "30-60 seconds",
+  "google/gemma-4-31B-it:novita": "10-20 seconds",
 };
+const DEFAULT_ESTIMATE = "5-10 seconds";
 
 const normalizeAssistantText = (rawText) => {
   if (!rawText) return "";
@@ -50,141 +38,30 @@ const normalizeAssistantText = (rawText) => {
     .trim();
 };
 
-const ExpandableOutput = ({ output }) => {
-  const [expanded, setExpanded] = useState(false);
-  const [copied, setCopied] = useState(false);
 
-  if (!output) return null;
 
-  const lines = output.split("\n");
-  const preview = lines.slice(0, 10);
-  const hasMore = lines.length > preview.length;
 
-  const handleCopy = async () => {
-    try {
-      await navigator.clipboard.writeText(output);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy:", err);
-    }
-  };
-
-  return (
-    <div className="mt-3 rounded-xl border border-[#45475a] bg-[#1e1e2e] p-4 shadow-inner shadow-black/20">
-      <div className="mb-3 flex items-center justify-between">
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-2 text-sm text-[#cdd6f4] transition-colors hover:text-white"
-        >
-          {hasMore && (expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />)}
-          <span className="font-mono text-xs">{lines.length} lines of output</span>
-        </button>
-
-        <button
-          onClick={handleCopy}
-          className="flex items-center gap-2 rounded-lg bg-[#45475a]/50 px-3 py-1.5 text-xs text-[#cdd6f4] transition-all hover:bg-[#45475a] hover:text-white"
-          title="Copy output to clipboard"
-        >
-          {copied ? (
-            <>
-              <Check size={14} />
-              <span>Copied!</span>
-            </>
-          ) : (
-            <>
-              <Copy size={14} />
-              <span>Copy</span>
-            </>
-          )}
-        </button>
-      </div>
-
-      <div className="max-h-72 overflow-auto rounded-lg border border-[#313244] bg-[#181825] p-3 font-mono text-xs leading-5">
-        {(expanded ? lines : preview).map((line, index) => {
-          const style = classifyLine(line);
-          return (
-            <div
-              key={`${index}-${line}`}
-              style={{ color: style.color, fontWeight: style.weight || 400 }}
-              className="whitespace-pre-wrap-break-words"
-            >
-              {line}
-            </div>
-          );
-        })}
-        {hasMore && !expanded && (
-          <div style={{ color: mocha.subtext1 }} className="mt-2 italic">
-            ...expand to view the rest of the playbook output
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-const PlaybookSuggestions = ({ suggestions, onExecute }) => {
-  if (!suggestions || suggestions.length === 0) return null;
-
-  return (
-    <div className="mt-4 rounded-xl border border-[#45475a] bg-[#313244]/40 p-4">
-      <div className="mb-3 flex items-center gap-2">
-        <Zap size={16} className="text-[#f9e2af]" />
-        <span className="text-sm font-semibold text-[#f9e2af]">Available Playbooks</span>
-      </div>
-      <div className="space-y-2">
-        {suggestions.map((suggestion) => (
-          <div
-            key={suggestion.filename}
-            className="flex items-start justify-between rounded-lg border border-[#45475a]/50 bg-[#1e1e2e] p-3"
-          >
-            <div className="flex-1">
-              <h4 className="mb-1 text-sm font-semibold text-[#cdd6f4]">{suggestion.name}</h4>
-              <p className="mb-2 text-xs text-[#bac2de]">{suggestion.description}</p>
-              {suggestion.playbook_preview && (
-                <p className="mb-2 text-xs text-[#a6e3a1] italic">{suggestion.playbook_preview}</p>
-              )}
-              <div className="flex flex-wrap gap-1">
-                {(suggestion.tags || []).slice(0, 3).map((tag) => (
-                  <span key={tag} className="inline-block rounded bg-[#45475a]/50 px-2 py-0.5 text-xs text-[#89dceb]">
-                    {tag}
-                  </span>
-                ))}
-              </div>
-              <p className="mt-2 text-xs text-[#6c7086]">Match: {suggestion.reason}</p>
-            </div>
-            <button
-              onClick={() => onExecute(suggestion)}
-              className="ml-3 flex items-center gap-2 whitespace-nowrap rounded-lg border border-blue-600/50 bg-blue-600/20 px-3 py-2 text-xs text-blue-300 transition-colors hover:bg-blue-600/30"
-            >
-              <Play size={14} />
-              <span>Run</span>
-            </button>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
 
 export default function AiChat() {
   const [messages, setMessages] = useState([
-    {
-      role: "ai",
-      text: "Hello! I'm your AI Network Assistant. I can help you configure devices, analyze logs, troubleshoot issues, and answer questions about your network. What would you like to do today?",
-      time: "10:48:11 PM",
-    },
+    { role: "ai", text: GREETING, time: "Now" },
   ]);
   const [input, setInput] = useState("");
   const [executingAction, setExecutingAction] = useState(null);
   const [pendingPlaybook, setPendingPlaybook] = useState(null);
   const [playbookMetadata, setPlaybookMetadata] = useState({});
   const [selectedModel, setSelectedModel] = useState(() => localStorage.getItem("hf_model") || "deepseek-ai/DeepSeek-R1:novita");
+  const [showApiKeyModal, setShowApiKeyModal] = useState(false);
+  const [sessions, setSessions] = useState([]);
+  const [activeSessionId, setActiveSessionId] = useState(() => localStorage.getItem("active_session_id") || null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [loadingSession, setLoadingSession] = useState(false);
+  const [isPreparingModification, setIsPreparingModification] = useState(false);
 
   useEffect(() => {
     const fetchCatalog = async () => {
       try {
-        const res = await fetch("http://localhost:8000/playbooks/catalog");
+        const res = await fetch(`${API_BASE}/playbooks/catalog`);
         if (!res.ok) return;
 
         const data = await res.json();
@@ -208,11 +85,39 @@ export default function AiChat() {
     fetchCatalog();
   }, []);
 
+  useEffect(() => {
+    const fetchSessions = async () => {
+      try {
+        const sessionList = await listSessions();
+        setSessions(sessionList);
+
+        // Determine which session to load
+        let targetId = activeSessionId;
+        if (targetId && !sessionList.some((s) => s.session_id === targetId)) {
+          targetId = null;
+        }
+        if (!targetId && sessionList.length > 0) {
+          targetId = sessionList[0].session_id;
+        }
+
+        if (targetId) {
+          await loadSessionMessages(targetId);
+        } else {
+          setActiveSessionId(null);
+          localStorage.removeItem("active_session_id");
+        }
+      } catch (err) {
+        console.error("Failed to fetch sessions:", err);
+      }
+    };
+    fetchSessions();
+  }, []);
+
   const hfModels = [
     { id: "deepseek-ai/DeepSeek-R1:novita", label: "DeepSeek R1 (Best reasoning)" },
     { id: "google/gemma-4-31B-it:novita", label: "Gemma 4 31B (Faster chat)" },
     { id: "Qwen/Qwen3.5-4B", label: "Qwen 3.5-4B (Balanced)" },
-    { id: "meta-llama/Llama-3.1-8B-Instruct:novita", label: "Llama-3.1-8B-Instruct(Fastest)" },
+    { id: "meta-llama/Llama-3.1-8B-Instruct:novita", label: "Llama-3.1-8B-Instruct (Fastest)" },
   ];
 
   const quickActions = [
@@ -230,7 +135,7 @@ export default function AiChat() {
     let userMessageAdded = false;
 
     try {
-      const eventSource = new EventSource(`http://localhost:8000/playbooks/execute-stream/${playbookName}`);
+      const eventSource = new EventSource(`${API_BASE}/playbooks/execute-stream/${playbookName}`);
 
       eventSource.onmessage = (event) => {
         try {
@@ -251,7 +156,7 @@ export default function AiChat() {
                 const updated = [...prevMessages];
                 const lastAIMessage = updated[updated.length - 1];
                 if (lastAIMessage && lastAIMessage.role === "ai") {
-                  lastAIMessage.output = outputLines.join("\n");
+                  updated[updated.length - 1] = { ...lastAIMessage, output: outputLines.join("\n") };
                 }
                 return updated;
               });
@@ -276,7 +181,7 @@ export default function AiChat() {
           const updated = [...prevMessages];
           const lastAIMessage = updated[updated.length - 1];
           if (lastAIMessage && lastAIMessage.role === "ai") {
-            lastAIMessage.text = finalStatus === "success" ? `✅ ${actionName} completed successfully!` : `❌ ${actionName} failed!`;
+            updated[updated.length - 1] = { ...lastAIMessage, text: finalStatus === "success" ? `✅ ${actionName} completed successfully!` : `❌ ${actionName} failed!` };
           }
           return updated;
         });
@@ -288,7 +193,7 @@ export default function AiChat() {
         if (finalStatus !== "pending") {
           clearInterval(checkCompletion);
 
-          const username = localStorage.getItem("username") || "Anonymous User";
+          const username = localStorage.getItem("username") || ANONYMOUS_USER;
           logAction(actionName, playbookName, finalStatus, outputLines.join("\n"), username).catch((err) =>
             console.error("Failed to log action:", err)
           );
@@ -297,7 +202,7 @@ export default function AiChat() {
             const updated = [...prevMessages];
             const lastAIMessage = updated[updated.length - 1];
             if (lastAIMessage && lastAIMessage.role === "ai") {
-              lastAIMessage.text = finalStatus === "success" ? `✅ ${actionName} completed successfully!` : `❌ ${actionName} failed!`;
+              updated[updated.length - 1] = { ...lastAIMessage, text: finalStatus === "success" ? `✅ ${actionName} completed successfully!` : `❌ ${actionName} failed!` };
             }
             return updated;
           });
@@ -306,7 +211,7 @@ export default function AiChat() {
         }
       }, 100);
     } catch (error) {
-      const username = localStorage.getItem("username") || "Anonymous User";
+      const username = localStorage.getItem("username") || ANONYMOUS_USER;
       logAction(actionName, playbookName, "error", error.message, username).catch((err) => console.error("Failed to log action:", err));
 
       setMessages((prevMessages) => [
@@ -365,21 +270,220 @@ export default function AiChat() {
     setMessages((prevMessages) => [...prevMessages, { role: "ai", text: "Deployment cancelled.", time: "Now" }]);
   };
 
-  const sendMessage = async () => {
-    if (!input.trim()) return;
-    const userText = input.trim();
+  const loadSessionMessages = useCallback(async (sessionId) => {
+    setLoadingSession(true);
+    try {
+      const session = await getSession(sessionId);
+      const loaded = (session.messages || []).map((msg) => {
+        if (msg.role === "user") {
+          return { role: "user", text: msg.content, time: msg.created_at || "Now" };
+        }
+        return {
+          role: "ai",
+          text: msg.content,
+          reasoning: msg.reasoning || null,
+          model: msg.model || null,
+          playbook_suggestions: msg.playbook_suggestions || [],
+          time: msg.created_at || "Now",
+        };
+      });
+      setMessages(loaded.length > 0 ? loaded : [{ role: "ai", text: GREETING, time: "Now" }]);
+      setActiveSessionId(sessionId);
+      localStorage.setItem("active_session_id", sessionId);
+    } catch (err) {
+      console.error("Failed to load session:", err);
+    } finally {
+      setLoadingSession(false);
+    }
+  }, []);
 
-    setMessages((prev) => [...prev, { role: "user", text: userText, time: "Now" }, { role: "ai", text: "Thinking...", time: "Now" }]);
-    setInput("");
+  const handleSelectSession = async (sessionId) => {
+    setSidebarOpen(false);
+    await loadSessionMessages(sessionId);
+  };
+
+  const handleNewSession = async () => {
+    try {
+      const newSession = await createSession();
+      setActiveSessionId(newSession.session_id);
+      localStorage.setItem("active_session_id", newSession.session_id);
+      setMessages([{ role: "ai", text: GREETING, time: "Now" }]);
+      setSidebarOpen(false);
+      // Refresh session list
+      const updatedSessions = await listSessions();
+      setSessions(updatedSessions);
+    } catch (err) {
+      console.error("Failed to create session:", err);
+    }
+  };
+
+  const handleDeleteSession = async (sessionId) => {
+    try {
+      await deleteSession(sessionId);
+      const updatedSessions = sessions.filter((s) => s.session_id !== sessionId);
+      setSessions(updatedSessions);
+
+      if (activeSessionId === sessionId) {
+        if (updatedSessions.length > 0) {
+          await loadSessionMessages(updatedSessions[0].session_id);
+        } else {
+          // Create a new session automatically
+          await handleNewSession();
+        }
+      }
+    } catch (err) {
+      console.error("Failed to delete session:", err);
+    }
+  };
+
+  const getModelEstimate = (modelId) => MODEL_ESTIMATES[modelId] || DEFAULT_ESTIMATE;
+
+  const handleProposeModification = async (suggestion, modificationText) => {
+    const modModel = selectedModel;
+    const estimate = getModelEstimate(modModel);
+
+    setIsPreparingModification(true);
+
+    setMessages((prev) => [...prev, {
+      role: "ai",
+      text: `🔄 Preparing modification for "${suggestion.filename}" using ${modModel}...\n⏱ Estimated time: ${estimate}`,
+      time: "Now",
+      _isWorking: true,
+    }]);
 
     try {
-      const response = await generateText(userText, selectedModel);
-      const cleanText = normalizeAssistantText(response.text);
+      const result = await proposeModification(suggestion.filename, modificationText, modModel);
 
       setMessages((prev) => {
         const updated = [...prev];
         for (let i = updated.length - 1; i >= 0; i--) {
-          if (updated[i].role === "ai" && updated[i].text === "Thinking...") {
+          if (updated[i]._isWorking) {
+            updated[i] = {
+              role: "ai",
+              text: "I've prepared the modification. Please review and approve it below:",
+              reasoning: null,
+              model: null,
+              playbook_suggestions: [],
+              modification_proposal: result,
+              time: "Now",
+            };
+            break;
+          }
+        }
+        return updated;
+      });
+    } catch (err) {
+      setMessages((prev) => [...prev, {
+        role: "ai",
+        text: `❌ Failed to prepare modification: ${err.message}`,
+        time: "Now",
+      }]);
+    } finally {
+      setIsPreparingModification(false);
+    }
+  };
+
+  const handleApproveModification = async (proposal) => {
+    const payload = {
+      original_name: proposal.original_name,
+      proposed_name: proposal.proposed_name,
+      modified_content: proposal.modified_content,
+      metadata: proposal.metadata,
+    };
+
+    setIsPreparingModification(true);
+
+    try {
+      const result = await approveModification(payload);
+      const filename = result.filename;
+      const metadata = proposal.metadata;
+
+      if (metadata && metadata.destructive) {
+        setPendingPlaybook({
+          filename: filename,
+          name: metadata.name || filename,
+          description: metadata.description || "",
+          tags: metadata.tags || [],
+          target_devices: metadata.target_devices || [],
+          severity: metadata.severity || "medium",
+          _isModified: true,
+        });
+      }
+
+      setMessages((prev) => {
+        const updated = [...prev];
+        for (let i = updated.length - 1; i >= 0; i--) {
+          if (updated[i].modification_proposal) {
+            updated[i] = {
+              ...updated[i],
+              _saved: true,
+              _savedFilename: filename,
+            };
+            break;
+          }
+        }
+        return updated;
+      });
+
+      setMessages((prev) => [...prev, {
+        role: "ai",
+        text: `✅ "${filename}" saved successfully! Would you like to execute it now?`,
+        _showExecutePrompt: true,
+        _executeFilename: filename,
+        time: "Now",
+      }]);
+    } catch (err) {
+      setMessages((prev) => [...prev, {
+        role: "ai",
+        text: `❌ Failed to save modification: ${err.message}`,
+        time: "Now",
+      }]);
+    } finally {
+      setIsPreparingModification(false);
+    }
+  };
+
+  const handleRejectModification = () => {
+    setMessages((prev) => [...prev, {
+      role: "ai",
+      text: "Modification cancelled.",
+      time: "Now",
+    }]);
+  };
+
+  const handleExecuteModified = (filename) => {
+    const name = filename.replace(/\.(yml|yaml)$/, "");
+    executePlaybook(name, filename);
+  };
+
+  const sendMessage = async () => {
+    if (!input.trim()) return;
+    const userText = input.trim();
+
+    setMessages((prev) => [...prev, { role: "user", text: userText, time: "Now" }, { role: "ai", text: THINKING, time: "Now" }]);
+    setInput("");
+
+    try {
+      const response = await generateText(userText, selectedModel, activeSessionId);
+      const cleanText = normalizeAssistantText(response.text);
+
+      // Save the session_id from the response if we didn't have one
+      if (response.session_id && response.session_id !== activeSessionId) {
+        setActiveSessionId(response.session_id);
+        localStorage.setItem("active_session_id", response.session_id);
+        // Refresh session list to show the new session
+        try {
+          const updatedSessions = await listSessions();
+          setSessions(updatedSessions);
+        } catch {
+          // Session refresh is best-effort
+        }
+      }
+
+      setMessages((prev) => {
+        const updated = [...prev];
+        for (let i = updated.length - 1; i >= 0; i--) {
+          if (updated[i].role === "ai" && updated[i].text === THINKING) {
             updated[i] = {
               role: "ai",
               text: cleanText,
@@ -397,7 +501,7 @@ export default function AiChat() {
       setMessages((prev) => {
         const updated = [...prev];
         for (let i = updated.length - 1; i >= 0; i--) {
-          if (updated[i].role === "ai" && updated[i].text === "Thinking...") {
+          if (updated[i].role === "ai" && updated[i].text === THINKING) {
             updated[i] = { role: "ai", text: `❌ Error: ${err.message}`, time: "Now" };
             break;
           }
@@ -407,122 +511,220 @@ export default function AiChat() {
     }
   };
   const handleModelChange = (modelId) => {
-  setSelectedModel(modelId);
-  localStorage.setItem("hf_model", modelId);
+    setSelectedModel(modelId);
+    localStorage.setItem("hf_model", modelId);
   };
 
   return (
     <div className="min-h-full bg-linear-to-br from-[#F8FAFC] to-[#D1D5DB] p-8 font-sans">
       <PlaybookStagingGate playbook={pendingPlaybook} onApprove={handleStagingGateApprove} onReject={handleStagingGateReject} isOpen={!!pendingPlaybook} />
 
-      <h1 className="text-[30px] font-extrabold tracking-tight text-[#0F172A] drop-shadow-sm">AI Chat Console</h1>
-      <p className="mb-6 text-base font-medium text-[#64748B]">Natural language network management and configuration</p>
+      {showApiKeyModal && (
+        <ApiKeyModal
+          onClose={() => setShowApiKeyModal(false)}
+          onSave={() => {
+            // Optional: Refresh anything if needed
+          }}
+        />
+      )}
 
-      <div className="mb-8">
-        <h2 className="mb-4 text-lg font-bold text-[#0F172A]">Quick Actions</h2>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {quickActions.map((action) => {
-            const Icon = action.icon;
-            return (
-              <button
-                key={action.id}
-                onClick={() => executeAction(action)}
-                disabled={executingAction !== null}
-                className={`flex flex-col items-start rounded-2xl border p-5 ${action.color} backdrop-blur-sm transition-all duration-200 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50`}
-              >
-                <div className={`mb-3 rounded-lg p-3 ${action.color.split(" ")[0]}`}>
-                  <Icon className={action.iconColor} size={24} />
-                </div>
-                <h3 className="mb-1 text-sm font-bold text-[#0F172A]">{action.name}</h3>
-                <p className="text-xs leading-relaxed text-[#64748B]">{action.description}</p>
-              </button>
-            );
-          })}
-        </div>
-      </div>
+      <SessionSidebar
+        sessions={sessions}
+        activeSessionId={activeSessionId}
+        onSelectSession={handleSelectSession}
+        onNewSession={handleNewSession}
+        onDeleteSession={handleDeleteSession}
+        isOpen={sidebarOpen}
+        onToggle={() => setSidebarOpen(!sidebarOpen)}
+      />
 
-      <div className="flex min-h-131.25 flex-col overflow-hidden rounded-3xl border border-slate-700/50 bg-[#1D293DED] shadow-lg">
-        <div className="flex-1 space-y-5 p-6">
-          {messages.map((message, index) => (
-            <div key={index} className={`flex gap-4 ${message.role === "user" ? "justify-end" : ""}`}>
-              {message.role === "ai" && (
-                <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-violet-600 text-white">
-                  <Bot size={20} />
-                </div>
-              )}
-
-              <div className={`max-w-4xl rounded-2xl px-5 py-4 text-sm leading-relaxed ${message.role === "user" ? "bg-blue-600 text-white" : "bg-[#0F172A] text-slate-300"}`}>
-                {message.role === "ai" && (
-                  <div className="mb-2 flex items-center gap-2">
-                    <span className="rounded-lg bg-blue-600/30 px-2 py-1 text-xs font-bold text-blue-200">
-                      {message.model === "google/gemma-4-31B-it:novita" ? "Gemma 4 31B" : "AI Assistant"}
-                    </span>
-                    <span className="text-xs text-slate-500">{message.time}</span>
-                  </div>
-                )}
-
-                {message.reasoning && (
-                  <div className="mb-4 rounded-lg border border-purple-500/30 bg-purple-900/20 p-3">
-                    <p className="mb-2 text-xs font-semibold text-purple-300">Thinking Process:</p>
-                    <p className="text-xs text-purple-200/80">{message.reasoning}</p>
-                  </div>
-                )}
-
-                <div className={message.role === "ai" ? "whitespace-pre-wrap wrap-break-words" : "wrap-break-words"}>
-                  {message.text}
-                </div>
-
-                {message.output && <ExpandableOutput output={message.output} />}
-                {message.playbook_suggestions && message.playbook_suggestions.length > 0 && (
-                  <PlaybookSuggestions suggestions={message.playbook_suggestions} onExecute={handleExecuteSuggestedPlaybook} />
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        <div className="border-t border-slate-700/50 bg-[#314157] p-5">
-          <div className="mb-4 flex flex-wrap items-center gap-3">
-            <label className="text-sm font-semibold text-slate-300">Model:</label>
-            <select
-              value={selectedModel}
-              onChange={(event) => handleModelChange(event.target.value)}
-              className="rounded-lg border border-slate-600 bg-[#0F172A] px-3 py-2 text-sm text-slate-200 outline-none hover:border-slate-500 focus:border-blue-500"
-            >
-              {hfModels.map((model) => (
-                <option key={model.id} value={model.id}>
-                  {model.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="mb-5 flex flex-wrap gap-3">
-            {["High CPU devices", "Configure VLAN", "Security analysis"].map((prompt) => (
-              <button
-                key={prompt}
-                onClick={() => setInput(prompt)}
-                className="rounded-xl border border-slate-600 bg-slate-700/40 px-4 py-2 text-sm text-slate-200"
-              >
-                {prompt}
-              </button>
-            ))}
-          </div>
-
-          <div className="flex gap-3">
-            <input
-              value={input}
-              onChange={(event) => setInput(event.target.value)}
-              onKeyDown={(event) => event.key === "Enter" && sendMessage()}
-              placeholder="Type your command or question... (Press Enter to send)"
-              className="flex-1 rounded-xl bg-[#0F172A] px-4 text-sm text-slate-200 outline-none placeholder:text-slate-500"
-            />
+      {/* Main content area — shifts right when sidebar is open on large screens */}
+      <div className={`transition-all duration-300 ${sidebarOpen ? "lg:ml-72" : "ml-0"}`}>
+        <div className="flex items-start justify-between mb-6">
+          <PageHeader 
+            title="AI Chat Console" 
+            description="Interact with your AI Network Assistant. Ask questions, run commands, and manage your network with natural language!" 
+            isSmallSubtext={true}
+          />
+          <div className="flex items-center gap-3">
             <button
-              onClick={sendMessage}
-              className="grid h-14 w-14 place-items-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-600/25"
+              onClick={() => setSidebarOpen(!sidebarOpen)}
+              className={`flex items-center gap-2 rounded-xl border px-4 py-2 font-medium text-sm transition-all shadow-md hover:shadow-lg ${
+                sidebarOpen
+                  ? "border-blue-500/50 bg-blue-600/20 text-blue-300 hover:bg-blue-600/30"
+                  : "border-slate-600 bg-[#1D293D] text-slate-300 hover:bg-[#2A3A52] hover:text-white"
+              }`}
+              title="Toggle sessions panel"
             >
-              <Send size={20} />
+              <MessageSquare size={18} />
+              <span>Sessions</span>
             </button>
+            <button
+              onClick={() => setShowApiKeyModal(true)}
+              className="flex items-center gap-2 rounded-xl border border-slate-600 bg-[#1D293D] px-4 py-2 font-medium text-sm text-slate-300 transition-all shadow-md hover:bg-[#2A3A52] hover:text-white hover:shadow-lg"
+              title="Manage Hugging Face API Key"
+            >
+              <Settings size={18} />
+              <span>API Key</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="mb-8">
+          <h2 className="mb-4 text-lg font-bold text-[#0F172A]">Quick Actions</h2>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4">
+            {quickActions.map((action) => {
+              const Icon = action.icon;
+              return (
+                <button
+                  key={action.id}
+                  onClick={() => executeAction(action)}
+                  disabled={executingAction !== null}
+                  className={`flex flex-col items-start rounded-2xl border p-5 ${action.color} backdrop-blur-sm transition-all duration-200 hover:shadow-lg disabled:cursor-not-allowed disabled:opacity-50`}
+                >
+                  <div className={`mb-3 rounded-lg p-3 ${action.color.split(" ")[0]}`}>
+                    <Icon className={action.iconColor} size={24} />
+                  </div>
+                  <h3 className="mb-1 text-sm font-bold text-[#0F172A]">{action.name}</h3>
+                  <p className="text-xs leading-relaxed text-[#64748B]">{action.description}</p>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* LARGE GRAY CHAT BOX (Updated shadow classes here) */}
+        <div className="flex min-h-131.25 flex-col overflow-hidden rounded-3xl border border-slate-700/50 bg-[#1D293DED] shadow-2xl shadow-black/50">
+          <div className="flex-1 space-y-5 p-6">
+            {loadingSession ? (
+              <div className="flex items-center justify-center py-20 text-slate-400">
+                <div className="animate-pulse text-sm">Loading session...</div>
+              </div>
+            ) : (
+              messages.map((message, index) => (
+                <div key={index} className={`flex gap-4 ${message.role === "user" ? "justify-end" : ""}`}>
+                  {message.role === "ai" && (
+                    <div className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-violet-600 text-white">
+                      <Bot size={20} />
+                    </div>
+                  )}
+
+                  <div className={`max-w-4xl rounded-2xl px-5 py-4 text-sm leading-relaxed ${message.role === "user" ? "bg-blue-600 text-white" : "bg-[#0F172A] text-slate-300"}`}>
+                    {message.role === "ai" && (
+                      <div className="mb-2 flex items-center gap-2">
+                        <span className="rounded-lg bg-blue-600/30 px-2 py-1 text-xs font-bold text-blue-200">
+                          {message.model === "google/gemma-4-31B-it:novita" ? "Gemma 4 31B" : "AI Assistant"}
+                        </span>
+                        <span className="text-xs text-slate-500">{message.time}</span>
+                      </div>
+                    )}
+
+                    {message.reasoning && (
+                      <div className="mb-4 rounded-lg border border-purple-500/30 bg-purple-900/20 p-3">
+                        <p className="mb-2 text-xs font-semibold text-purple-300">Thinking Process:</p>
+                        <p className="text-xs text-purple-200/80">{message.reasoning}</p>
+                      </div>
+                    )}
+
+                    <div className={message.role === "ai" ? "whitespace-pre-wrap wrap-break-words" : "wrap-break-words"}>
+                      {message.text}
+                    </div>
+
+                    {message.output && <ExpandableOutput output={message.output} />}
+                    {message.playbook_suggestions && message.playbook_suggestions.length > 0 && (
+                      <PlaybookSuggestions
+                        suggestions={message.playbook_suggestions}
+                        onExecute={handleExecuteSuggestedPlaybook}
+                        onModify={(suggestion) => {
+                          const lastUserMsg = [...messages].reverse().find(m => m.role === "user");
+                          const modificationText = lastUserMsg?.text || `Modify ${suggestion.filename}`;
+                          handleProposeModification(suggestion, modificationText);
+                        }}
+                      />
+                    )}
+                    {message.modification_proposal && (
+                      <PlaybookModificationCard
+                        modification={message.modification_proposal}
+                        onApprove={() => handleApproveModification(message.modification_proposal)}
+                        onReject={handleRejectModification}
+                        onExecute={() => handleExecuteModified(message._savedFilename || message.modification_proposal.proposed_name)}
+                        isSaving={isPreparingModification}
+                        isSaved={message._saved}
+                      />
+                    )}
+                    {message._showExecutePrompt && message._executeFilename && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        <button
+                          onClick={() => handleExecuteModified(message._executeFilename)}
+                          className="flex items-center gap-2 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-emerald-700"
+                        >
+                          <Play size={16} />
+                          Execute Now
+                        </button>
+                        <button
+                          onClick={() => {
+                            setMessages((prev) => {
+                              const updated = [...prev];
+                              const idx = updated.indexOf(message);
+                              if (idx !== -1) updated[idx] = { ...updated[idx], _showExecutePrompt: false };
+                              return updated;
+                            });
+                          }}
+                          className="flex items-center gap-2 rounded-lg border border-[#45475a] bg-[#313244] px-4 py-2 text-sm text-[#cdd6f4] transition-colors hover:bg-[#45475a]"
+                        >
+                          Not Now
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          <div className="border-t border-slate-700/50 bg-[#314157] p-5">
+            <div className="mb-4 flex flex-wrap items-center gap-3">
+              <label className="text-sm font-semibold text-slate-300">Model:</label>
+              <select
+                value={selectedModel}
+                onChange={(event) => handleModelChange(event.target.value)}
+                className="rounded-lg border border-slate-600 bg-[#0F172A] px-3 py-2 text-sm text-slate-200 outline-none hover:border-slate-500 focus:border-blue-500"
+              >
+                {hfModels.map((model) => (
+                  <option key={model.id} value={model.id}>
+                    {model.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="mb-5 flex flex-wrap gap-3">
+              {QUICK_PROMPTS.map((prompt) => (
+                <button
+                  key={prompt}
+                  onClick={() => setInput(prompt)}
+                  className="rounded-xl border border-slate-600 bg-slate-700/40 px-4 py-2 text-sm text-slate-200"
+                >
+                  {prompt}
+                </button>
+              ))}
+            </div>
+
+            <div className="flex gap-3">
+              <input
+                value={input}
+                onChange={(event) => setInput(event.target.value)}
+                onKeyDown={(event) => event.key === "Enter" && sendMessage()}
+                placeholder="Type your command or question... (Press Enter to send)"
+                className="flex-1 rounded-xl bg-[#0F172A] px-4 text-sm text-slate-200 outline-none placeholder:text-slate-500"
+              />
+              <button
+                onClick={sendMessage}
+                className="grid h-14 w-14 place-items-center rounded-xl bg-blue-600 text-white shadow-lg shadow-blue-600/25"
+              >
+                <Send size={20} />
+              </button>
+            </div>
           </div>
         </div>
       </div>

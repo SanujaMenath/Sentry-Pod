@@ -15,25 +15,37 @@ services:
 
   watchman:
     build: ./watchman
+    privileged: true
     restart: always
-    depends_on:
-      - vault
-    environment:
-      DATABASE_URL: mongodb://sentry_pod:Admin123@vault:27017/sentry_nms?authSource=admin
     ports:
       - "8000:8000"
     volumes:
-      - ./watchman:/app:Z
+      - ./watchman:/app${VOLUME_OPTS}
+    env_file: ./watchman/.env
+
+  syslog-ng:
+    build:
+      context: ./watchman
+      dockerfile: Dockerfile.syslog-ng
+    container_name: sentry-pod_syslog-ng_1
+    restart: always
+    ports:
+      - "10514:10514/udp"
+    volumes:
+      - ./watchman/playbooks/gns3_lab.conf:/etc/syslog-ng/conf.d/gns3_lab.conf${VOLUME_OPTS}
+      - ./watchman/scripts/syslog_listener.sh:/usr/local/bin/syslog_listener.sh${VOLUME_OPTS}
+      - ./watchman/playbooks/syslog/:/var/log/syslog/${VOLUME_OPTS}
 
   command-center:
-    image: fresh-command-center
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.prod
+    image: localhost/sentry-pod-command-center
     restart: always
     depends_on:
       - watchman
     ports:
       - "3000:80"
-    environment:
-      - REACT_APP_API_URL=http://localhost:3000
 
 volumes:
   vault-data:

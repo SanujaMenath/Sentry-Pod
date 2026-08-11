@@ -1,0 +1,20 @@
+- name: Save current state of running config files
+  hosts: allHosts
+  gather_facts: false
+
+  tasks:
+    - name: Copy config files
+      cisco.ios.ios_command:
+        commands:
+          - command: 'sh run'
+      register: temp_state
+    - name: Create temp folder for current state
+      file:
+        path: "./tempRun"
+        state: directory
+    - name: Save current state config files(format inventory_hostname.txt)
+      copy:
+        content: "{{temp_state.stdout | join ('\n') }}" 
+        dest: "./tempRun/TS_{{inventory_hostname}}.txt"
+
+            

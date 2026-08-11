@@ -1,292 +1,55 @@
-# app/route/playbook_routes.py
-from fastapi import APIRouter, HTTPException, status
-from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
-import subprocess
-import os
-from pathlib import Path
-import json
 import logging
-import yaml
+from bson import ObjectId
+from fastapi import APIRouter, Depends, HTTPException, status, Request, UploadFile, File, Form
+from fastapi.responses import StreamingResponse
+from datetime import datetime, timezone
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
+from app.models.playbook import PlaybookRequest, PlaybookResponse, AddPlaybookRequest, UpdatePlaybookRequest, UpdatePlaybookStatusRequest, ModifyProposeRequest, ModifyApproveRequest
+import app.services.catalog_service as catalog_service
+import app.services.execution_service as execution_service
+import app.services.drift_service as drift_service
+import app.services.playbook_service as modification_service
+from app.database import db
+from app.core.dependencies import get_current_user
 
 router = APIRouter(prefix="/playbooks", tags=["Playbooks"])
 
-class PlaybookRequest(BaseModel):
-    playbook_name: str
-    description: str = None
-
-class PlaybookResponse(BaseModel):
-    status: str
-    playbook_name: str
-    message: str
-    output: str = None
-
-class PlaybookCatalogItem(BaseModel):
-    filename: str
-    name: str
-    description: str
-    tags: list[str]
-    target_devices: list[str]
-    example_intents: list[str]
-    destructive: bool = False
-    severity: str = "medium"
-
-class PlaybookSuggestion(BaseModel):
-    filename: str
-    name: str
-    description: str
-    tags: list[str]
-    match_score: float
-    reason: str
-    destructive: bool
-    severity: str
-    target_devices: list[str]
-    playbook_preview: str = ""
-
-# Get the directory where this script is located
-BASE_DIR = Path(__file__).parent.parent.parent
-PLAYBOOKS_DIR = BASE_DIR / "playbooks"
-HOSTS_INI_PATH = PLAYBOOKS_DIR / "hosts.ini"
-CATALOG_PATH = PLAYBOOKS_DIR / "catalog.json"
-
-# Cache for catalog
-_catalog_cache = None
-
-def load_catalog() -> list[PlaybookCatalogItem]:
-    """Load playbook catalog from JSON file"""
-    global _catalog_cache
-    
-    if _catalog_cache is not None:
-        return _catalog_cache
-    
-    if not CATALOG_PATH.exists():
-        logger.warning(f"Catalog file not found at {CATALOG_PATH}")
-        return []
-    
-    try:
-        with open(CATALOG_PATH, 'r') as f:
-            data = json.load(f)
-        _catalog_cache = [PlaybookCatalogItem(**item) for item in data]
-        return _catalog_cache
-    except Exception as e:
-        logger.error(f"Error loading catalog: {str(e)}")
-        return []
-
-def extract_playbook_preview(filename: str) -> str:
-    """
-    Read a playbook YAML file and extract key task information.
-    Returns a brief preview of what the playbook does.
-    """
-    try:
-        playbook_path = PLAYBOOKS_DIR / filename
-        if not playbook_path.exists():
-            return ""
-        #OPEN A PLAYBOOK
-        with open(playbook_path, 'r') as f:
-            content = yaml.safe_load(f)
-        
-        if not content or not isinstance(content, list):
-            return ""
-        
-        # Extract task names and modules from the first play
-        play = content[0]
-        if not isinstance(play, dict):
-            return ""
-        
-        tasks = play.get('tasks', [])
-        if not tasks:
-            return ""
-        
-        # Get first 3-4 task names
-        task_names = []
-        modules_used = set()
-        
-        for task in tasks[:4]:
-            if isinstance(task, dict):
-                task_name = task.get('name', 'unnamed task')
-                task_names.append(task_name)
-                
-                # Extract module name (e.g., 'cisco.ios.ios_command')
-                for key in task.keys():
-                    if key not in ['name', 'register', 'when', 'debug', 'copy', 'set_fact']:
-                        if '.' in key or key in ['command', 'shell', 'copy', 'debug']:
-                            modules_used.add(key)
-        
-        # Build preview string
-        preview_parts = []
-        if task_names:
-            preview_parts.append("Tasks: " + "; ".join(task_names[:3]))
-        if modules_used:
-            modules_list = "; ".join(sorted(list(modules_used))[:3])
-            preview_parts.append("Uses: " + modules_list)
-        
-        return " | ".join(preview_parts) if preview_parts else ""
-    
-    except Exception as e:
-        logger.warning(f"Could not extract preview from {filename}: {str(e)}")
-        return ""
-
-def score_playbook_match(catalog_item: PlaybookCatalogItem, prompt: str) -> tuple[float, str]:
-    """
-    Score how well a playbook matches a user prompt using multiple matching strategies.
-    Returns (score: float 0-10, reason: str)
-    
-    Scoring strategy (lower threshold allows more suggestions):
-    - Filename exact match: +5 points
-    - Name exact match: +4 points
-    - Tag matches: +2 points each (increased from +1)
-    - Example intent match: +3 points each (increased from +2)
-    - Threshold: score > 2 (lowered from 5 to catch more relevant playbooks)
-    """
-    prompt_lower = prompt.lower()
-    prompt_words = set(prompt_lower.split())
-    score = 0.0
-    reasons = []
-    
-    # Check filename exact match (highest priority)
-    if catalog_item.filename.lower() in prompt_lower:
-        score += 5
-        reasons.append(f"filename match: {catalog_item.filename}")
-    
-    # Check name exact match (high priority)
-    if catalog_item.name.lower() in prompt_lower:
-        score += 4
-        reasons.append(f"name match: {catalog_item.name}")
-    
-    # Check tag matches (increased weight from 1 to 2)
-    tag_matches = 0
-    for tag in catalog_item.tags:
-        if tag.lower() in prompt_lower or tag.lower() in prompt_words:
-            score += 2
-            tag_matches += 1
-            reasons.append(f"tag match: {tag}")
-    
-    # Check example intents (increased weight from 2 to 3)
-    for intent in catalog_item.example_intents:
-        if intent.lower() in prompt_lower:
-            score += 3
-            reasons.append(f"intent match: {intent}")
-    
-    # Normalize score to 0-10
-    score = min(score, 10.0)
-    
-    reason = "; ".join(reasons) if reasons else "no keyword match"
-    return score, reason
-
-def find_playbook_suggestions(prompt: str, top_k: int = 3) -> list[PlaybookSuggestion]:
-    """
-    Find the best matching playbooks for a user prompt.
-    Returns top_k suggestions ranked by relevance.
-    Includes dynamic playbook content preview from YAML files.
-    
-    Threshold: score >= 2 (catches keyword matches while filtering out spurious matches)
-    """
-    catalog = load_catalog()
-    if not catalog:
-        return []
-    
-    suggestions = []
-    for item in catalog:
-        score, reason = score_playbook_match(item, prompt)
-        if score >= 2:  # Changed from > 5 to >= 2 to catch more relevant matches
-            # Extract playbook preview from YAML
-            preview = extract_playbook_preview(item.filename)
-            
-            suggestions.append(
-                PlaybookSuggestion(
-                    filename=item.filename,
-                    name=item.name,
-                    description=item.description,
-                    tags=item.tags,
-                    match_score=score,
-                    reason=reason,
-                    destructive=item.destructive,
-                    severity=getattr(item, "severity", "medium"),
-                    target_devices=item.target_devices,
-                    playbook_preview=preview,
-                )
-            )
-    
-    # Sort by score descending
-    suggestions.sort(key=lambda x: x.match_score, reverse=True)
-    
-    return suggestions[:top_k]
-
-
-def get_all_hosts_from_inventory() -> list[str]:
-    """Return all hostnames listed under [allHosts] in hosts.ini."""
-    if not HOSTS_INI_PATH.exists():
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Inventory file 'hosts.ini' not found"
-        )
-
-    hostnames: list[str] = []
-    in_all_hosts = False
-
-    with HOSTS_INI_PATH.open("r", encoding="utf-8") as inventory_file:
-        for raw_line in inventory_file:
-            line = raw_line.strip()
-
-            if not line or line.startswith("#") or line.startswith(";"):
-                continue
-
-            if line.startswith("[") and line.endswith("]"):
-                in_all_hosts = line.lower() == "[allhosts]"
-                continue
-
-            if not in_all_hosts:
-                continue
-
-            # Ansible inventory host entries can include inline variables.
-            hostname = line.split()[0]
-            hostnames.append(hostname)
-
-    return hostnames
+def get_database_session(request: Request):
+    return request.app.state.db
 
 @router.post("/execute", response_model=PlaybookResponse)
 async def execute_playbook(request: PlaybookRequest):
     """Execute an Ansible playbook by name"""
-    
     try:
-        # Validate playbook exists
-        playbook_path = PLAYBOOKS_DIR / request.playbook_name
-        if not playbook_path.exists():
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Playbook '{request.playbook_name}' not found"
-            )
+        returncode, output = execution_service.run_playbook(request.playbook_name)
         
-        if not str(playbook_path).endswith('.yml') and not str(playbook_path).endswith('.yaml'):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Only .yml and .yaml files are allowed"
-            )
-        
-        # Execute the playbook
-        result = subprocess.run(
-            ['ansible-playbook', str(playbook_path), '-i', str(PLAYBOOKS_DIR / 'hosts.ini')],
-            cwd=str(PLAYBOOKS_DIR),
-            capture_output=True,
-            text=True,
-            timeout=300  # 5 minute timeout
-        )
+        # Record audit log entry for this playbook execution
+        try:
+            audit_col = db.get_collection("audit_logs")
+            audit_entry = {
+                "action_name": "playbook_execute",
+                "playbook_name": request.playbook_name,
+                "status": "success" if returncode == 0 else "failed",
+                "output": output,
+                "username": getattr(request, 'username', 'ChatConsole'),
+                "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
+            }
+            await audit_col.insert_one(audit_entry)
+        except Exception:
+            # Don't fail the playbook response if audit logging fails
+            pass
         
         return PlaybookResponse(
-            status="success" if result.returncode == 0 else "failed",
+            status="success" if returncode == 0 else "failed",
             playbook_name=request.playbook_name,
-            message=f"Playbook execution {'completed' if result.returncode == 0 else 'failed'}",
-            output=result.stdout + result.stderr
+            message=f"Playbook execution {'completed' if returncode == 0 else 'failed'}",
+            output=output
         )
-        
-    except subprocess.TimeoutExpired:
-        raise HTTPException(
-            status_code=status.HTTP_408_REQUEST_TIMEOUT,
-            detail="Playbook execution timeout"
-        )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -296,71 +59,20 @@ async def execute_playbook(request: PlaybookRequest):
 @router.get("/execute-stream/{playbook_name}")
 async def execute_playbook_stream(playbook_name: str):
     """Execute an Ansible playbook and stream output in real-time using Server-Sent Events"""
-    
     try:
-        # Validate playbook exists
-        playbook_path = PLAYBOOKS_DIR / playbook_name
-        if not playbook_path.exists():
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Playbook '{playbook_name}' not found"
-            )
-        
-        if not str(playbook_path).endswith('.yml') and not str(playbook_path).endswith('.yaml'):
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Only .yml and .yaml files are allowed"
-            )
-        
-        async def event_generator():
-            """Stream output from ansible-playbook as Server-Sent Events"""
-            try:
-                # Start the playbook process
-                process = subprocess.Popen(
-                    ['ansible-playbook', str(playbook_path), '-i', str(PLAYBOOKS_DIR / 'hosts.ini')],
-                    cwd=str(PLAYBOOKS_DIR),
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.STDOUT,
-                    text=True,
-                    bufsize=1,  # Line buffered
-                )
-                
-                # Stream each line as it arrives
-                for line in iter(process.stdout.readline, ''):
-                    if line:
-                        # Send as SSE event
-                        event_data = json.dumps({
-                            "type": "output",
-                            "line": line.rstrip('\n')
-                        })
-                        yield f"data: {event_data}\n\n"
-                
-                # Wait for process to complete
-                returncode = process.wait()
-                
-                # Send completion event
-                completion_data = json.dumps({
-                    "type": "complete",
-                    "status": "success" if returncode == 0 else "failed",
-                    "returncode": returncode
-                })
-                yield f"data: {completion_data}\n\n"
-                
-            except Exception as e:
-                error_data = json.dumps({
-                    "type": "error",
-                    "message": str(e)
-                })
-                yield f"data: {error_data}\n\n"
+        # Initial validation before entering async stream generator
+        execution_service.validate_playbook_path(playbook_name)
         
         return StreamingResponse(
-            event_generator(),
+            execution_service.run_playbook_stream_generator(playbook_name),
             media_type="text/event-stream",
             headers={
                 "Cache-Control": "no-cache",
                 "Connection": "keep-alive",
             }
         )
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -371,18 +83,10 @@ async def execute_playbook_stream(playbook_name: str):
 async def list_playbooks():
     """List all available playbooks"""
     try:
-        playbooks = [
-            f.name for f in PLAYBOOKS_DIR.glob('*.yml')
-        ] + [
-            f.name for f in PLAYBOOKS_DIR.glob('*.yaml')
-        ]
-        
-        # Filter out host_vars and other non-executable files
-        playbooks = [p for p in playbooks if not p.startswith('.')]
-        
+        playbooks = catalog_service.get_playbook_files()
         return {
             "status": "success",
-            "playbooks": sorted(playbooks),
+            "playbooks": playbooks,
             "count": len(playbooks)
         }
     except Exception as e:
@@ -395,7 +99,7 @@ async def list_playbooks():
 async def get_playbook_catalog():
     """Get the complete playbook catalog with metadata"""
     try:
-        catalog = load_catalog()
+        catalog = catalog_service.load_catalog()
         return {
             "status": "success",
             "catalog": catalog,
@@ -407,6 +111,199 @@ async def get_playbook_catalog():
             detail=str(e)
         )
 
+
+@router.post("/reconcile")
+async def reconcile_catalog():
+    """Rebuild catalog.json from MongoDB (MongoDB is the source of truth)."""
+    try:
+        playbooks_col = db.get_collection("playbooks")
+        count = await catalog_service.sync_catalog_from_db(playbooks_col)
+        return {
+            "status": "success",
+            "message": f"Catalog synchronized with MongoDB: {count} entries",
+            "count": count,
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Catalog reconciliation failed: {str(e)}"
+        )
+
+
+@router.get("/drift")
+async def get_config_drift_reports():
+    """Return parsed configuration drift reports generated by playbooks"""
+    try:
+        reports = drift_service.parse_config_drift_reports()
+        return {"status": "success", "count": len(reports), "reports": reports}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
+@router.get("/drift/{hostname}")
+async def get_config_drift_file(hostname: str):
+    """Return raw diff report for a specific hostname"""
+    try:
+        content = drift_service.read_config_drift_file(hostname)
+        return {"status": "success", "hostname": hostname, "content": content}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+@router.post("/drift/refresh")
+async def refresh_config_drift():
+    """Run drift analysis in container and return updated drift count and reports"""
+    import re
+    try:
+        returncode, output = execution_service.run_drift_analysis()
+        
+        # Parse the drift count from output (e.g. "Total Devices with Drift: 16")
+        match = re.search(r"Total Devices with Drift:\s*(\d+)", output)
+        drift_count = int(match.group(1)) if match else 0
+        
+        # Fetch updated reports
+        reports = drift_service.parse_config_drift_reports()
+        
+        # Record audit log entry
+        try:
+            audit_col = db.get_collection("audit_logs")
+            audit_entry = {
+                "action_name": "drift_analysis_refresh",
+                "status": "success" if returncode == 0 else "failed",
+                "output": output,
+                "username": "System",
+                "drift_count": drift_count,
+                "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
+            }
+            await audit_col.insert_one(audit_entry)
+        except Exception:
+            pass
+            
+        return {
+            "status": "success" if returncode == 0 else "failed",
+            "drift_count": drift_count,
+            "output": output,
+            "reports": reports
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+@router.get("/baseline")
+async def get_network_baselines():
+    """Return list of baselined devices"""
+    try:
+        devices = drift_service.get_baselined_devices()
+        return {"status": "success", "count": len(devices), "devices": devices}
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+@router.post("/baseline/refresh")
+async def refresh_network_baselines():
+    """Run baseline collection in container and return updated baselined devices count"""
+    import re
+    try:
+        returncode, output = execution_service.run_baseline_collection()
+        
+        # Parse the baselined devices count from output (e.g. "Total Devices Baselined: 16")
+        match = re.search(r"Total Devices Baselined:\s*(\d+)", output)
+        baseline_count = int(match.group(1)) if match else 0
+        
+        # Get list of baselined devices
+        devices = drift_service.get_baselined_devices()
+        
+        # Record audit log entry
+        try:
+            audit_col = db.get_collection("audit_logs")
+            audit_entry = {
+                "action_name": "baseline_collection_refresh",
+                "status": "success" if returncode == 0 else "failed",
+                "output": output,
+                "username": "System",
+                "baseline_count": len(devices),
+                "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
+            }
+            await audit_col.insert_one(audit_entry)
+        except Exception:
+            pass
+            
+        return {
+            "status": "success" if returncode == 0 else "failed",
+            "baseline_count": len(devices),
+            "devices": devices,
+            "output": output
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+@router.post("/baseline-graph/refresh")
+async def refresh_baseline_graph(current_user: dict = Depends(get_current_user)):
+    """Run SNMP collection + parsing in container and return the refreshed host count.
+
+    Drives the Network Baseline graph card on the dashboard.
+    """
+    import json
+    try:
+        returncode, output = execution_service.run_baseline_refresh()
+
+        # Count unique telemetried hosts from per_interface_metrics.json
+        host_count = 0
+        metrics_path = execution_service.PLAYBOOKS_DIR / "snmp_output" / "per_interface_metrics.json"
+        if metrics_path.exists():
+            try:
+                data = json.loads(metrics_path.read_text(encoding='utf-8'))
+                host_count = len({i.get("host") for i in data.get("interfaces", []) if i.get("host")})
+            except Exception:
+                host_count = 0
+
+        # Record audit log entry
+        try:
+            audit_col = db.get_collection("audit_logs")
+            audit_entry = {
+                "action_name": "baseline_graph_refresh",
+                "status": "success" if returncode == 0 else "failed",
+                "output": output,
+                "username": current_user["username"],
+                "host_count": host_count,
+                "timestamp": datetime.now(timezone.utc).isoformat() + "Z",
+            }
+            await audit_col.insert_one(audit_entry)
+        except Exception:
+            pass
+
+        return {
+            "status": "success" if returncode == 0 else "failed",
+            "host_count": host_count,
+            "output": output,
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=str(e)
+        )
+
+
 @router.post("/suggest")
 async def suggest_playbooks(request: PlaybookRequest):
     """Find playbook suggestions matching a user prompt"""
@@ -417,7 +314,7 @@ async def suggest_playbooks(request: PlaybookRequest):
                 detail="Prompt cannot be empty"
             )
         
-        suggestions = find_playbook_suggestions(request.playbook_name, top_k=3)
+        suggestions = catalog_service.find_playbook_suggestions(request.playbook_name, top_k=3)
         return {
             "status": "success",
             "prompt": request.playbook_name,
@@ -432,12 +329,11 @@ async def suggest_playbooks(request: PlaybookRequest):
             detail=str(e)
         )
 
-
 @router.get("/inventory/all-hosts-count")
 async def get_all_hosts_count():
     """Return the number of devices listed under [allHosts] in hosts.ini."""
     try:
-        hostnames = get_all_hosts_from_inventory()
+        hostnames = catalog_service.get_all_hosts_from_inventory()
         return {
             "status": "success",
             "group": "allHosts",
@@ -450,4 +346,329 @@ async def get_all_hosts_count():
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
+        )
+    
+@router.post("/add", status_code=status.HTTP_201_CREATED)
+async def add_new_playbook(
+    name: str = Form(...),
+    description: str = Form(""),
+    engine_type: str = Form("Ansible"),
+    subnet_scope: str = Form(""),
+    pipeline_status: str = Form("Draft"),
+    tags: str = Form(""),
+    target_devices: str = Form(""),
+    example_intents: str = Form(""),
+    destructive: bool = Form(False),
+    severity: str = Form("medium"),
+    file: Optional[UploadFile] = File(None)
+):
+    """Save a new playbook: YAML file + catalog.json + MongoDB updated in one flow."""
+    if not name.strip():
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Name is required")
+
+    filename = name
+    file_content = None
+
+    if file and file.filename:
+        if not file.filename.endswith(('.yml', '.yaml')):
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Only .yml and .yaml files are supported")
+        file_content = await file.read()
+        if not file_content:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Uploaded file is empty")
+        filename = file.filename
+
+    tags_list = [t.strip() for t in tags.split(",") if t.strip()] if tags else []
+    target_devices_list = [d.strip() for d in target_devices.split(",") if d.strip()] if target_devices else []
+    intents_list = [i.strip() for i in example_intents.split("\n") if i.strip()] if example_intents else []
+
+    try:
+        inserted_id, saved_filename = await modification_service.persist_playbook(
+            name=name,
+            filename=filename,
+            description=description,
+            engine_type=engine_type,
+            subnet_scope=subnet_scope,
+            pipeline_status=pipeline_status,
+            tags=tags_list,
+            target_devices=target_devices_list,
+            example_intents=intents_list,
+            destructive=destructive,
+            severity=severity,
+            file_content=file_content,
+        )
+
+        return {
+            "status": "success",
+            "message": f"Successfully committed blueprint: {name}",
+            "id": inserted_id,
+            "filename": saved_filename
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to create playbook: {str(e)}"
+        )
+
+
+@router.put("/{playbook_id}")
+async def update_playbook(playbook_id: str, request: UpdatePlaybookRequest):
+    """Update a playbook blueprint and sync catalog.json."""
+    try:
+        playbooks_col = db.get_collection("playbooks")
+
+        try:
+            mongo_id = ObjectId(playbook_id)
+        except Exception:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid playbook ID format")
+
+        existing = await playbooks_col.find_one({"_id": mongo_id})
+        if not existing:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Playbook not found")
+
+        update_fields = {k: v for k, v in request.model_dump(exclude_unset=True).items() if v is not None}
+        if not update_fields:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="No fields to update")
+
+        old_filename = existing.get("filename")
+        new_filename = update_fields.get("filename") or old_filename
+
+        if new_filename and old_filename and new_filename != old_filename:
+            catalog_updated = catalog_service.update_catalog_entry(old_filename, {"filename": new_filename, **{k: v for k, v in update_fields.items() if k != "filename"}})
+            old_filepath = execution_service.PLAYBOOKS_DIR / old_filename
+            new_filepath = execution_service.PLAYBOOKS_DIR / new_filename
+            if old_filepath.exists() and not new_filepath.exists():
+                old_filepath.rename(new_filepath)
+        else:
+            catalog_updates = {k: v for k, v in update_fields.items() if k in ("name", "description", "tags", "target_devices", "example_intents", "destructive", "severity")}
+            if catalog_updates and old_filename:
+                catalog_service.update_catalog_entry(old_filename, catalog_updates)
+
+        update_fields.pop("filename", None)
+        update_fields["last_modified"] = datetime.now(timezone.utc).isoformat() + "Z"
+
+        await playbooks_col.update_one({"_id": mongo_id}, {"$set": update_fields})
+
+        updated = await playbooks_col.find_one({"_id": mongo_id})
+        updated["id"] = str(updated["_id"])
+        del updated["_id"]
+
+        return {"status": "success", "blueprint": updated}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Update failed: {str(e)}"
+        )
+
+
+@router.patch("/{playbook_id}/status")
+async def update_playbook_status(playbook_id: str, request: UpdatePlaybookStatusRequest):
+    """Update only the pipeline_status of a playbook blueprint."""
+    try:
+        playbooks_col = db.get_collection("playbooks")
+
+        try:
+            mongo_id = ObjectId(playbook_id)
+        except Exception:
+            raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid playbook ID format")
+
+        valid_statuses = ["Draft", "Verified", "Failed"]
+        if request.pipeline_status not in valid_statuses:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Invalid status. Must be one of: {', '.join(valid_statuses)}"
+            )
+
+        result = await playbooks_col.update_one(
+            {"_id": mongo_id},
+            {"$set": {"pipeline_status": request.pipeline_status}}
+        )
+
+        if result.matched_count == 0:
+            raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Playbook not found")
+
+        updated = await playbooks_col.find_one({"_id": mongo_id})
+        updated["id"] = str(updated["_id"])
+        del updated["_id"]
+
+        return {"status": "success", "blueprint": updated}
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Status update failed: {str(e)}"
+        )
+    
+@router.get("/dashboard")
+async def get_playbook_dashboard_data():
+    """Return unified playbook metrics and active blueprints directly from MongoDB"""
+    try:
+        # 1. Connect directly to your live MongoDB playbooks collection
+        playbooks_col = db.get_collection("playbooks")
+        cursor = playbooks_col.find({})
+        
+        catalog = []
+        async for doc in cursor:
+            
+            doc["id"] = str(doc["_id"])
+            del doc["_id"]
+            catalog.append(doc)
+        
+        total = len(catalog)
+        
+        #Dynamically calculate your metric cards using your live database documents
+        verified = sum(1 for p in catalog if str(p.get("pipeline_status", "")).strip().lower() in ["verified", "production ready"])
+        failed = sum(1 for p in catalog if str(p.get("pipeline_status", "")).strip().lower() in ["failed", "error state"])
+        draft = sum(1 for p in catalog if str(p.get("pipeline_status", "")).strip().lower() in ["draft", "restricted execution"])
+
+        return {
+            "status": "success",
+            "total_playbooks": total,
+            "verified_pipeline": verified,
+            "failed_run_alerts": failed,
+            "draft_tasks": draft,
+            "blueprints": catalog  
+        }
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Dashboard database fetch failed: {str(e)}"
+        )
+    
+    
+
+@router.post("/modify/propose")
+async def propose_modification(request: ModifyProposeRequest):
+    """Propose a modification to a playbook using the LLM.
+
+    Reads the original playbook, calls HuggingFace API to generate
+    a modified version, and returns the diff + metadata for user approval.
+    """
+    try:
+        import os
+        from app.routes.llm_routes import SUPPORTED_MODELS
+
+        hf_api_key = os.getenv("HUGGINGFACE_API_KEY")
+
+        # Check for stored API key in MongoDB
+        try:
+            from app.database import api_keys_collection
+            stored = await api_keys_collection.find_one({"_id": "huggingface"})
+            if stored and stored.get("key"):
+                hf_api_key = stored["key"]
+        except Exception:
+            pass
+
+        if not hf_api_key:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Hugging Face API key not configured",
+            )
+
+        model = request.model or "Qwen/Qwen3.5-4B:featherless-ai"
+
+        result = await modification_service.generate_playbook_modification(
+            playbook_name=request.playbook_name,
+            modification=request.modification,
+            hf_api_key=hf_api_key,
+            model=model,
+        )
+
+        diff = modification_service.compute_yaml_diff(
+            result["original_content"],
+            result["modified_content"],
+        )
+
+        proposed_name = modification_service.derive_modified_filename(request.playbook_name)
+
+        return {
+            "status": "success",
+            "original_name": request.playbook_name,
+            "proposed_name": proposed_name,
+            "original_content": result["original_content"],
+            "modified_content": result["modified_content"],
+            "diff": diff,
+            "metadata": {
+                "name": result["name"],
+                "description": result["description"],
+                "tags": result["tags"],
+                "severity": result["severity"],
+                "destructive": result["destructive"],
+                "target_devices": result["target_devices"],
+                "example_intents": result["example_intents"],
+            },
+            "plain_explanation": result["plain_explanation"],
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Modification proposal failed: {str(e)}",
+        )
+
+
+@router.post("/modify/approve")
+async def approve_modification(request: ModifyApproveRequest):
+    """Approve and save a playbook modification.
+
+    Writes the modified YAML, updates catalog.json, and persists to MongoDB
+    in a single atomic flow so the two stores never drift.
+    """
+    try:
+        filename, catalog_entry = modification_service.save_modified_playbook(
+            original_name=request.original_name,
+            proposed_name=request.proposed_name,
+            modified_content=request.modified_content,
+            metadata=request.metadata,
+        )
+
+        inserted_id, saved_filename = await modification_service.persist_playbook(
+            name=catalog_entry["name"],
+            filename=filename,
+            description=catalog_entry["description"],
+            engine_type="Ansible",
+            subnet_scope=", ".join(catalog_entry["target_devices"]),
+            pipeline_status="Draft",
+            tags=catalog_entry["tags"],
+            target_devices=catalog_entry["target_devices"],
+            example_intents=catalog_entry["example_intents"],
+            destructive=catalog_entry["destructive"],
+            severity=catalog_entry["severity"],
+            file_content=request.modified_content.encode("utf-8"),
+        )
+
+        return {
+            "status": "success",
+            "filename": saved_filename,
+            "id": inserted_id,
+            "message": f"Modified playbook saved as {saved_filename}",
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to save modified playbook: {str(e)}",
+        )
+
+
+@router.delete("/delete/{playbook_id}")
+async def delete_playbook_entry(playbook_id: str):
+    """Permanently delete a playbook: MongoDB document, catalog.json entry, and YAML file."""
+    try:
+        return await modification_service.remove_playbook(playbook_id)
+    except HTTPException as he:
+        raise he
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Database deletion transaction failure: {str(e)}"
         )

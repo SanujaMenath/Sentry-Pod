@@ -1,182 +1,130 @@
 [
   {
-    "filename": "get_facts.yml",
-    "name": "Gather Device Facts",
-    "description": "Collects device information from all Cisco IOS devices including OS version, interfaces, and system details",
-    "tags": ["facts", "gather", "inventory", "info", "discovery"],
-    "target_devices": ["allHosts"],
-    "example_intents": ["gather device info", "collect facts", "get device information", "backup device facts", "discover devices"],
+    "filename": "sample.yml",
+    "name": "sample",
+    "description": "Description",
+    "tags": [
+      "vlan"
+    ],
+    "target_devices": [
+      "allHosts"
+    ],
+    "example_intents": [
+      "iniitialize"
+    ],
     "destructive": false,
     "severity": "low"
   },
   {
-    "filename": "NTP.yml",
-    "name": "Configure NTP",
-    "description": "Configures NTP servers and clock settings on all devices for time synchronization",
-    "tags": ["ntp", "time", "sync", "clock", "configuration"],
-    "target_devices": ["allHosts"],
-    "example_intents": ["configure ntp", "set ntp server", "synchronize time", "configure clock"],
-    "destructive": true,
-    "severity": "medium"
-  },
-  {
-    "filename": "NTP_edge.yml",
-    "name": "Configure NTP on Edge Routers",
-    "description": "Configures NTP specifically on edge routers for time synchronization at network edges",
-    "tags": ["ntp", "edge", "routers", "time", "sync"],
-    "target_devices": ["Edge_routers"],
-    "example_intents": ["configure ntp edge", "edge router time sync", "ntp edge routers"],
-    "destructive": true,
-    "severity": "medium"
-  },
-  {
-    "filename": "vlans.yml",
-    "name": "Configure VLANs",
-    "description": "Creates and configures VLANs with trunk links on access and distribution switches",
-    "tags": ["vlan", "switching", "network", "configure", "trunk"],
-    "target_devices": ["Access_Switches", "Distribution_Switches"],
-    "example_intents": ["configure vlan", "create vlan", "set up vlan", "vlan configuration"],
-    "destructive": true,
-    "severity": "high"
-  },
-  {
-    "filename": "VLANDist.yml",
-    "name": "Configure Distribution Switch VLANs",
-    "description": "Manages VLAN configuration specifically on distribution switches",
-    "tags": ["vlan", "distribution", "switching", "configuration"],
-    "target_devices": ["Distribution_Switches"],
-    "example_intents": ["configure distribution vlan", "vlan distribution switches"],
-    "destructive": true,
-    "severity": "high"
-  },
-  {
-    "filename": "VlanHSRP.yml",
-    "name": "Configure VLAN with HSRP",
-    "description": "Sets up VLANs with HSRP (Hot Standby Router Protocol) for high availability",
-    "tags": ["vlan", "hsrp", "redundancy", "ha", "failover"],
-    "target_devices": ["Core_Switches", "Distribution_Switches"],
-    "example_intents": ["configure hsrp", "set up redundancy", "high availability", "failover"],
-    "destructive": true,
-    "severity": "high"
-  },
-  {
-    "filename": "HSRP_active.yml",
-    "name": "Configure HSRP Active Router",
-    "description": "Configures HSRP on the active router for high availability and redundancy",
-    "tags": ["hsrp", "redundancy", "active", "router", "ha"],
-    "target_devices": ["Edge_routers"],
-    "example_intents": ["configure hsrp active", "set active router", "hsrp configuration"],
-    "destructive": true,
-    "severity": "medium"
-  },
-  {
-    "filename": "ospf.yml",
-    "name": "Configure OSPF Routes",
-    "description": "Configures OSPF routing protocol on distribution switches for dynamic routing",
-    "tags": ["ospf", "routing", "dynamic", "configure"],
-    "target_devices": ["Distribution_Switches"],
-    "example_intents": ["configure ospf", "set up ospf", "ospf routing"],
-    "destructive": true,
-    "severity": "high"
-  },
-  {
-    "filename": "enableCDP.yml",
-    "name": "Enable CDP",
-    "description": "Enables Cisco Discovery Protocol (CDP) on all network devices for neighbor discovery",
-    "tags": ["cdp", "discovery", "neighbors", "topology"],
-    "target_devices": ["allHosts"],
-    "example_intents": ["enable cdp", "cisco discovery protocol", "discover neighbors"],
-    "destructive": true,
-    "severity": "low"
-  },
-  {
-    "filename": "cdp.yml",
-    "name": "CDP Configuration",
-    "description": "Manages CDP global configuration on all devices",
-    "tags": ["cdp", "discovery", "protocol"],
-    "target_devices": ["allHosts"],
-    "example_intents": ["configure cdp", "cdp settings"],
-    "destructive": true,
-    "severity": "low"
-  },
-  {
-    "filename": "snmp.yml",
-    "name": "Configure SNMP",
-    "description": "Configures SNMP for network monitoring and management on all devices",
-    "tags": ["snmp", "monitoring", "management", "telemetry"],
-    "target_devices": ["allHosts"],
-    "example_intents": ["configure snmp", "set up snmp", "snmp monitoring"],
-    "destructive": true,
-    "severity": "medium"
-  },
-  {
-    "filename": "syslog.yml",
-    "name": "Configure Syslog",
-    "description": "Configures syslog forwarding to centralized logging server on all devices",
-    "tags": ["syslog", "logging", "monitoring", "telemetry"],
-    "target_devices": ["allHosts"],
-    "example_intents": ["configure syslog", "set up logging", "syslog server"],
-    "destructive": true,
-    "severity": "low"
-  },
-  {
-    "filename": "LocalTime.yml",
-    "name": "Configure Local Time",
-    "description": "Configures local time zone settings on network devices",
-    "tags": ["time", "timezone", "clock"],
-    "target_devices": ["allHosts"],
-    "example_intents": ["set timezone", "configure time", "local time"],
-    "destructive": true,
-    "severity": "low"
-  },
-  {
-    "filename": "defaultGateway.yml",
-    "name": "Configure Default Gateway",
-    "description": "Sets up default gateway configuration on network devices",
-    "tags": ["gateway", "routing", "network"],
-    "target_devices": ["allHosts"],
-    "example_intents": ["set default gateway", "configure gateway"],
-    "destructive": true,
-    "severity": "medium"
-  },
-  {
-    "filename": "endDevice.yml",
-    "name": "Configure End Device",
-    "description": "Configures settings on end devices at the network edge",
-    "tags": ["end-device", "host", "configuration"],
-    "target_devices": ["end_devices"],
-    "example_intents": ["configure end device", "end device setup"],
-    "destructive": true,
-    "severity": "medium"
-  },
-  {
-    "filename": "write.yml",
-    "name": "Write Configuration to NVRAM",
-    "description": "Saves and persists ALL configuration changes to NVRAM - permanent until manually reverted. USE WITH CAUTION.",
-    "tags": ["write", "save", "persist", "backup", "nvram"],
-    "target_devices": ["allHosts"],
-    "example_intents": ["save configuration", "write config", "persist changes"],
-    "destructive": true,
-    "severity": "critical"
-  },
-  {
-    "filename": "practice1.yml",
-    "name": "Practice Configuration",
-    "description": "Practice playbook for testing and non-production configuration changes",
-    "tags": ["test", "practice", "demo"],
-    "target_devices": ["allHosts"],
+    "filename": "xx.yml",
+    "name": "xx.yml",
+    "description": "xaa",
+    "tags": [],
+    "target_devices": [
+      "allHosts"
+    ],
     "example_intents": [],
-    "destructive": true,
+    "destructive": false,
     "severity": "medium"
   },
   {
-    "filename": "goldenState.yml",
-    "name": "Save golden state config",
-    "description": "A playbook for saving the golden state configuration file for drift detection",
-    "tags": ["save","backup"],
-    "target_devices":["allHosts"],
-    "example_intents":[],
-    "destructive": true,
-    "severity":"critical"
+    "filename": "get_facts_modified.yml",
+    "name": "Gather Info from Cisco IOS",
+    "description": "Collects IOS facts from edge routers and displays the OS version.",
+    "tags": [],
+    "target_devices": [
+      "edge_routers"
+    ],
+    "example_intents": [
+      "gather device info",
+      "collect facts",
+      "get device information",
+      "backup device facts",
+      "discover devices",
+      "Gather information from edge routers"
+    ],
+    "destructive": false,
+    "severity": "low"
+  },
+  {
+    "filename": "get_facts_modified.yml",
+    "name": "Gather Info from Cisco IOS",
+    "description": "Collects and prints OS version facts from Cisco IOS devices",
+    "tags": [],
+    "target_devices": [
+      "Edge_routers"
+    ],
+    "example_intents": [
+      "gather device info",
+      "collect facts",
+      "get device information",
+      "backup device facts",
+      "discover devices",
+      "get information on the edge routers"
+    ],
+    "destructive": false,
+    "severity": "low"
+  },
+  {
+    "filename": "get_facts_modified_1.yml",
+    "name": "Edge Device Modification",
+    "description": "Modify the playbook to target edge devices",
+    "tags": [
+      "device-modification",
+      "cisco"
+    ],
+    "target_devices": [
+      "Edge_routers"
+    ],
+    "example_intents": [
+      "gather device info",
+      "collect facts",
+      "get device information",
+      "backup device facts",
+      "discover devices",
+      "gather-info",
+      "cisco"
+    ],
+    "destructive": false,
+    "severity": "low"
+  },
+  {
+    "filename": "get_facts_modified_2.yml",
+    "name": "Edge Device Information",
+    "description": "Gather information from edge devices",
+    "tags": [
+      "network",
+      "cisco",
+      "ios"
+    ],
+    "target_devices": [
+      "Edge_routers"
+    ],
+    "example_intents": [
+      "gather device info",
+      "collect facts",
+      "get device information",
+      "backup device facts",
+      "discover devices",
+      "Gather information from Cisco IOS devices"
+    ],
+    "destructive": false,
+    "severity": "low"
+  },
+  {
+    "filename": "Testing.yml",
+    "name": "Testing.yml",
+    "description": "Testing catalog",
+    "tags": [
+      "vlan"
+    ],
+    "target_devices": [
+      "allHosts"
+    ],
+    "example_intents": [
+      "setup"
+    ],
+    "destructive": false,
+    "severity": "medium"
   }
 ]
