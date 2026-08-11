@@ -14,6 +14,7 @@ from app.routes import syslog_routes
 from app.routes import console_routes
 from app.routes import topology_routes
 from app.routes import setup_routes
+from app.routes import notification_routes
 
 logger = logging.getLogger(__name__)
 
@@ -58,6 +59,7 @@ app.include_router(terminal_routes.router)
 app.include_router(syslog_routes.router)
 app.include_router(topology_routes.router)
 app.include_router(setup_routes.router)
+app.include_router(notification_routes.router)
 
 app.include_router(console_routes.router)
 
