@@ -6,6 +6,7 @@ from fastapi.responses import StreamingResponse
 
 import app.services.topology_service as topology_service
 from app.services.execution_service import get_podman_command
+from app.services.notification_service import publish_notification
 
 router = APIRouter(prefix="/api/topology", tags=["Topology"])
 
@@ -36,6 +37,15 @@ async def refresh_topology():
     try:
         result = await topology_service.refresh_topology()
         graph = await topology_service.get_topology_graph()
+        node_count = len(graph.get("nodes", [])) if graph else result.get("nodes", 0)
+        edge_count = len(graph.get("edges", [])) if graph else result.get("edges", 0)
+        await publish_notification(
+            title="Topology refresh complete",
+            message=f"Discovered {node_count} devices and {edge_count} links.",
+            category="topology",
+            severity="success",
+            link="/topology",
+        )
         return {"status": "success", "result": result, "graph": graph}
     except Exception as e:
         raise HTTPException(
@@ -91,6 +101,14 @@ async def _refresh_generator():
         yield _sse("status", "Storing to database...")
         await topology_service.store_neighbors(neighbors)
         await topology_service.store_graph(graph)
+
+        await publish_notification(
+            title="Topology refresh complete",
+            message=f"Discovered {len(graph['nodes'])} devices and {len(graph['edges'])} links.",
+            category="topology",
+            severity="success",
+            link="/topology",
+        )
 
         yield _sse("complete", json.dumps(graph))
 
