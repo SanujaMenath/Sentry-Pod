@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException
 from datetime import datetime, timezone
 from app.models.syslog import SyslogAlert, SyslogAlertCreate
 from app.database import db
+from app.services.notification_service import publish_notification
 import configparser
 import os
 
@@ -96,6 +97,14 @@ async def create_alert(alert: SyslogAlertCreate):
         source_ip=alert.source_ip,
     )
     await collection.insert_one(doc.model_dump(by_alias=False))
+    severity = "critical" if alert.severity <= 2 else "warning" if alert.severity <= 4 else "info"
+    await publish_notification(
+        title=f"Syslog {alert.severity_name}: {device}",
+        message=alert.message,
+        category="syslog",
+        severity=severity,
+        link="/dashboard",
+    )
     return {"status": "ok"}
 
 @router.delete("/alerts")
