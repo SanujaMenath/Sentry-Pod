@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Search, Bell } from 'lucide-react';
+import { Search, Bell, X } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 
 export default function Navbar({ search, setSearch }) {
@@ -43,6 +43,14 @@ export default function Navbar({ search, setSearch }) {
           placeholder={placeholder}
           className="w-full bg-[#0D121F] border border-slate-700/50 rounded-xl py-2 pl-12 pr-4 text-sm text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500/30 transition-all"
         />
+        {search && (
+    <button
+      onClick={() => setSearch("")}
+      className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+    >
+      <X size={14} />
+    </button>
+  )}
       </div>
 
       <div className="flex items-center gap-6 ml-8">

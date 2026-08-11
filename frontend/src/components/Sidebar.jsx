@@ -90,13 +90,13 @@ export default function Sidebar() {
 
   return (
     <aside 
-      className="w-64 border-r border-slate-800 p-6 hidden lg:flex flex-col shrink-0 min-h-screen" 
-      style={{ backgroundColor: '#020618ED', fontFamily: '"Inter", sans-serif' }}
-    >
+  className="w-64 border-r border-slate-800 p-4 hidden lg:flex flex-col shrink-0 h-screen overflow-y-auto" 
+  style={{ backgroundColor: '#020618ED', fontFamily: '"Inter", sans-serif' }}
+>
       {/* BRAND LOGO */}
-      <div className="mb-10 px-2">
-        <img src={logo} alt="SentryPod AI" className="h-12 w-auto object-contain" />
-      </div>
+      <div className="mb-6 px-1 flex items-center justify-start">
+  <img src={logo} alt="SentryPod AI" className="h-24 w-auto max-w-full object-contain" />
+</div>
 
       {/* NAVIGATION ITEMS */}
       <nav className="space-y-2 flex-1">
