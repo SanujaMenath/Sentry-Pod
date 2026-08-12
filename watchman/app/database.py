@@ -27,6 +27,7 @@ playbooks_collection = db.get_collection("playbooks")
 conversations_collection = db.get_collection("conversations")
 syslog_alerts_collection = db.get_collection("syslog_alerts")
 notifications_collection = db.get_collection("notifications")
+notification_preferences_collection = db.get_collection("notification_preferences")
 users_collection = db.get_collection("users")
 
 
@@ -44,6 +45,7 @@ async def create_indexes():
 
         await syslog_alerts_collection.create_index([("timestamp", -1)])
         await notifications_collection.create_index([("created_at", -1)])
+        await notification_preferences_collection.create_index("username", unique=True)
 
         await devices_collection.create_index([("name", 1)], unique=True)
         await devices_collection.create_index([("ip", 1)])
