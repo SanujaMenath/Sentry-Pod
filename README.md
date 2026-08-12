@@ -142,14 +142,9 @@ sentry-pod/
 │   ├── .dockerignore                # Build context exclusions
 │   └── pyproject.toml               # Ruff config
 │
-├── command-center/              # Production React UI (nginx)
-│   ├── Dockerfile.prod           # Multi-stage build from frontend/
-│   ├── nginx.conf                # nginx production config
-│   ├── package.json
-│   ├── src/
-│   └── vite.config.js
-│
-├── frontend/                    # Dev-mode React UI (single source of truth)
+├── frontend/                    # React UI (single source of truth; dev + prod via Dockerfile.prod)
+│   ├── Dockerfile.prod          # Multi-stage production build (nginx)
+│   ├── nginx.conf               # nginx production config
 │   ├── package.json
 │   ├── src/
 │   ├── vite.config.js
@@ -375,9 +370,9 @@ Requires MongoDB accessible (Atlas by default; or run vault locally and switch a
 ### Frontend (dev mode)
 
 ```bash
-cd frontend     # OR cd command-center
+cd frontend
 npm install
-npm run dev     # Hot-reload at http://localhost:5173 (frontend) or :5174 (command-center)
+npm run dev     # Hot-reload at http://localhost:5173
 ```
 
 > **Prerequisites for live syslog:** When running `npm run dev` in `frontend/`, ensure the backend services are also running:
@@ -396,7 +391,6 @@ npm run dev     # Hot-reload at http://localhost:5173 (frontend) or :5174 (comma
 
 ```bash
 cd frontend && npm run lint
-cd command-center && npm run lint
 ```
 
 ### Utility Scripts
