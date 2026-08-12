@@ -17,6 +17,7 @@ export default function SettingsPage() {
     sessionTimeout: true,
     auditLogging: true,
     autoBackup: true,
+    requireConsolePassword: localStorage.getItem('requireConsolePassword') !== 'false',
   });
 
   const [network, setNetwork] = useState({
@@ -41,7 +42,7 @@ export default function SettingsPage() {
   };
 
   const showNotifications = matches(["Notifications", "Notification Sound", "Topology Refresh", "Syslog Alerts", "Playbook Updates", "Critical Only", "alert", "notification"]);
-  const showSecurity = matches(["Security", "Two-Factor Authentication", "2FA", "Session Timeout", "Audit Logging"]);
+  const showSecurity = matches(["Security", "Two-Factor Authentication", "2FA", "Session Timeout", "Audit Logging", "Console Password Prompt", "Console Password"]);
   const showNetwork = matches(["Network Settings", "SNMP", "Syslog", "NTP", "Server", "Community String"]);
   const showBackup = matches(["Backup & Restore", "Automatic Backup", "Last Backup", "Restore"]);
   const showTerminal = matches(["Terminal Customization", "Terminal", "Theme", "Font", "Appearance"]);
@@ -49,6 +50,13 @@ export default function SettingsPage() {
   const hasResults = showNotifications || showSecurity || showNetwork || showBackup || showTerminal;
 
   const toggle = (key) => setSettings(prev => ({ ...prev, [key]: !prev[key] }));
+  const toggleConsolePassword = () => {
+    setSettings(prev => {
+      const next = !prev.requireConsolePassword;
+      localStorage.setItem('requireConsolePassword', String(next));
+      return { ...prev, requireConsolePassword: next };
+    });
+  };
   const toggleNotificationPreference = async (key) => {
     const previous = notificationPreferences;
     const next = { ...previous, [key]: !previous[key] };
@@ -121,6 +129,7 @@ export default function SettingsPage() {
               <SettingRow label="Two-Factor Authentication" desc="Enable 2FA for all users" enabled={settings.twoFactor} onChange={() => toggle('twoFactor')} />
               <SettingRow label="Session Timeout" desc="Auto logout after inactivity" enabled={settings.sessionTimeout} onChange={() => toggle('sessionTimeout')} />
               <SettingRow label="Audit Logging" desc="Log all system activities" enabled={settings.auditLogging} onChange={() => toggle('auditLogging')} />
+              <SettingRow label="Console Password Prompt" desc="Require password re-entry before opening the network console" enabled={settings.requireConsolePassword} onChange={toggleConsolePassword} />
             </div>
           </div>
           )}
