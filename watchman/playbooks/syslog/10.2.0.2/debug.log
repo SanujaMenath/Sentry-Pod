@@ -1,3 +1,0 @@
-Mar  1 03:24:30 10.2.0.2 %SYS-5-CONFIG_I: Configured from console by admin on vty0 (192.168.122.1)
-May  2 07:55:16 10.2.0.2 %SYS-5-CONFIG_I: Configured from console by admin on vty0 (192.168.122.1)
-May  2 11:17:40 10.2.0.2 %PCMCIAFS-5-DIBERR: PCMCIA disk 0 is formatted from a different router or PC. A format in this router is required before an image can be booted from this device
