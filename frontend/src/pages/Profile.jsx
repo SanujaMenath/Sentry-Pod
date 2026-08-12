@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { User, Lock, ShieldCheck, CheckCircle2, Loader2,Eye, EyeOff } from 'lucide-react';
 import { getUserProfile, updateProfile, updatePassword } from '../services/profileService';
+import { useOutletContext } from 'react-router-dom';
 import PageHeader from "../components/PageHeader";
 import api from '../services/api';
 
 export default function Profile() {
+  const { search } = useOutletContext() || { search: "" };
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
@@ -140,6 +142,17 @@ export default function Profile() {
     },
   };
 
+  const query = search ? search.trim().toLowerCase() : "";
+
+  const filteredActivities = activities.filter((activityItem) => {
+    if (!query) return true;
+    return (
+      activityItem.event?.toLowerCase().includes(query) ||
+      activityItem.timestamp?.toLowerCase().includes(query) ||
+      activityItem.type?.toLowerCase().includes(query)
+    );
+  });
+
   return (
     <div className="flex min-h-screen" style={styles.main}>
       <main className="flex-1 overflow-y-auto p-8 space-y-8">
@@ -216,8 +229,8 @@ export default function Profile() {
                   Recent Security Activity
                 </h4>
                 <div className="space-y-4 flex-1 flex flex-col justify-start">
-                  {activities && activities.length > 0 ? (
-                    activities.map((activityItem, idx) => (
+                  {filteredActivities && filteredActivities.length > 0 ? (
+                    filteredActivities.map((activityItem, idx) => (
                       <div 
                         key={idx} 
                         className="flex flex-col p-4 bg-[#0D121F]/40 border border-slate-800/40 hover:border-slate-700/50 rounded-xl transition-all duration-200 hover:bg-[#0D121F]/70 shadow-sm"
@@ -230,7 +243,9 @@ export default function Profile() {
                     ))
                   ) : (
                     <div className="text-center py-6 border border-dashed border-slate-800/40 rounded-xl">
-                      <p className="text-[0.75rem] text-slate-500 font-medium">No recent security history found</p>
+                      <p className="text-[0.75rem] text-slate-500 font-medium">
+                        {query ? `No activities matching "${search}"` : "No recent security history found"}
+                      </p>
                     </div>
                   )}
                 </div>
