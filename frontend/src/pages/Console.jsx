@@ -115,6 +115,12 @@ function TerminalView() {
 }
 
 export default function Console() {
+  const requirePassword = localStorage.getItem("requireConsolePassword") !== "false";
+
+  if (!requirePassword) {
+    return <TerminalView />;
+  }
+
   return (
     <ConsoleAuthGate>
       <TerminalView />
