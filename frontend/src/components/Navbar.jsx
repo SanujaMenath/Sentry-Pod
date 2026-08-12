@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AlertTriangle, Bell, CheckCircle2, Info, Search, X, XCircle } from "lucide-react";
 import { useLocation } from "react-router-dom";
-import { getNotifications, markAllNotificationsRead, markNotificationRead } from "../services/notificationService";
+import { clearNotifications, getNotifications, markAllNotificationsRead, markNotificationRead } from "../services/notificationService";
 
 const searchPlaceholders = {
   "/users": "Search users...",
@@ -14,17 +14,47 @@ const searchPlaceholders = {
   "/profile": "Search profile settings...",
 };
 
+const playNotificationSound = () => {
+  try {
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContext) return;
+    const context = new AudioContext();
+    [0, 0.14].forEach((start, index) => {
+      const oscillator = context.createOscillator();
+      const gain = context.createGain();
+      oscillator.frequency.value = index ? 880 : 660;
+      gain.gain.setValueAtTime(0.0001, context.currentTime + start);
+      gain.gain.exponentialRampToValueAtTime(0.12, context.currentTime + start + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + start + 0.12);
+      oscillator.connect(gain).connect(context.destination);
+      oscillator.start(context.currentTime + start);
+      oscillator.stop(context.currentTime + start + 0.13);
+    });
+    window.setTimeout(() => context.close(), 400);
+  } catch {
+    // Browsers can block sound until the user has interacted with the page.
+  }
+};
+
 export default function Navbar({ search, setSearch }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const notificationMenuRef = useRef(null);
+  const initializedRef = useRef(false);
+  const knownUnreadIdsRef = useRef(new Set());
   const location = useLocation();
   const placeholder = searchPlaceholders[location.pathname] || "Search...";
 
   const loadNotifications = useCallback(async () => {
     try {
       const { data } = await getNotifications();
-      setNotifications(data.items || []);
+      const items = data.items || [];
+      const unreadIds = new Set(items.filter((item) => !item.read).map((item) => item.id));
+      if (initializedRef.current && data.preferences?.sound_enabled && [...unreadIds].some((id) => !knownUnreadIdsRef.current.has(id))) playNotificationSound();
+      initializedRef.current = true;
+      knownUnreadIdsRef.current = unreadIds;
+      setNotifications(items);
       setUnreadCount(data.unread_count || 0);
     } catch (error) {
       console.error("Failed to load notifications", error);
@@ -39,6 +69,19 @@ export default function Navbar({ search, setSearch }) {
       window.clearInterval(timer);
     };
   }, [loadNotifications]);
+
+  useEffect(() => {
+    const closeOnOutsideClick = (event) => {
+      if (notificationMenuRef.current && !notificationMenuRef.current.contains(event.target)) setShowNotifications(false);
+    };
+    const closeOnEscape = (event) => { if (event.key === "Escape") setShowNotifications(false); };
+    document.addEventListener("pointerdown", closeOnOutsideClick);
+    document.addEventListener("keydown", closeOnEscape);
+    return () => {
+      document.removeEventListener("pointerdown", closeOnOutsideClick);
+      document.removeEventListener("keydown", closeOnEscape);
+    };
+  }, []);
 
   const handleMarkAllRead = async () => {
     try {
@@ -58,6 +101,18 @@ export default function Navbar({ search, setSearch }) {
       setUnreadCount((count) => Math.max(0, count - 1));
     } catch (error) {
       console.error("Failed to mark notification read", error);
+    }
+  };
+
+  const handleClear = async () => {
+    try {
+      await clearNotifications();
+      setNotifications([]);
+      setUnreadCount(0);
+      knownUnreadIdsRef.current = new Set();
+      setShowNotifications(false);
+    } catch (error) {
+      console.error("Failed to clear notifications", error);
     }
   };
 
@@ -103,7 +158,7 @@ export default function Navbar({ search, setSearch }) {
           <span className="text-[#00D492] text-[11px] font-bold">AI Online</span>
         </div>
 
-        <div className="relative">
+        <div className="relative" ref={notificationMenuRef}>
           <button type="button" onClick={() => setShowNotifications((visible) => !visible)} className={`relative p-2 rounded-lg transition-all ${showNotifications ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"}`} aria-label="Open notifications">
             <Bell size={20} />
             {unreadCount > 0 && <span className="absolute -top-0.5 -right-0.5 min-w-4 h-4 px-1 bg-rose-500 border-2 border-[#020618] rounded-full text-[9px] leading-3 text-white text-center">{unreadCount > 99 ? "99+" : unreadCount}</span>}
@@ -113,7 +168,10 @@ export default function Navbar({ search, setSearch }) {
             <div className="absolute right-0 mt-3 w-80 bg-[#1D293D] border border-slate-700/50 rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.5)] z-50 overflow-hidden">
               <div className="p-4 border-b border-slate-800 flex justify-between items-center">
                 <span className="text-xs font-bold text-white uppercase tracking-wider">Notifications</span>
-                <button type="button" onClick={handleMarkAllRead} disabled={unreadCount === 0} className="text-[10px] text-blue-400 hover:underline disabled:text-slate-600 disabled:no-underline">Mark all read</button>
+                <div className="flex items-center gap-3">
+                  <button type="button" onClick={handleClear} disabled={notifications.length === 0} className="text-[10px] text-slate-400 hover:text-white disabled:text-slate-600">Clear</button>
+                  <button type="button" onClick={handleMarkAllRead} disabled={unreadCount === 0} className="text-[10px] text-blue-400 hover:underline disabled:text-slate-600 disabled:no-underline">Mark all read</button>
+                </div>
               </div>
               <div className="max-h-75 overflow-y-auto">
                 {notifications.length === 0 ? <p className="p-6 text-center text-xs text-slate-500">No notifications yet.</p> : notifications.map((notification) => (

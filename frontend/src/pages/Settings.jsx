@@ -1,10 +1,11 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { Bell, Shield, Globe, Database } from 'lucide-react';
 import PageHeader from "../components/PageHeader";
 import Toggle from "../components/Toggle";
 import SettingRow from "../components/SettingRow";
 import TerminalConfigCard from "../components/TerminalConfigCard";
+import { getNotificationPreferences, updateNotificationPreferences } from "../services/notificationService";
 
 export default function SettingsPage() {
   const { search } = useOutletContext() || { search: "" };
@@ -23,6 +24,15 @@ export default function SettingsPage() {
     syslog: '10.0.0.10',
     ntp: 'time.nist.gov',
   });
+  const [notificationPreferences, setNotificationPreferences] = useState({
+    enabled: true, sound_enabled: true, topology_refresh: true, syslog_alerts: true, playbook_updates: true, critical_only: false,
+  });
+
+  useEffect(() => {
+    getNotificationPreferences()
+      .then(({ data }) => setNotificationPreferences(data))
+      .catch((error) => console.error("Failed to load notification preferences", error));
+  }, []);
   const query = search ? search.trim().toLowerCase() : "";
 
   const matches = (keywords = []) => {
@@ -30,7 +40,7 @@ export default function SettingsPage() {
     return keywords.some(k => k.toLowerCase().includes(query));
   };
 
-  const showNotifications = matches(["Notifications", "Email Alerts", "Critical Only", "Slack Integration", "alert", "notification"]);
+  const showNotifications = matches(["Notifications", "Notification Sound", "Topology Refresh", "Syslog Alerts", "Playbook Updates", "Critical Only", "alert", "notification"]);
   const showSecurity = matches(["Security", "Two-Factor Authentication", "2FA", "Session Timeout", "Audit Logging"]);
   const showNetwork = matches(["Network Settings", "SNMP", "Syslog", "NTP", "Server", "Community String"]);
   const showBackup = matches(["Backup & Restore", "Automatic Backup", "Last Backup", "Restore"]);
@@ -39,6 +49,18 @@ export default function SettingsPage() {
   const hasResults = showNotifications || showSecurity || showNetwork || showBackup || showTerminal;
 
   const toggle = (key) => setSettings(prev => ({ ...prev, [key]: !prev[key] }));
+  const toggleNotificationPreference = async (key) => {
+    const previous = notificationPreferences;
+    const next = { ...previous, [key]: !previous[key] };
+    setNotificationPreferences(next);
+    try {
+      const { data } = await updateNotificationPreferences(next);
+      setNotificationPreferences(data);
+    } catch (error) {
+      setNotificationPreferences(previous);
+      console.error("Failed to save notification preferences", error);
+    }
+  };
 
   const styles = {
     main: {
@@ -75,11 +97,14 @@ export default function SettingsPage() {
                 <Bell size={18} className="text-blue-400" strokeWidth={1.5} />
                 <h2 className="text-base font-bold text-slate-200">Notifications</h2>
               </div>
-            <p className="text-xs text-slate-500 mb-5">Configure alert and notification preferences</p>
+            <p className="text-xs text-slate-500 mb-5">Choose which system activity appears in your notification bell</p>
             <div>
-              <SettingRow label="Email Alerts" desc="Receive alerts via email" enabled={settings.emailAlerts} onChange={() => toggle('emailAlerts')} />
-              <SettingRow label="Critical Only" desc="Only send critical alerts" enabled={settings.criticalOnly} onChange={() => toggle('criticalOnly')} />
-              <SettingRow label="Slack Integration" desc="Send alerts to Slack" enabled={settings.slackIntegration} onChange={() => toggle('slackIntegration')} />
+              <SettingRow label="In-app Notifications" desc="Show system notifications in the bell" enabled={notificationPreferences.enabled} onChange={() => toggleNotificationPreference('enabled')} />
+              <SettingRow label="Notification Sound" desc="Play a chime when a new notification arrives" enabled={notificationPreferences.sound_enabled} onChange={() => toggleNotificationPreference('sound_enabled')} />
+              <SettingRow label="Topology Refresh" desc="Notify when topology discovery finishes" enabled={notificationPreferences.topology_refresh} onChange={() => toggleNotificationPreference('topology_refresh')} />
+              <SettingRow label="Syslog Alerts" desc="Show device syslog alert notifications" enabled={notificationPreferences.syslog_alerts} onChange={() => toggleNotificationPreference('syslog_alerts')} />
+              <SettingRow label="Playbook Updates" desc="Notify when a playbook completes or fails" enabled={notificationPreferences.playbook_updates} onChange={() => toggleNotificationPreference('playbook_updates')} />
+              <SettingRow label="Critical Only" desc="Only show critical-severity notifications" enabled={notificationPreferences.critical_only} onChange={() => toggleNotificationPreference('critical_only')} />
             </div>
           </div>
           )}
