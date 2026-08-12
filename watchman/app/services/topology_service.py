@@ -306,7 +306,7 @@ async def get_topology_graph() -> Optional[dict]:
 
 async def refresh_topology():
     logger.info("Starting CDP collection via ansible-playbook")
-    cmd = get_podman_command("getCDPNeighbors.yml")
+    cmd = get_podman_command("collect_cdp_neighbors.yml")
     proc = await asyncio.create_subprocess_exec(
         *cmd,
         stdout=asyncio.subprocess.PIPE,
