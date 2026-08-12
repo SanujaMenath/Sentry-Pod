@@ -11,7 +11,6 @@ export default function Profile() {
   const [email, setEmail] = useState('');
   const [phone, setPhone] = useState('');
   const [bio, setBio] = useState('');
-  const [role, setRole] = useState('User');
   const [activities, setActivities] = useState([]);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -52,7 +51,6 @@ export default function Profile() {
         setEmail(data.email || '');
         setPhone(data.phone || '');
         setBio(data.bio || '');
-        setRole(data.role || 'User');
 
         const summaryResponse = await api.get('/users/profile-cards-summary');
         setCardSummary(summaryResponse.data);

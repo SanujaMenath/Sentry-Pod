@@ -1,0 +1,56 @@
+-------------------------
+Device ID: R2.lab.local
+Entry address(es): 
+  IP address: 192.168.122.253
+Platform: Cisco 7206VXR,  Capabilities: Router 
+Interface: GigabitEthernet2/0,  Port ID (outgoing port): GigabitEthernet2/0
+Holdtime : 125 sec
+
+Version :
+Cisco IOS Software, 7200 Software (C7200-ADVIPSERVICESK9-M), Version 15.2(4)S5, RELEASE SOFTWARE (fc1)
+Technical Support: http://www.cisco.com/techsupport
+Copyright (c) 1986-2014 by Cisco Systems, Inc.
+Compiled Thu 20-Feb-14 06:51 by prod_rel_team
+
+advertisement version: 2
+Duplex: full
+Management address(es): 
+  IP address: 192.168.122.253
+
+-------------------------
+Device ID: R2.lab.local
+Entry address(es): 
+  IP address: 10.0.0.14
+Platform: Cisco 7206VXR,  Capabilities: Router 
+Interface: FastEthernet0/1,  Port ID (outgoing port): FastEthernet0/1
+Holdtime : 179 sec
+
+Version :
+Cisco IOS Software, 7200 Software (C7200-ADVIPSERVICESK9-M), Version 15.2(4)S5, RELEASE SOFTWARE (fc1)
+Technical Support: http://www.cisco.com/techsupport
+Copyright (c) 1986-2014 by Cisco Systems, Inc.
+Compiled Thu 20-Feb-14 06:51 by prod_rel_team
+
+advertisement version: 2
+Duplex: full
+Management address(es): 
+  IP address: 10.0.0.14
+
+-------------------------
+Device ID: ESW1.lab.local
+Entry address(es): 
+  IP address: 10.1.0.2
+Platform: Cisco 2691,  Capabilities: Router Switch IGMP 
+Interface: FastEthernet0/0,  Port ID (outgoing port): FastEthernet1/0
+Holdtime : 124 sec
+
+Version :
+Cisco IOS Software, 2600 Software (C2691-ENTSERVICESK9-M), Version 12.4(13b), RELEASE SOFTWARE (fc3)
+Technical Support: http://www.cisco.com/techsupport
+Copyright (c) 1986-2007 by Cisco Systems, Inc.
+Compiled Tue 24-Apr-07 15:33 by prod_rel_team
+
+advertisement version: 2
+VTP Management Domain: ''
+Duplex: full
+Management address(es):
