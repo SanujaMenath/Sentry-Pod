@@ -31,7 +31,7 @@ const severityLabels = {
   low: "ℹ️ LOW RISK - Minor Changes",
 };
 
-export default function PlaybookStagingGate({ playbook, onApprove, onReject, isOpen }) {
+export default function PlaybookStagingGate({ playbook, details, onApprove, onReject, isOpen }) {
   const [confirmed, setConfirmed] = useState(false);
   const severity = playbook?.severity || "medium";
   const colors = severityColors[severity];
@@ -85,6 +85,24 @@ export default function PlaybookStagingGate({ playbook, onApprove, onReject, isO
               {playbook.target_devices.join(", ")}
             </p>
           </div>
+
+          {/* Configuration Details */}
+          {details && details.length > 0 && (
+            <div>
+              <p className="text-sm font-semibold text-slate-300 mb-2">Configuration Details:</p>
+              <div className="overflow-hidden rounded-xl bg-[#172231] border border-slate-700/50">
+                {details.map((d, i) => (
+                  <div
+                    key={d.key}
+                    className={`flex items-center justify-between gap-4 px-4 py-2.5 ${i > 0 ? "border-t border-slate-700/50" : ""}`}
+                  >
+                    <span className="text-sm text-slate-400">{d.key}</span>
+                    <span className="font-mono text-sm font-bold text-emerald-400 break-all">{d.value}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Risk Warning */}
           <div className={`rounded-lg border ${colors.badge} p-4`}>

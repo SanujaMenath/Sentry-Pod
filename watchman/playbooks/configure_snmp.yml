@@ -1,0 +1,15 @@
+- name: SNMP configuration
+  hosts: allHosts
+  gather_facts: false
+
+  vars:
+    snmp_community: "{{ extra_snmp_community | default('sentryPod') }}"
+    snmp_trap_host: "{{ extra_snmp_trap_host | default('192.168.122.1') }}"
+
+  tasks:
+    - name : snmp v2c configuration
+      cisco.ios.ios_config:
+        lines:
+          - snmp-server community {{ snmp_community }} ro
+          - snmp-server enable traps
+          - snmp-server host {{ snmp_trap_host }} version 2c {{ snmp_community }}

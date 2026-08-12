@@ -25,7 +25,7 @@ def get_database_session(request: Request):
 async def execute_playbook(request: PlaybookRequest):
     """Execute an Ansible playbook by name"""
     try:
-        returncode, output = execution_service.run_playbook(request.playbook_name)
+        returncode, output = execution_service.run_playbook(request.playbook_name, request.extra_vars)
         
         # Record audit log entry for this playbook execution
         try:

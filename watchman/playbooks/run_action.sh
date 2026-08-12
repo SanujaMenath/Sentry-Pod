@@ -5,8 +5,8 @@ ACTION="${1:?Usage: $0 {collect|refresh|drift}"
 
 case "$ACTION" in
   collect)
-    echo "--- Step 1: Running goldenState.yml to save golden state baselines ---"
-    ansible-playbook goldenState.yml -i hosts.ini
+    echo "--- Step 1: Running collect_golden_config.yml to save golden state baselines ---"
+    ansible-playbook collect_golden_config.yml -i hosts.ini
 
     echo -e "\n--- Step 2: Counting baselined devices ---"
     COUNT=$(ls -1 ./goldenState/GS_*.txt 2>/dev/null | wc -l)
@@ -28,11 +28,11 @@ case "$ACTION" in
     ;;
 
   drift)
-    echo "--- Step 1: Running NowRunning.yml ---"
-    ansible-playbook NowRunning.yml -i hosts.ini
+    echo "--- Step 1: Running collect_running_config.yml ---"
+    ansible-playbook collect_running_config.yml -i hosts.ini
 
-    echo -e "\n--- Step 2: Running configDrift.yml to generate diffs ---"
-    ansible-playbook configDrift.yml -i hosts.ini
+    echo -e "\n--- Step 2: Running check_config_drift.yml to generate diffs ---"
+    ansible-playbook check_config_drift.yml -i hosts.ini
 
     echo -e "\n--- Step 3: Parsing drift reports via Python ---"
     python3 ../scripts/parse_drift.py

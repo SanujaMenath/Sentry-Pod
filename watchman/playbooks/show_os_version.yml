@@ -1,8 +1,8 @@
 ---
-- name: Gather Info from Cisco IOS
-  hosts: Edge_routers
+- name: Show OS Version
+  hosts: allHosts
   gather_facts: false
-  
+
   tasks:
     - name: Collect all available facts
       cisco.ios.ios_facts:

@@ -157,7 +157,7 @@ def _check_warnings(payload: SetupPreviewRequest) -> List[str]:
     warnings = []
     for d in payload.access_switches:
         if d.default_gateway is None:
-            warnings.append(f"{d.hostname}: No default_gateway set — defaultGateway.yml will fail")
+            warnings.append(f"{d.hostname}: No default_gateway set — configure_default_gateway.yml will fail")
         if d.vlan_id is None:
             warnings.append(f"{d.hostname}: No vlan_id set — vlan playbooks may not work correctly")
     if payload.hsrp_pairs and len(payload.hsrp_pairs) < 2:

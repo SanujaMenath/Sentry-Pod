@@ -5,7 +5,71 @@ import PageHeader from "../components/PageHeader";
 import Toggle from "../components/Toggle";
 import SettingRow from "../components/SettingRow";
 import TerminalConfigCard from "../components/TerminalConfigCard";
+import PlaybookStagingGate from "../components/PlaybookStagingGate";
 import { getNotificationPreferences, updateNotificationPreferences } from "../services/notificationService";
+import { executePlaybookWithVars } from "../services/inventoryService";
+
+const NETWORK_PLAYBOOKS = {
+  snmp: {
+    filename: "configure_snmp.yml",
+    name: "Configure SNMP",
+    description: "Configures an SNMPv2c read-only community and enables traps on all hosts.",
+    tags: ["snmp", "monitoring", "config"],
+    target_devices: ["allHosts"],
+    severity: "medium",
+  },
+  syslog: {
+    filename: "configure_syslog.yml",
+    name: "Configure Syslog",
+    description: "Configures syslog forwarding, trap level, facility, and timestamps. Host/port are parameterized.",
+    tags: ["syslog", "logging", "config"],
+    target_devices: ["allHosts"],
+    severity: "medium",
+  },
+  ntp: {
+    filename: "configure_ntp.yml",
+    name: "Configure NTP",
+    description: "Configures NTP clients, timezone, and associations on all hosts.",
+    tags: ["ntp", "time", "config"],
+    target_devices: ["allHosts"],
+    severity: "medium",
+  },
+};
+
+const NETWORK_DEFAULTS = {
+  snmp: 's3cur3_r0',
+  syslog: '10.0.0.10',
+  ntp: 'time.nist.gov',
+};
+
+const buildExtraVars = (setting, network) => {
+  switch (setting) {
+    case "snmp":
+      return { extra_snmp_community: network.snmp, extra_snmp_trap_host: network.syslog };
+    case "syslog":
+      return { extra_syslog_host: network.syslog };
+    case "ntp":
+      return { extra_ntp_server: network.ntp };
+    default:
+      return {};
+  }
+};
+
+const buildDetails = (setting, network) => {
+  switch (setting) {
+    case "snmp":
+      return [
+        { key: "SNMP Community", value: network.snmp },
+        { key: "SNMP Trap Host", value: network.syslog },
+      ];
+    case "syslog":
+      return [{ key: "Syslog Host", value: network.syslog }];
+    case "ntp":
+      return [{ key: "NTP Server", value: network.ntp }];
+    default:
+      return [];
+  }
+};
 
 export default function SettingsPage() {
   const { search } = useOutletContext() || { search: "" };
@@ -20,11 +84,20 @@ export default function SettingsPage() {
     requireConsolePassword: localStorage.getItem('requireConsolePassword') !== 'false',
   });
 
-  const [network, setNetwork] = useState({
-    snmp: 's3cur3_r0',
-    syslog: '10.0.0.10',
-    ntp: 'time.nist.gov',
+  const [network, setNetwork] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem('networkSettings'));
+      if (saved && saved.snmp !== undefined && saved.syslog !== undefined && saved.ntp !== undefined) {
+        return { ...NETWORK_DEFAULTS, ...saved };
+      }
+    } catch (error) {
+      console.error("Failed to load network settings", error);
+    }
+    return NETWORK_DEFAULTS;
   });
+  const [applying, setApplying] = useState(null);
+  const [applyResult, setApplyResult] = useState({});
+  const [pendingApply, setPendingApply] = useState(null);
   const [notificationPreferences, setNotificationPreferences] = useState({
     enabled: true, sound_enabled: true, topology_refresh: true, syslog_alerts: true, playbook_updates: true, critical_only: false,
   });
@@ -69,6 +142,70 @@ export default function SettingsPage() {
       console.error("Failed to save notification preferences", error);
     }
   };
+
+  const updateNetwork = (key, value) => {
+    setNetwork(prev => {
+      const next = { ...prev, [key]: value };
+      try {
+        localStorage.setItem('networkSettings', JSON.stringify(next));
+      } catch (error) {
+        console.error("Failed to persist network settings", error);
+      }
+      return next;
+    });
+  };
+
+  const handleApplyClick = (setting) => {
+    setPendingApply({
+      setting,
+      playbook: NETWORK_PLAYBOOKS[setting],
+      details: buildDetails(setting, network),
+      extraVars: buildExtraVars(setting, network),
+    });
+  };
+
+  const handleStagingGateApprove = async () => {
+    const { setting, playbook, extraVars } = pendingApply;
+    setPendingApply(null);
+    setApplying(setting);
+    setApplyResult(prev => ({ ...prev, [setting]: "Applying…" }));
+    try {
+      const data = await executePlaybookWithVars(playbook.filename, extraVars);
+      setApplyResult(prev => ({ ...prev, [setting]: data.status === "success" ? "Applied" : "Failed" }));
+    } catch (error) {
+      setApplyResult(prev => ({ ...prev, [setting]: typeof error === "string" ? error : "Apply failed" }));
+    } finally {
+      setApplying(null);
+    }
+  };
+
+  const handleStagingGateReject = () => {
+    setPendingApply(null);
+  };
+
+  const renderApplyStatus = (setting) => {
+    if (applying === setting) {
+      return <p className="text-xs text-blue-400 font-medium mt-1.5">Applying…</p>;
+    }
+    const status = applyResult[setting];
+    if (!status || status === "Applying…") return null;
+    const ok = status === "Applied";
+    return (
+      <p className={`text-xs font-medium mt-1.5 ${ok ? "text-emerald-400" : "text-rose-400"}`}>
+        {ok ? "✓ Applied" : status}
+      </p>
+    );
+  };
+
+  const renderApplyButton = (setting) => (
+    <button
+      onClick={() => handleApplyClick(setting)}
+      disabled={applying !== null}
+      className="w-full mt-2 bg-blue-600 hover:bg-blue-500 disabled:opacity-50 disabled:cursor-not-allowed text-white py-2.5 rounded-xl text-sm font-bold transition-colors shadow-lg shadow-blue-600/20"
+    >
+      Apply
+    </button>
+  );
 
   const styles = {
     main: {
@@ -145,22 +282,25 @@ export default function SettingsPage() {
             <div className="space-y-4">
               <div>
                 <label className="text-xs text-slate-500 mb-1.5 block font-medium">SNMP Community String</label>
-                <input value={network.snmp} onChange={e => setNetwork({ ...network, snmp: e.target.value })}
+                <input value={network.snmp} onChange={e => updateNetwork('snmp', e.target.value)}
                   className="w-full bg-[#0D121F] border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500/30" />
+                {renderApplyButton("snmp")}
+                {renderApplyStatus("snmp")}
               </div>
               <div>
                 <label className="text-xs text-slate-500 mb-1.5 block font-medium">Syslog Server</label>
-                <input value={network.syslog} onChange={e => setNetwork({ ...network, syslog: e.target.value })}
+                <input value={network.syslog} onChange={e => updateNetwork('syslog', e.target.value)}
                   className="w-full bg-[#0D121F] border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500/30" />
+                {renderApplyButton("syslog")}
+                {renderApplyStatus("syslog")}
               </div>
               <div>
                 <label className="text-xs text-slate-500 mb-1.5 block font-medium">NTP Server</label>
-                <input value={network.ntp} onChange={e => setNetwork({ ...network, ntp: e.target.value })}
+                <input value={network.ntp} onChange={e => updateNetwork('ntp', e.target.value)}
                   className="w-full bg-[#0D121F] border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500/30" />
+                {renderApplyButton("ntp")}
+                {renderApplyStatus("ntp")}
               </div>
-              <button className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-xl text-sm font-bold transition-colors shadow-lg shadow-blue-600/20">
-                Save Changes
-              </button>
             </div>
           </div>
           )}
@@ -206,6 +346,14 @@ export default function SettingsPage() {
         </div>
         )}
       </div>
+
+      <PlaybookStagingGate
+        playbook={pendingApply?.playbook}
+        details={pendingApply?.details}
+        onApprove={handleStagingGateApprove}
+        onReject={handleStagingGateReject}
+        isOpen={!!pendingApply}
+      />
     </div>
   );
 }

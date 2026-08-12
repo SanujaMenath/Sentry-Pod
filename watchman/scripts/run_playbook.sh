@@ -12,7 +12,7 @@ PLAYBOOKS_DIR="$WATCHMAN_DIR/playbooks"
 CONTAINER_NAME="localhost/sentry-ansible"
 
 # Get arguments
-PLAYBOOK="${1:-get_facts.yml}"
+PLAYBOOK="${1:-collect_facts.yml}"
 INVENTORY="${2:-hosts.ini}"
 
 # Check if Podman is installed
