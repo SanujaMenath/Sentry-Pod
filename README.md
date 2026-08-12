@@ -1,6 +1,6 @@
 # Sentry-Pod
 
-Containerized Network Management System for Cisco-centric environments. Uses Intent-Based Networking with AI-powered natural language to Cisco IOS command translation, automated configuration drift detection, SNMP baseline monitoring, syslog intelligence, and Ansible playbook orchestration — all running in Podman containers.
+Containerized Network Management System for Cisco-centric environments. Uses Intent-Based Networking with AI-powered natural language to Cisco IOS command translation, automated configuration drift detection, SNMP baseline monitoring, syslog intelligence, and Ansible playbook orchestration — all running in Podman containers. The platform is built and tested against a real GNS3-simulated Cisco fabric that is provisioned end-to-end via Ansible Infrastructure-as-Code.
 
 ## Key Features
 
@@ -11,6 +11,43 @@ Containerized Network Management System for Cisco-centric environments. Uses Int
 - **Playbook Automation** — 40+ pre-built Ansible playbooks for Cisco device management (VLAN, OSPF, HSRP, NTP, CDP, SNMP, and more)
 - **Session Memory** — LLM chat sessions persisted in MongoDB with context retention (last 10 messages)
 - **Cross-Platform** — Runs on Linux (native podman) and Windows/macOS (Podman Desktop) with automatic SELinux handling
+
+## Infrastructure & Automation
+
+Behind the application is a full network-engineering workstream: a GNS3-simulated Cisco enterprise fabric designed, built, and automated as Infrastructure-as-Code. Every feature above — drift detection, playbook orchestration, SNMP baselines, syslog intelligence — is exercised against this live lab.
+
+![Sentry-Pod network topology](https://github.com/KDIAS-JR7/GNS3-Topology-JR7/raw/main/documentation/network_diagram.jpg)
+
+### GNS3 Network Fabric
+
+A redundant, multi-tier enterprise simulation: **16 Cisco devices** (edge routers `R1`/`R2` + EtherSwitches `ESW1–ESW14`) and **8 endpoint PCs** across three functional tiers. The fabric evolved from a three-tier design into a spine-leaf layout with:
+
+- **VLAN matrix & VLSM** — 8 department VLANs (7–14) carved out of `10.1.0.0/16` and `10.2.0.0/16` with proper subnetting
+- **Dynamic routing** — OSPF across core/distribution with a self-healing redundant core
+- **High availability** — HSRP gateway redundancy, EtherChannel link aggregation, and STP tuning so redundancy doesn't fight itself
+- **Management fabric** — out-of-band VLAN 99 for headless SSH access to all 16 devices
+
+Full day-by-day build journal (19 days, including the legacy-IOS SSH crypto struggles): [Sentry-Labs-JR7](https://github.com/KDIAS-JR7/Sentry-Labs-JR7) · Concise design blueprint with topology files: [GNS3-Topology-JR7](https://github.com/KDIAS-JR7/GNS3-Topology-JR7)
+
+### Ansible Automation Suite
+
+**18 production-style playbooks** replace manual CLI screen-scraping with structured, repeatable IaC, each tagged by blast-radius impact (Low / Medium / High / Critical):
+
+| Area | Playbooks |
+|---|---|
+| Routing & HA | `ospf.yml`, `VlanHSRP.yml`, `HSRP_active.yml`, `defaultGateway.yml` |
+| Layer 2 | `vlans.yml`, `VLANDist.yml`, `endDevice.yml`, `cdp.yml`, `enableCDP.yml` |
+| Telemetry & hardening | `snmp.yml`, `NTP.yml`, `NTP_edge.yml`, `LocalTime.yml`, `syslog.yml` |
+| Change management | `write.yml` (pre-backup + NVRAM), `goldenState.yml`, `get_facts.yml`, `showCommand.yml` |
+
+All 16 devices are configured with a single command; drift detection snapshots running configs against golden baselines. Full playbook reference with impact categories: [Ansible-JR7](https://github.com/KDIAS-JR7/Ansible-JR7)
+
+### Telemetry & Ops Plumbing
+
+- **syslog-ng** — all 16 endpoints ship UDP syslog to port `10514`, aggregated per host (`/syslog/$HOST/debug.log`) and fed to the AI log-analysis feature
+- **SNMP** — baseline telemetry collection feeding the trend graphs
+- **NTP** — fleet clock sync with edge/regional variance handling
+- **SSH compatibility** — legacy IOS crypto (diffie-hellman-group1-sha1, ssh-rsa) enabled so modern tooling can reach the lab
 
 ## Architecture
 
@@ -444,3 +481,9 @@ Routes live in `watchman/app/routes/`. Create a new file following the pattern o
 - [Implementation Summary](docs/IMPLEMENTATION_SUMMARY.md) — Configuration drift diff viewer details
 - [Session Log 2026-06-11](docs/SESSION_2026-06-11.md) — Bugfix session log (syslog, white screen, pull error)
 - [AGENTS.md](AGENTS.md) — Developer quick-reference with hardcoded URL todo list
+
+### Companion repositories
+
+- [Sentry-Labs-JR7](https://github.com/KDIAS-JR7/Sentry-Labs-JR7) — Chronological journal of the network-engineering side: building and testing the GNS3 fabric (19 days)
+- [Ansible-JR7](https://github.com/KDIAS-JR7/Ansible-JR7) — The full Ansible playbook suite with blast-radius impact categorization
+- [GNS3-Topology-JR7](https://github.com/KDIAS-JR7/GNS3-Topology-JR7) — Network architecture blueprint and topology files for the lab fabric
