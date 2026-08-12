@@ -63,30 +63,30 @@ function App() {
             <Route path="/drift-reports/:hostname" element={<DriftReportDetail />} />
 
             <Route path="/console" element={
-              <RoleProtectedRoute allowedRoles={["Super Admin", "Network Admin"]}>
+              <RoleProtectedRoute>
                 <Console />
               </RoleProtectedRoute>
             } />
             <Route path="/network-devices" element={
-              <RoleProtectedRoute allowedRoles={["Super Admin", "Network Admin", "Security Admin"]}>
+              <RoleProtectedRoute>
                 <NetworkDevices />
               </RoleProtectedRoute>
             } />
 
             <Route path="/audit-logs" element={
-              <RoleProtectedRoute allowedRoles={["Super Admin", "Auditor"]}>
+              <RoleProtectedRoute>
                 <AuditLogs />
               </RoleProtectedRoute>
             } />
 
             <Route path="/users" element={
-              <RoleProtectedRoute allowedRoles={["Super Admin"]}>
+              <RoleProtectedRoute>
                 <RBACUsers />
               </RoleProtectedRoute>
             } />
 
             <Route path="/playbooks" element={
-              <RoleProtectedRoute allowedRoles={["Super Admin", "Network Admin"]}>
+              <RoleProtectedRoute>
                 <PlaybookManagement />
               </RoleProtectedRoute>
             } />

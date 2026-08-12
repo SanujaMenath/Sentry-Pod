@@ -145,16 +145,7 @@ def is_interface_up(item: dict) -> bool:
     return int(item.get("ciscoMacNotification", 0)) > 0
 
 
-DEFAULT_DEVICES = [
-    {"id": "core-sw-01", "name": "core-sw-01", "ip": "192.168.1.1", "type": "switch",
-     "model": "Cisco Catalyst 9300", "version": "IOS-XE 17.6.3", "uptime": "45 days", "cpu": 34, "memory": 62, "online": True},
-    {"id": "router-edge-01", "name": "router-edge-01", "ip": "10.0.0.1", "type": "router",
-     "model": "Cisco ISR 4451", "version": "IOS-XE 16.12.5", "uptime": "12 days", "cpu": 87, "memory": 71, "online": True},
-    {"id": "access-sw-02", "name": "access-sw-02", "ip": "192.168.1.12", "type": "switch",
-     "model": "Cisco Catalyst 2960X", "version": "IOS 15.2(7)", "uptime": "89 days", "cpu": 28, "memory": 54, "online": True},
-    {"id": "dist-sw-03", "name": "dist-sw-03", "ip": "192.168.1.13", "type": "switch",
-     "model": "Cisco Catalyst 2960X", "version": "IOS 15.2(7)", "uptime": "89 days", "cpu": 31, "memory": 59, "online": True},
-]
+DEFAULT_DEVICES = []
 
 DEVICE_TIER = {
     "R1": "edge", "R2": "edge",

@@ -110,21 +110,5 @@
     ],
     "destructive": false,
     "severity": "low"
-  },
-  {
-    "filename": "Testing.yml",
-    "name": "Testing.yml",
-    "description": "Testing catalog",
-    "tags": [
-      "vlan"
-    ],
-    "target_devices": [
-      "allHosts"
-    ],
-    "example_intents": [
-      "setup"
-    ],
-    "destructive": false,
-    "severity": "medium"
   }
 ]
