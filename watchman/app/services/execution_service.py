@@ -4,7 +4,7 @@ import logging
 import subprocess
 import platform
 from pathlib import Path
-from typing import List, Tuple, Generator
+from typing import List, Tuple, Generator, Optional
 from fastapi import HTTPException, status
 
 logger = logging.getLogger(__name__)
@@ -15,7 +15,7 @@ PODMAN_CONTAINER_IMAGE = "localhost/sentry-ansible"
 PODMAN_ANSIBLE_DIR = "/ansible"
 
 
-def get_podman_command(playbook_name: str) -> List[str]:
+def get_podman_command(playbook_name: str, extra_vars: Optional[dict] = None) -> List[str]:
     system = platform.system()
     playbooks_abs_path = PLAYBOOKS_DIR.resolve()
     cmd = ["podman", "run", "--rm", "--pull=never"]
@@ -26,6 +26,8 @@ def get_podman_command(playbook_name: str) -> List[str]:
     cmd.append(PODMAN_CONTAINER_IMAGE)
     cmd.extend(["ansible-playbook", f"{PODMAN_ANSIBLE_DIR}/{playbook_name}",
                 "-i", f"{PODMAN_ANSIBLE_DIR}/hosts.ini"])
+    if extra_vars:
+        cmd.extend(["--extra-vars", json.dumps(extra_vars)])
     logger.debug(f"Podman command: {' '.join(cmd)}")
     return cmd
 
@@ -66,9 +68,9 @@ def validate_playbook_path(playbook_name: str) -> Path:
     return playbook_path
 
 
-def run_playbook(playbook_name: str) -> Tuple[int, str]:
+def run_playbook(playbook_name: str, extra_vars: Optional[dict] = None) -> Tuple[int, str]:
     validate_playbook_path(playbook_name)
-    cmd = get_podman_command(playbook_name)
+    cmd = get_podman_command(playbook_name, extra_vars)
     return _run_podman(cmd)
 
 

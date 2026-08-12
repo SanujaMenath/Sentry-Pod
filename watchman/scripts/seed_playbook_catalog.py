@@ -121,7 +121,7 @@ PLAYBOOKS = [
         "tags": ["ntp", "time", "config"],
         "target_devices": ["allHosts"],
         "example_intents": ["configure ntp", "setup time sync", "set ntp server"],
-        "destructive": False,
+        "destructive": True,
         "severity": "medium",
     },
     {
@@ -131,7 +131,7 @@ PLAYBOOKS = [
         "tags": ["snmp", "monitoring", "config"],
         "target_devices": ["allHosts"],
         "example_intents": ["configure snmp", "enable snmp traps", "setup snmp monitoring"],
-        "destructive": False,
+        "destructive": True,
         "severity": "medium",
     },
     {
@@ -141,7 +141,7 @@ PLAYBOOKS = [
         "tags": ["syslog", "logging", "config"],
         "target_devices": ["allHosts"],
         "example_intents": ["configure syslog", "send logs to syslog server", "enable logging"],
-        "destructive": False,
+        "destructive": True,
         "severity": "medium",
     },
     {

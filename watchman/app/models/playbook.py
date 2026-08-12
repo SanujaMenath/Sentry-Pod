@@ -5,6 +5,7 @@ from datetime import datetime
 class PlaybookRequest(BaseModel):
     playbook_name: str
     description: Optional[str] = None
+    extra_vars: Optional[dict] = None
 
 class PlaybookResponse(BaseModel):
     status: str

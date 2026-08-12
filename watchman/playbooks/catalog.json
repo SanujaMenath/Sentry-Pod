@@ -196,7 +196,7 @@
       "setup time sync",
       "set ntp server"
     ],
-    "destructive": false,
+    "destructive": true,
     "severity": "medium"
   },
   {
@@ -216,7 +216,7 @@
       "enable snmp traps",
       "setup snmp monitoring"
     ],
-    "destructive": false,
+    "destructive": true,
     "severity": "medium"
   },
   {
@@ -236,7 +236,7 @@
       "send logs to syslog server",
       "enable logging"
     ],
-    "destructive": false,
+    "destructive": true,
     "severity": "medium"
   },
   {

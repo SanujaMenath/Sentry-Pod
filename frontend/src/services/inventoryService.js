@@ -44,6 +44,19 @@ export const executePlaybook = async (playbookName) => {
   }
 };
 
+// Executes a playbook with extra vars (e.g. network settings from the Settings page)
+export const executePlaybookWithVars = async (playbookName, extraVars = {}) => {
+  try {
+    const response = await api.post("/playbooks/execute", {
+      playbook_name: playbookName,
+      extra_vars: extraVars
+    });
+    return response.data;
+  } catch (error) {
+    throw error.response?.data?.detail || "Playbook execution dispatch failed";
+  }
+};
+
 // Drops a playbook blueprint row cleanly out of MongoDB by its unique ID string
 export const deletePlaybook = async (playbookId) => {
   try {
