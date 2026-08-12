@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
-import { AlertTriangle, Bell, CheckCircle2, Info, Search, XCircle } from "lucide-react";
+import { AlertTriangle, Bell, CheckCircle2, Info, Search, X, XCircle } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { getNotifications, markAllNotificationsRead, markNotificationRead } from "../services/notificationService";
 

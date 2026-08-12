@@ -1,0 +1,125 @@
+-------------------------
+Device ID: ESW10.lab.local
+Entry address(es): 
+  IP address: 10.1.99.10
+Platform: Cisco 2691,  Capabilities: Switch IGMP 
+Interface: FastEthernet1/4,  Port ID (outgoing port): FastEthernet1/0
+Holdtime : 129 sec
+
+Version :
+Cisco IOS Software, 2600 Software (C2691-ENTSERVICESK9-M), Version 12.4(13b), RELEASE SOFTWARE (fc3)
+Technical Support: http://www.cisco.com/techsupport
+Copyright (c) 1986-2007 by Cisco Systems, Inc.
+Compiled Tue 24-Apr-07 15:33 by prod_rel_team
+
+advertisement version: 2
+VTP Management Domain: ''
+Duplex: full
+
+-------------------------
+Device ID: ESW1.lab.local
+Entry address(es): 
+  IP address: 10.1.0.5
+Platform: Cisco 2691,  Capabilities: Router Switch IGMP 
+Interface: FastEthernet1/0,  Port ID (outgoing port): FastEthernet1/1
+Holdtime : 120 sec
+
+Version :
+Cisco IOS Software, 2600 Software (C2691-ENTSERVICESK9-M), Version 12.4(13b), RELEASE SOFTWARE (fc3)
+Technical Support: http://www.cisco.com/techsupport
+Copyright (c) 1986-2007 by Cisco Systems, Inc.
+Compiled Tue 24-Apr-07 15:33 by prod_rel_team
+
+advertisement version: 2
+VTP Management Domain: ''
+Duplex: full
+
+-------------------------
+Device ID: ESW7.lab.local
+Entry address(es): 
+  IP address: 10.1.99.7
+Platform: Cisco 2691,  Capabilities: Switch IGMP 
+Interface: FastEthernet1/1,  Port ID (outgoing port): FastEthernet1/0
+Holdtime : 115 sec
+
+Version :
+Cisco IOS Software, 2600 Software (C2691-ENTSERVICESK9-M), Version 12.4(13b), RELEASE SOFTWARE (fc3)
+Technical Support: http://www.cisco.com/techsupport
+Copyright (c) 1986-2007 by Cisco Systems, Inc.
+Compiled Tue 24-Apr-07 15:33 by prod_rel_team
+
+advertisement version: 2
+VTP Management Domain: ''
+Duplex: full
+
+-------------------------
+Device ID: ESW4.lab.local
+Entry address(es): 
+  IP address: 10.1.0.10
+Platform: Cisco 2691,  Capabilities: Router Switch IGMP 
+Interface: FastEthernet1/15,  Port ID (outgoing port): FastEthernet1/15
+Holdtime : 131 sec
+
+Version :
+Cisco IOS Software, 2600 Software (C2691-ENTSERVICESK9-M), Version 12.4(13b), RELEASE SOFTWARE (fc3)
+Technical Support: http://www.cisco.com/techsupport
+Copyright (c) 1986-2007 by Cisco Systems, Inc.
+Compiled Tue 24-Apr-07 15:33 by prod_rel_team
+
+advertisement version: 2
+VTP Management Domain: ''
+Duplex: full
+
+-------------------------
+Device ID: ESW4.lab.local
+Entry address(es): 
+  IP address: 10.1.0.10
+Platform: Cisco 2691,  Capabilities: Router Switch IGMP 
+Interface: FastEthernet1/14,  Port ID (outgoing port): FastEthernet1/14
+Holdtime : 131 sec
+
+Version :
+Cisco IOS Software, 2600 Software (C2691-ENTSERVICESK9-M), Version 12.4(13b), RELEASE SOFTWARE (fc3)
+Technical Support: http://www.cisco.com/techsupport
+Copyright (c) 1986-2007 by Cisco Systems, Inc.
+Compiled Tue 24-Apr-07 15:33 by prod_rel_team
+
+advertisement version: 2
+VTP Management Domain: ''
+Duplex: full
+
+-------------------------
+Device ID: ESW9.lab.local
+Entry address(es): 
+  IP address: 10.1.99.9
+Platform: Cisco 2691,  Capabilities: Switch IGMP 
+Interface: FastEthernet1/3,  Port ID (outgoing port): FastEthernet1/0
+Holdtime : 127 sec
+
+Version :
+Cisco IOS Software, 2600 Software (C2691-ENTSERVICESK9-M), Version 12.4(13b), RELEASE SOFTWARE (fc3)
+Technical Support: http://www.cisco.com/techsupport
+Copyright (c) 1986-2007 by Cisco Systems, Inc.
+Compiled Tue 24-Apr-07 15:33 by prod_rel_team
+
+advertisement version: 2
+VTP Management Domain: ''
+Duplex: full
+
+-------------------------
+Device ID: ESW8.lab.local
+Entry address(es): 
+  IP address: 10.1.99.8
+Platform: Cisco 2691,  Capabilities: Switch IGMP 
+Interface: FastEthernet1/2,  Port ID (outgoing port): FastEthernet1/0
+Holdtime : 119 sec
+
+Version :
+Cisco IOS Software, 2600 Software (C2691-ENTSERVICESK9-M), Version 12.4(13b), RELEASE SOFTWARE (fc3)
+Technical Support: http://www.cisco.com/techsupport
+Copyright (c) 1986-2007 by Cisco Systems, Inc.
+Compiled Tue 24-Apr-07 15:33 by prod_rel_team
+
+advertisement version: 2
+VTP Management Domain: ''
+Duplex: full
