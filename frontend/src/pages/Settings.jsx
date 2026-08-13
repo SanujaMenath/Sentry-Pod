@@ -306,38 +306,6 @@ export default function SettingsPage() {
           </div>
           )}
 
-          {/* Backup & Restore */}
-          {showBackup && (
-            <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]" style={styles.card}>
-            <div className="flex items-center gap-2 mb-1">
-              <Database size={18} className="text-amber-400" strokeWidth={1.5} />
-              <h2 className="text-base font-bold text-slate-200">Backup & Restore</h2>
-            </div>
-            <p className="text-xs text-slate-500 mb-5">Manage system backups</p>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between py-3 border-b border-slate-800/50">
-                <div>
-                  <label className="text-xs text-slate-500 mb-1.5 block font-medium">SNMP Community String</label>
-                  <input value={network.snmp} onChange={e => setNetwork({ ...network, snmp: e.target.value })}
-                    className="w-full bg-[#0D121F] border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500/30" />
-                </div>
-                <div>
-                  <label className="text-xs text-slate-500 mb-1.5 block font-medium">Syslog Server</label>
-                  <input value={network.syslog} onChange={e => setNetwork({ ...network, syslog: e.target.value })}
-                    className="w-full bg-[#0D121F] border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500/30" />
-                </div>
-                <div>
-                  <label className="text-xs text-slate-500 mb-1.5 block font-medium">NTP Server</label>
-                  <input value={network.ntp} onChange={e => setNetwork({ ...network, ntp: e.target.value })}
-                    className="w-full bg-[#0D121F] border border-slate-700/50 rounded-xl px-4 py-2.5 text-sm text-slate-300 focus:outline-none focus:ring-1 focus:ring-blue-500/30" />
-                </div>
-                <button className="w-full bg-blue-600 hover:bg-blue-500 text-white py-2.5 rounded-xl text-sm font-bold transition-colors shadow-lg shadow-blue-600/20">
-                  Save Changes
-                </button>
-              </div>
-            </div>
-          )}
-
           {/* Terminal Customization */}
           {showTerminal && (
             <div>
