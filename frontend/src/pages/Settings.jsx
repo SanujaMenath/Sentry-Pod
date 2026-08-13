@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Bell, Shield, Globe, Database } from 'lucide-react';
+import { Bell, Shield, Globe } from 'lucide-react';
 import PageHeader from "../components/PageHeader";
 import Toggle from "../components/Toggle";
 import SettingRow from "../components/SettingRow";
@@ -107,6 +107,7 @@ export default function SettingsPage() {
       .then(({ data }) => setNotificationPreferences(data))
       .catch((error) => console.error("Failed to load notification preferences", error));
   }, []);
+
   const query = search ? search.trim().toLowerCase() : "";
 
   const matches = (keywords = []) => {
@@ -117,10 +118,9 @@ export default function SettingsPage() {
   const showNotifications = matches(["Notifications", "Notification Sound", "Topology Refresh", "Syslog Alerts", "Playbook Updates", "Critical Only", "alert", "notification"]);
   const showSecurity = matches(["Security", "Two-Factor Authentication", "2FA", "Session Timeout", "Audit Logging", "Console Password Prompt", "Console Password"]);
   const showNetwork = matches(["Network Settings", "SNMP", "Syslog", "NTP", "Server", "Community String"]);
-  const showBackup = matches(["Backup & Restore", "Automatic Backup", "Last Backup", "Restore"]);
   const showTerminal = matches(["Terminal Customization", "Terminal", "Theme", "Font", "Appearance"]);
 
-  const hasResults = showNotifications || showSecurity || showNetwork || showBackup || showTerminal;
+  const hasResults = showNotifications || showSecurity || showNetwork || showTerminal;
 
   const toggle = (key) => setSettings(prev => ({ ...prev, [key]: !prev[key] }));
   const toggleConsolePassword = () => {
@@ -235,6 +235,7 @@ export default function SettingsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-2 gap-6">
+
           {/* Notifications */}
           {showNotifications && (
             <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]" style={styles.card}>
@@ -242,33 +243,33 @@ export default function SettingsPage() {
                 <Bell size={18} className="text-blue-400" strokeWidth={1.5} />
                 <h2 className="text-base font-bold text-slate-200">Notifications</h2>
               </div>
-            <p className="text-xs text-slate-500 mb-5">Choose which system activity appears in your notification bell</p>
-            <div>
-              <SettingRow label="In-app Notifications" desc="Show system notifications in the bell" enabled={notificationPreferences.enabled} onChange={() => toggleNotificationPreference('enabled')} />
-              <SettingRow label="Notification Sound" desc="Play a chime when a new notification arrives" enabled={notificationPreferences.sound_enabled} onChange={() => toggleNotificationPreference('sound_enabled')} />
-              <SettingRow label="Topology Refresh" desc="Notify when topology discovery finishes" enabled={notificationPreferences.topology_refresh} onChange={() => toggleNotificationPreference('topology_refresh')} />
-              <SettingRow label="Syslog Alerts" desc="Show device syslog alert notifications" enabled={notificationPreferences.syslog_alerts} onChange={() => toggleNotificationPreference('syslog_alerts')} />
-              <SettingRow label="Playbook Updates" desc="Notify when a playbook completes or fails" enabled={notificationPreferences.playbook_updates} onChange={() => toggleNotificationPreference('playbook_updates')} />
-              <SettingRow label="Critical Only" desc="Only show critical-severity notifications" enabled={notificationPreferences.critical_only} onChange={() => toggleNotificationPreference('critical_only')} />
+              <p className="text-xs text-slate-500 mb-5">Choose which system activity appears in your notification bell</p>
+              <div>
+                <SettingRow label="In-app Notifications" desc="Show system notifications in the bell" enabled={notificationPreferences.enabled} onChange={() => toggleNotificationPreference('enabled')} />
+                <SettingRow label="Notification Sound" desc="Play a chime when a new notification arrives" enabled={notificationPreferences.sound_enabled} onChange={() => toggleNotificationPreference('sound_enabled')} />
+                <SettingRow label="Topology Refresh" desc="Notify when topology discovery finishes" enabled={notificationPreferences.topology_refresh} onChange={() => toggleNotificationPreference('topology_refresh')} />
+                <SettingRow label="Syslog Alerts" desc="Show device syslog alert notifications" enabled={notificationPreferences.syslog_alerts} onChange={() => toggleNotificationPreference('syslog_alerts')} />
+                <SettingRow label="Playbook Updates" desc="Notify when a playbook completes or fails" enabled={notificationPreferences.playbook_updates} onChange={() => toggleNotificationPreference('playbook_updates')} />
+                <SettingRow label="Critical Only" desc="Only show critical-severity notifications" enabled={notificationPreferences.critical_only} onChange={() => toggleNotificationPreference('critical_only')} />
+              </div>
             </div>
-          </div>
           )}
 
           {/* Security */}
           {showSecurity && (
             <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]" style={styles.card}>
-            <div className="flex items-center gap-2 mb-1">
-              <Shield size={18} className="text-emerald-400" strokeWidth={1.5} />
-              <h2 className="text-base font-bold text-slate-200">Security</h2>
+              <div className="flex items-center gap-2 mb-1">
+                <Shield size={18} className="text-emerald-400" strokeWidth={1.5} />
+                <h2 className="text-base font-bold text-slate-200">Security</h2>
+              </div>
+              <p className="text-xs text-slate-500 mb-5">Security and access control settings</p>
+              <div>
+                <SettingRow label="Two-Factor Authentication" desc="Enable 2FA for all users" enabled={settings.twoFactor} onChange={() => toggle('twoFactor')} />
+                <SettingRow label="Session Timeout" desc="Auto logout after inactivity" enabled={settings.sessionTimeout} onChange={() => toggle('sessionTimeout')} />
+                <SettingRow label="Audit Logging" desc="Log all system activities" enabled={settings.auditLogging} onChange={() => toggle('auditLogging')} />
+                <SettingRow label="Console Password Prompt" desc="Require password re-entry before opening the network console" enabled={settings.requireConsolePassword} onChange={toggleConsolePassword} />
+              </div>
             </div>
-            <p className="text-xs text-slate-500 mb-5">Security and access control settings</p>
-            <div>
-              <SettingRow label="Two-Factor Authentication" desc="Enable 2FA for all users" enabled={settings.twoFactor} onChange={() => toggle('twoFactor')} />
-              <SettingRow label="Session Timeout" desc="Auto logout after inactivity" enabled={settings.sessionTimeout} onChange={() => toggle('sessionTimeout')} />
-              <SettingRow label="Audit Logging" desc="Log all system activities" enabled={settings.auditLogging} onChange={() => toggle('auditLogging')} />
-              <SettingRow label="Console Password Prompt" desc="Require password re-entry before opening the network console" enabled={settings.requireConsolePassword} onChange={toggleConsolePassword} />
-            </div>
-          </div>
           )}
 
           {/* Network Settings */}
@@ -305,45 +306,14 @@ export default function SettingsPage() {
           </div>
           )}
 
-          {/* Backup & Restore */}
-          {showBackup && (
-            <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]" style={styles.card}>
-            <div className="flex items-center gap-2 mb-1">
-              <Database size={18} className="text-amber-400" strokeWidth={1.5} />
-              <h2 className="text-base font-bold text-slate-200">Backup & Restore</h2>
+          {/* Terminal Customization */}
+          {showTerminal && (
+            <div>
+              <TerminalConfigCard />
             </div>
-            <p className="text-xs text-slate-500 mb-5">Manage system backups</p>
-            <div className="space-y-4">
-              <div className="flex items-center justify-between py-3 border-b border-slate-800/50">
-                <div>
-                  <p className="text-sm text-slate-200 font-medium">Automatic Backup</p>
-                  <p className="text-xs text-slate-500 mt-0.5">Daily at 2:00 AM</p>
-                </div>
-                <Toggle enabled={settings.autoBackup} onChange={() => toggle('autoBackup')} />
-              </div>
-              <div className="pt-2">
-                <p className="text-xs text-slate-500 mb-1 font-medium">Last Backup</p>
-                <p className="text-sm text-slate-200 font-mono font-bold">2026-03-05 02:00:15</p>
-              </div>
-              <div className="grid grid-cols-2 gap-3 pt-2">
-                <button className="py-2.5 rounded-xl text-sm font-bold bg-[#0D121F] border border-slate-700/50 text-slate-300 hover:text-white hover:border-slate-500 transition-all">
-                  Backup Now
-                </button>
-                <button className="py-2.5 rounded-xl text-sm font-bold bg-[#0D121F] border border-slate-700/50 text-slate-300 hover:text-white hover:border-slate-500 transition-all">
-                  Restore
-                </button>
-              </div>
-            </div>
-          </div>
           )}
 
-        {/* Terminal Customization — full-width row */}
-        {showTerminal && (
-          <div className="col-span-2">
-            <TerminalConfigCard />
           </div>
-        )}
-        </div>
         )}
       </div>
 

@@ -3,8 +3,7 @@ import { useOutletContext } from "react-router-dom";
 import {
   FileCode,
   Plus,
-  Loader2,
-  Play,
+  Eye,
   Edit3,
   Trash2,
   CheckCircle2,
@@ -14,14 +13,14 @@ import {
 import StatCard from "../components/StatCard";
 import PageHeader from "../components/PageHeader";
 import PlaybookModal from "../components/PlaybookModal";
+import PlaybookDetailModal from "../components/PlaybookDetailModal";
 
 import { 
   getPlaybookDashboardData, 
   addPlaybook, 
   deletePlaybook,
-  executePlaybook,
-  updatePlaybook,
-  updatePlaybookStatus
+  getPlaybookContent,
+  updatePlaybook
 } from "../services/inventoryService";
 
 // ==========================================
@@ -43,7 +42,8 @@ export default function PlaybookManagement() {
 
   const [modalConfig, setModalConfig] = useState({ show: false, mode: "add", data: null });
   const [systemAlert, setSystemAlert] = useState(null);
-  const [runningStates, setRunningStates] = useState({});
+  const [selectedPlaybook, setSelectedPlaybook] = useState(null);
+  const [loadingViewId, setLoadingViewId] = useState(null);
 
   // 1. Core synchronization hook to fetch fresh metrics from the database
   const fetchMetrics = async () => {
@@ -63,23 +63,21 @@ export default function PlaybookManagement() {
     fetchMetrics();
   }, []);
 
-  // 3. Execute playbook deployment action via real API call
-  const handleRunPlaybook = async (id, name) => {
+  // 3. Open the detail view modal with the playbook's raw YAML content
+  const handleViewPlaybook = async (playbook) => {
     setSystemAlert(null);
-    setRunningStates((prev) => ({ ...prev, [id]: true }));
+    const filename = playbook.filename || playbook.name;
+    const id = playbook.id || playbook._id || `pb-${Math.random()}`;
+    setLoadingViewId(id);
     try {
-      const result = await executePlaybook(name);
-      const newStatus = result.status === "success" ? "Verified" : "Failed";
-      await updatePlaybookStatus(id, newStatus);
-      setSystemAlert({
-        type: "success",
-        text: `Orchestration playbook "${name}" successfully deployed to network layer.`,
-      });
+      const response = await getPlaybookContent(filename);
+      setSelectedPlaybook({ ...playbook, content: response.content || "" });
     } catch (err) {
-      setSystemAlert({ type: "error", text: `Execution failed for "${name}": ${err.message || err}` });
+      console.error("Failed to fetch playbook content:", err);
+      setSystemAlert({ type: "error", text: `Unable to load content for "${playbook.name}": ${err.message || err}` });
+      setSelectedPlaybook({ ...playbook, content: "" });
     } finally {
-      setRunningStates((prev) => ({ ...prev, [id]: false }));
-      fetchMetrics();
+      setLoadingViewId(null);
     }
   };
 
@@ -282,12 +280,12 @@ export default function PlaybookManagement() {
                           <div className="inline-flex items-center gap-3">
                             <button
                               type="button"
-                              onClick={() => handleRunPlaybook(rowId, playbook.name)}
-                              disabled={runningStates[rowId] || currentStatus === "Draft"}
-                              className="bg-[#10B981]/10 border border-[#10B981]/30 hover:bg-[#10B981]/20 text-[#10B981] px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
+                              onClick={() => handleViewPlaybook(playbook)}
+                              disabled={loadingViewId === rowId}
+                              className="bg-blue-500/10 border border-blue-500/30 hover:bg-blue-500/20 text-blue-400 px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 disabled:opacity-30 disabled:cursor-not-allowed active:scale-95"
                             >
-                              {runningStates[rowId] ? <Loader2 size={12} className="animate-spin" /> : <Play size={12} />}
-                              Run
+                              <Eye size={12} />
+                              {loadingViewId === rowId ? "Loading..." : "View"}
                             </button>
                             
                             <button 
@@ -327,6 +325,15 @@ export default function PlaybookManagement() {
       {/* Render overlay form inline overlay */}
       {modalConfig.show && (
         <PlaybookModal mode={modalConfig.mode} playbookData={modalConfig.data} onClose={() => setModalConfig({ show: false, mode: "add", data: null })} onSave={handleSavePlaybook} />
+      )}
+
+      {/* Render playbook detail view modal */}
+      {selectedPlaybook && (
+        <PlaybookDetailModal
+          playbook={selectedPlaybook}
+          content={selectedPlaybook.content}
+          onClose={() => setSelectedPlaybook(null)}
+        />
       )}
     </div>
   );
