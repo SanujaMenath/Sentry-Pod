@@ -123,10 +123,10 @@ export default function AiChat() {
   ];
 
   const quickActions = [
-    { id: "backup", name: "Backup Devices", description: "Create backups of all network device configurations", icon: Zap, color: "bg-blue-600/20 border-blue-600/50 hover:bg-blue-600/30", iconColor: "text-blue-400", playbook: "get_facts.yml" },
-    { id: "security", name: "Apply Security Policies", description: "Deploy security patches and policies across devices", icon: Shield, color: "bg-red-600/20 border-red-600/50 hover:bg-red-600/30", iconColor: "text-red-400", playbook: "enableCDP.yml" },
-    { id: "config", name: "Update Configuration", description: "Push configuration updates to network devices", icon: Wrench, color: "bg-amber-600/20 border-amber-600/50 hover:bg-amber-600/30", iconColor: "text-amber-400", playbook: "practice1.yml" },
-    { id: "compliance", name: "Run Compliance Check", description: "Perform compliance validation and report on device status", icon: BarChart3, color: "bg-emerald-600/20 border-emerald-600/50 hover:bg-emerald-600/30", iconColor: "text-emerald-400", playbook: "HSRP_active.yml" },
+    { id: "backup", name: "Backup Devices", description: "Create backups of all network device configurations", icon: Zap, color: "bg-blue-600/20 border-blue-600/50 hover:bg-blue-600/30", iconColor: "text-blue-400", playbook: "collect_golden_config.yml" },
+    { id: "security", name: "Apply Security Policies", description: "Deploy security patches and policies across devices", icon: Shield, color: "bg-red-600/20 border-red-600/50 hover:bg-red-600/30", iconColor: "text-red-400", playbook: "configure_syslog.yml" },
+    { id: "config", name: "Update Configuration", description: "Push configuration updates to network devices", icon: Wrench, color: "bg-amber-600/20 border-amber-600/50 hover:bg-amber-600/30", iconColor: "text-amber-400", playbook: "configure_default_gateway.yml" },
+    { id: "compliance", name: "Run Compliance Check", description: "Perform compliance validation and report on device status", icon: BarChart3, color: "bg-emerald-600/20 border-emerald-600/50 hover:bg-emerald-600/30", iconColor: "text-emerald-400", playbook: "check_config_drift.yml" },
   ];
 
   const executePlaybook = (actionName, playbookName) => {

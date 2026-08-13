@@ -1,0 +1,15 @@
+- name: Configure NTP
+  hosts: allHosts
+  gather_facts: false
+
+  vars:
+    ntp_server: "{{ extra_ntp_server | default('192.168.122.1') }}"
+
+  tasks:
+    - name: configure NTP clients
+      cisco.ios.ios_config:
+        lines:
+          - no ntp server {{ ntp_server }}
+          - ntp server {{ ntp_server }} version 3
+          - clock timezone SLST 5 30
+          - ntp max-associations 1
