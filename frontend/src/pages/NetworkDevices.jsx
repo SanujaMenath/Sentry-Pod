@@ -19,9 +19,6 @@ import DeviceCard, { normalizeDevice } from "../components/DeviceCard";
 import TerminalDeviceModal from "../components/TerminalDeviceModal";
 import EditDeviceModal from "../components/EditDeviceModal";
 import UsageBar from "../components/UsageBar";
-import Cursor from "../components/Cursor";
-import ConfigSection from "../components/ConfigSection";
-import ConfigField from "../components/ConfigField";
 import { useOutletContext } from "react-router-dom";
 
 export default function NetworkDevices() {
@@ -59,7 +56,7 @@ export default function NetworkDevices() {
     );
   });
   return (
-    <div className="min-h-full bg-gradient-to-br from-[#F8FAFC] to-[#D1D5DB] p-8 font-sans">
+    <div className="min-h-full bg-linear-to-br from-[#F8FAFC] to-[#D1D5DB] p-8 font-sans">
       <div className="mb-8 flex items-start justify-between">
         <PageHeader 
           title="Network Devices" 

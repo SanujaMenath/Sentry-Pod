@@ -99,7 +99,7 @@ class SentryPodManager:
             content,
         )
         
-        # FIX: Generate the temp file inside the repository root instead of OS Temp folder
+        # Generate the temp file inside the repository root instead of OS Temp folder
         tmp = Path(
             tempfile.mktemp(suffix=".yaml", prefix="sentry-compose-", dir=str(self.repo_root))
         )

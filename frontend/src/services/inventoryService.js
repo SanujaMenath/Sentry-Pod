@@ -32,15 +32,13 @@ export const addPlaybook = async (formData) => {
   }
 };
 
-// Triggers playbook automation execution when clicking the "Run" button
-export const executePlaybook = async (playbookName) => {
+// Fetches the raw YAML content of a playbook file for the detail view modal
+export const getPlaybookContent = async (filename) => {
   try {
-    const response = await api.post("/playbooks/execute", {
-      playbook_name: playbookName
-    });
+    const response = await api.get(`/playbooks/content/${encodeURIComponent(filename)}`);
     return response.data;
   } catch (error) {
-    throw error.response?.data?.detail || "Playbook execution dispatch failed";
+    throw error.response?.data?.detail || "Failed to fetch playbook content";
   }
 };
 
@@ -73,14 +71,5 @@ export const updatePlaybook = async (id, playbookData) => {
     return response.data;
   } catch (error) {
     throw error.response?.data?.detail || "Failed to update playbook blueprint";
-  }
-};
-
-export const updatePlaybookStatus = async (id, status) => {
-  try {
-    const response = await api.patch(`/playbooks/${id}/status`, { pipeline_status: status });
-    return response.data;
-  } catch (error) {
-    throw error.response?.data?.detail || "Failed to update pipeline status";
   }
 };
