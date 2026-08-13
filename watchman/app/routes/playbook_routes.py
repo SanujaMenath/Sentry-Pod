@@ -104,6 +104,21 @@ async def list_playbooks():
             detail=str(e)
         )
 
+@router.get("/content/{filename}")
+async def get_playbook_content(filename: str):
+    """Return the raw YAML content of a playbook file for the detail view."""
+    try:
+        content = execution_service.read_playbook_content(filename)
+        return {"status": "success", "filename": filename, "content": content}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to read playbook content: {str(e)}"
+        )
+
+
 @router.get("/catalog")
 async def get_playbook_catalog():
     """Get the complete playbook catalog with metadata"""

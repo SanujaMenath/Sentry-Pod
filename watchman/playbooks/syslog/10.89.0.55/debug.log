@@ -1,3 +1,0 @@
-Jun  5 07:56:32 10.89.0.55 Jun  5 07:31:00 192.168.122.252 %LINEPROTO-5-UPDOWN: FastEthernet0/1 link down
-Jun  5 07:56:32 10.89.0.55 192.168.122.252 %OSPF-5-ADJCHG: Process 1, Nbr 10.0.0.1 to FULL
-Jun  5 07:59:12 10.89.0.55 <189>78: Jun  5 13:29:11: %LINK-5-CHANGED: Interface FastEthernet1/7, changed state to administratively down
