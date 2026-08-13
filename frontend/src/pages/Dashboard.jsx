@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useNavigate, useOutletContext} from "react-router-dom";
 import {
   Network,
-  MessageSquare,
   ShieldAlert,
   Server,
   ClipboardList,
@@ -30,12 +29,10 @@ const SEVERITY_COLORS = {
   info: { bg: 'bg-amber-500/5', border: 'border-amber-500/10', icon: 'bg-amber-500/10', iconBorder: 'border-amber-500/20', text: 'text-amber-500', badge: 'bg-amber-500/20 text-amber-500 border-amber-500/20' },
 };
 
-//  MAIN DASHBOARD
 const Dashboard = () => {
   const navigate = useNavigate();
   const { search } = useOutletContext() || { search: "" };
 
-  const [status, setStatus] = useState("pending");
   const [totalDevices, setTotalDevices] = useState("--");
   const [activeDevicesCount, setActiveDevicesCount] = useState(0);
   const [isScanning, setIsScanning] = useState(false);
@@ -57,19 +54,6 @@ const Dashboard = () => {
     getSetupStatus().then(setSetupStatus).catch(() => {});
   }, []);
 
-  const handleApprove = (e) => {
-    e.stopPropagation(); // Stops the card container click from running
-    setStatus("deploying");
-    setTimeout(() => {
-      setStatus("deployed");
-    }, 1500);
-  };
-
-  const handleReject = (e) => {
-    e.stopPropagation(); // Stops the card container click from running
-    setStatus("rejected");
-  };
-
   useEffect(() => {
     const fetchAllHostsCount = async () => {
       try {
@@ -80,7 +64,6 @@ const Dashboard = () => {
         setTotalDevices("0");
       }
     };
-
     fetchAllHostsCount();
   }, []);
 
@@ -94,7 +77,6 @@ const Dashboard = () => {
         console.error("Failed to load drift reports:", e);
       }
     };
-
     fetchDrift();
   }, []);
 
@@ -108,7 +90,6 @@ const Dashboard = () => {
         console.error("Failed to load baseline count:", e);
       }
     };
-
     fetchBaseline();
   }, []);
 
@@ -124,7 +105,6 @@ const Dashboard = () => {
         console.error('Error fetching active devices:', error);
       }
     };
-
     fetchActiveDevices();
   }, []);
 
@@ -163,8 +143,6 @@ const Dashboard = () => {
       if (response.ok) {
         const result = await response.json();
         setActiveDevicesCount(result.devices_count || 0);
-      } else {
-        console.error('Scan failed:', response.statusText);
       }
     } catch (error) {
       console.error('Error triggering nmap scan:', error);
@@ -189,16 +167,10 @@ const Dashboard = () => {
     if (e) e.stopPropagation();
     setIsRefreshingDrift(true);
     try {
-      const response = await fetch(`${API_BASE}/playbooks/drift/refresh`, {
-        method: 'POST'
-      });
+      const response = await fetch(`${API_BASE}/playbooks/drift/refresh`, { method: 'POST' });
       if (response.ok) {
         const result = await response.json();
-        if (result && result.reports) {
-          setDriftReports(result.reports);
-        }
-      } else {
-        console.error('Drift refresh failed:', response.statusText);
+        if (result && result.reports) setDriftReports(result.reports);
       }
     } catch (error) {
       console.error('Error triggering drift analysis:', error);
@@ -211,16 +183,10 @@ const Dashboard = () => {
     setShowBaselineConfirm(false);
     setIsRefreshingBaseline(true);
     try {
-      const response = await fetch(`${API_BASE}/playbooks/baseline/refresh`, {
-        method: 'POST'
-      });
+      const response = await fetch(`${API_BASE}/playbooks/baseline/refresh`, { method: 'POST' });
       if (response.ok) {
         const result = await response.json();
-        if (result && result.devices) {
-          setBaselineCount(result.devices.length);
-        }
-      } else {
-        console.error('Baseline refresh failed:', response.statusText);
+        if (result && result.devices) setBaselineCount(result.devices.length);
       }
     } catch (error) {
       console.error('Error triggering baseline collection:', error);
@@ -234,10 +200,7 @@ const Dashboard = () => {
     try {
       const response = await api.post('/playbooks/baseline-graph/refresh');
       if (response.status === 200) {
-        // Bump the refresh key so NetworkTrafficChart re-fetches its data
         setGraphRefreshKey((prev) => prev + 1);
-      } else {
-        console.error('Baseline graph refresh failed:', response.statusText);
       }
     } catch (error) {
       console.error('Error triggering baseline graph refresh:', error);
@@ -245,7 +208,7 @@ const Dashboard = () => {
       setIsRefreshingGraph(false);
     }
   };
-  
+
   const styles = {
     sidebar: { backgroundColor: "#020618ED", fontFamily: FONT_FAMILY },
     main: {
@@ -263,31 +226,32 @@ const Dashboard = () => {
       fontFamily: FONT_FAMILY,
     },
   };
-const query = search ? search.trim().toLowerCase() : "";
 
-const filteredDevices = networkStatus.devices.filter((device) => {
-  if (!query) return true;
-  return (
-    device.name?.toLowerCase().includes(query) ||
-    device.ip?.toLowerCase().includes(query) ||
-    device.model?.toLowerCase().includes(query) ||
-    device.tier?.toLowerCase().includes(query)
-  );
-});
+  const query = search ? search.trim().toLowerCase() : "";
 
-const filteredSyslogs = syslogAlerts.filter((alert) => {
-  if (!query) return true;
-  return (
-    alert.device?.toLowerCase().includes(query) ||
-    alert.message?.toLowerCase().includes(query) ||
-    alert.mnemonic?.toLowerCase().includes(query)
-  );
-});
+  const filteredDevices = networkStatus.devices.filter((device) => {
+    if (!query) return true;
+    return (
+      device.name?.toLowerCase().includes(query) ||
+      device.ip?.toLowerCase().includes(query) ||
+      device.model?.toLowerCase().includes(query) ||
+      device.tier?.toLowerCase().includes(query)
+    );
+  });
+
+  const filteredSyslogs = syslogAlerts.filter((alert) => {
+    if (!query) return true;
+    return (
+      alert.device?.toLowerCase().includes(query) ||
+      alert.message?.toLowerCase().includes(query) ||
+      alert.mnemonic?.toLowerCase().includes(query)
+    );
+  });
+
   return (
     <>
     <div className="flex min-h-screen" style={styles.main}>
       <main className="flex-1 flex flex-col overflow-hidden">
-        {/* DASHBOARD CONTENT */}
         <div className="flex-1 overflow-y-auto p-8 space-y-8">
           {setupStatus && !setupStatus.setup_complete && (
             <div className="bg-amber-500/10 border border-amber-500/50 rounded-xl p-4 flex items-start gap-3">
@@ -304,13 +268,13 @@ const filteredSyslogs = syslogAlerts.filter((alert) => {
               </button>
             </div>
           )}
-          <PageHeader 
-           title="Command Center" 
-           description="Network overview and real-time monitoring" 
-           />
+
+          <PageHeader
+            title="Command Center"
+            description="Network overview and real-time monitoring"
+          />
 
           {/* ROW STAT CARDS */}
-           {/* Total devices */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <StatCard
               title="Total Devices"
@@ -320,7 +284,6 @@ const filteredSyslogs = syslogAlerts.filter((alert) => {
               iconBg="bg-blue-600/20"
               iconColor="text-blue-400"
             />
-             {/* Active devices */}
             <div className="bg-[#1D293DED] border border-slate-700/50 rounded-3xl p-6 shadow-[0_5px_15px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col">
               <div className="flex justify-between items-center mb-4">
                 <div className="z-10">
@@ -343,8 +306,8 @@ const filteredSyslogs = syslogAlerts.filter((alert) => {
                 {isScanning ? 'Scanning...' : 'Refresh'}
               </button>
             </div>
-             {/* Config Drift */}
-            <div 
+
+            <div
               onClick={() => navigate('/drift-reports')}
               className="bg-[#1D293DED] border border-slate-700/50 rounded-3xl p-6 shadow-[0_5px_15px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col cursor-pointer hover:shadow-lg transition-shadow"
             >
@@ -371,12 +334,8 @@ const filteredSyslogs = syslogAlerts.filter((alert) => {
                 {isRefreshingDrift ? 'Running Drift Analysis...' : 'Refresh'}
               </button>
             </div>
-            
-            
-             {/* Network Baselines */}
-            <div 
-              className="bg-[#1D293DED] border border-slate-700/50 rounded-3xl p-6 shadow-[0_5px_15px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col"
-            >
+
+            <div className="bg-[#1D293DED] border border-slate-700/50 rounded-3xl p-6 shadow-[0_5px_15px_rgba(0,0,0,0.6)] overflow-hidden flex flex-col">
               <div className="flex justify-between items-center mb-4">
                 <div className="z-10">
                   <p className="text-slate-400 text-sm font-medium mb-2">Network Baselines (via Ansible)</p>
@@ -402,115 +361,13 @@ const filteredSyslogs = syslogAlerts.filter((alert) => {
             </div>
           </div>
 
-          {/* ROW TRAFFIC & AI  */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch content-stretch">
-         
-          {/* Traffic Section */}
-            <div className="flex flex-col flex-1 min-h-0">
-              <NetworkTrafficChart
-                onRefresh={handleRefreshGraph}
-                isRefreshing={isRefreshingGraph}
-                refreshKey={graphRefreshKey}
-              />
-            </div>
-
-            {/* AI Console Section */}
-            <div
-              onClick={() => navigate("/ai-chat")}
-              className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)] relative overflow-hidden flex flex-col justify-between flex-1 min-h-0 cursor-pointer hover:shadow-lg transition-shadow"
-              style={styles.card}
-            >
-              <div className="flex items-center justify-between mb-8 text-slate-300">
-                <div className="flex items-center gap-2">
-                  <MessageSquare size={18} className="text-blue-400" />
-                  <h4 className="text-sm font-bold">AI Intent Console Preview</h4>
-                </div>
-              <span className="text-xs text-blue-400 font-medium opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                Open Console &rarr;
-              </span>
-              </div>
-
-              <div className="space-y-6 flex-1">
-                <div className="flex items-start gap-4">
-                  <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-[10px] font-bold text-white shrink-0 shadow-lg shadow-blue-600/20">
-                    AD
-                  </div>
-                  <div className="bg-[#2A3B52] border border-slate-700/50 rounded-2xl rounded-tl-none px-5 py-3 text-slate-200 text-sm max-w-lg">
-                    Block Social Media on Guest VLAN
-                  </div>
-                </div>
-                <div className="flex items-start gap-4">
-                  <div className="w-9 h-9 rounded-full bg-[#7C3AED] flex items-center justify-center text-white shrink-0 shadow-lg shadow-purple-600/20">
-                    <div className="w-5 h-5 border-2 border-white rounded-sm flex items-center justify-center text-[10px] font-bold">
-                      AI
-                    </div>
-                  </div>
-                  <div className="bg-[#111827]/80 border border-slate-800 rounded-2xl rounded-tl-none p-5 w-full">
-                    <p className="text-[11px] text-slate-500 mb-4 font-bold uppercase tracking-widest">
-                      Generated Configuration:
-                    </p>
-                    <div className="bg-[#0D121F] rounded-xl p-4 font-mono text-[11px] leading-relaxed text-emerald-400 border border-slate-800">
-                      <p>access-list 101 deny tcp any any eq 443</p>
-                      <p className="text-emerald-600/60 mb-1">log</p>
-                      <p>access-list 101 deny tcp any any eq 80</p>
-                      <p className="text-emerald-600/60 mb-2">log</p>
-                      <p className="mb-2 text-inter">
-                        access-list 101 permit ip any any
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="flex justify-end mt-8 h-10.5">
-                {/* 1. PENDING STATE */}
-                {status === "pending" && (
-                  <div className="flex gap-3">
-                    <button
-                      onClick={handleApprove}
-                      className="bg-[#10B981]/10 border border-[#10B981]/40 text-[#10B981] px-6 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-all active:scale-95 hover:bg-[#10B981]/20"
-                    >
-                      <CheckCircle2 size={16} /> Approve & Deploy
-                    </button>
-                    <button
-                      onClick={handleReject}
-                      className="bg-white text-rose-500 px-6 py-2 rounded-xl text-xs font-bold flex items-center gap-2 border border-slate-200 transition-all active:scale-95 shadow-sm hover:bg-slate-50"
-                    >
-                      <X size={16} /> Reject
-                    </button>
-                  </div>
-                )}
-
-                {/* 2. DEPLOYING STATE (The Loading Spinner) */}
-                {status === "deploying" && (
-                  <div className="w-full flex justify-center items-center py-2 bg-blue-500/10 border border-blue-500/40 rounded-xl animate-pulse">
-                    <div className="flex items-center gap-2 text-blue-400 font-medium text-sm">
-                      <Loader2 size={18} className="animate-spin" />
-                      <span>Deploying configuration to hardware...</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* 3. DEPLOYED STATE (The Green Success Badge) */}
-                {status === "deployed" && (
-                  <div className="w-full flex justify-center items-center py-2 bg-[#10B981]/10 border border-[#10B981]/40 rounded-xl animate-in zoom-in duration-300">
-                    <div className="flex items-center gap-2 text-[#10B981] font-medium text-sm">
-                      <CheckCircle2 size={18} />
-                      <span>Action completed</span>
-                    </div>
-                  </div>
-                )}
-
-                {/* 4. REJECTED STATE */}
-                {status === "rejected" && (
-                  <div className="w-full flex justify-center items-center py-2 bg-[#F43F5E]/10 border border-[#F43F5E]/40 rounded-xl animate-in zoom-in duration-300">
-                    <div className="flex items-center gap-2 text-white font-medium text-sm">
-                      <AlertTriangle size={18} className="text-orange-500" />
-                      <span>Action rejected</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
+          {/* ROW TRAFFIC - Full Width */}
+          <div className="w-full">
+            <NetworkTrafficChart
+              onRefresh={handleRefreshGraph}
+              isRefreshing={isRefreshingGraph}
+              refreshKey={graphRefreshKey}
+            />
           </div>
 
           {/* ROW TABLE - Real-Time Network Status */}
@@ -519,9 +376,7 @@ const filteredSyslogs = syslogAlerts.filter((alert) => {
             style={styles.card}
           >
             <div className="p-6 border-b border-slate-800/50 flex items-center justify-between">
-              <h4 className="text-sm font-medium text-slate-300">
-                Real-Time Network Status
-              </h4>
+              <h4 className="text-sm font-medium text-slate-300">Real-Time Network Status</h4>
               <div className="flex items-center gap-3">
                 {networkStatus.total_count > 0 && (
                   <span className="text-[11px] text-slate-500 font-medium">
@@ -608,9 +463,7 @@ const filteredSyslogs = syslogAlerts.filter((alert) => {
                                 {device.tier ? device.tier.charAt(0).toUpperCase() + device.tier.slice(1) : "—"}
                               </span>
                             </td>
-                            <td className="py-4 text-slate-400 font-medium">
-                              {device.ip}
-                            </td>
+                            <td className="py-4 text-slate-400 font-medium">{device.ip}</td>
                             <td className="py-4">
                               <div className="flex flex-col gap-1">
                                 <div className={`inline-flex items-center gap-1.5 px-2 py-0.5 rounded-lg border ${statusStyles[status]}`}>
@@ -624,9 +477,7 @@ const filteredSyslogs = syslogAlerts.filter((alert) => {
                                 )}
                               </div>
                             </td>
-                            <td className="py-4 text-slate-400 font-medium">
-                              {device.model}
-                            </td>
+                            <td className="py-4 text-slate-400 font-medium">{device.model}</td>
                             <td className="py-4 text-slate-500 font-medium">
                               {networkStatus.scan_timestamp
                                 ? new Date(networkStatus.scan_timestamp).toLocaleTimeString()
@@ -641,9 +492,8 @@ const filteredSyslogs = syslogAlerts.filter((alert) => {
             </div>
           </div>
 
-          {/*ROW DRIFT & SYSLOG */}
+          {/* ROW DRIFT & SYSLOG */}
           <div className="grid lg:grid-cols-2 gap-6 pb-12">
-            {/* DRIFT DETECTION CARD */}
             <div
               className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]"
               style={styles.card}
@@ -651,15 +501,12 @@ const filteredSyslogs = syslogAlerts.filter((alert) => {
               <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-2 text-amber-500">
                   <Network size={20} />
-                  <h4 className="text-base font-bold text-slate-200">
-                    Configuration Drift
-                  </h4>
+                  <h4 className="text-base font-bold text-slate-200">Configuration Drift</h4>
                 </div>
                 <span className="text-[10px] bg-amber-500/10 text-amber-500 px-3 py-1 rounded-lg border border-amber-500/20 font-bold">
                   {driftReports.length} Alert{driftReports.length !== 1 ? 's' : ''}
                 </span>
               </div>
-
               {driftReports.length > 0 ? (
                 <>
                   <div className="mb-4 text-xs text-slate-400">
@@ -667,13 +514,11 @@ const filteredSyslogs = syslogAlerts.filter((alert) => {
                     {' • '}
                     Updated {driftReports[0] ? new Date(driftReports[0].mtime * 1000).toLocaleTimeString() : '—'}
                   </div>
-                  
                   <div className="mb-4 max-h-64 overflow-hidden">
                     {driftReports[0]?.diff_content && (
                       <DiffViewer diffContent={driftReports[0].diff_content} compact={true} maxLines={12} />
                     )}
                   </div>
-
                   <a href="/drift-reports" className="inline-block text-xs text-amber-300 hover:text-amber-200 underline font-medium">
                     View all drift reports →
                   </a>
@@ -685,23 +530,19 @@ const filteredSyslogs = syslogAlerts.filter((alert) => {
               )}
             </div>
 
-            {/* 2. SYSLOG INTELLIGENCE CARD */}
             <div
               className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]"
               style={styles.card}
             >
               <div className="flex items-center gap-2 mb-6 text-orange-500">
                 <AlertTriangle size={20} />
-                <h4 className="text-base font-bold text-slate-200">
-                  Syslog Intelligence
-                </h4>
+                <h4 className="text-base font-bold text-slate-200">Syslog Intelligence</h4>
                 <span className="ml-auto text-[10px] text-slate-500 font-medium">
-                {filteredSyslogs.length > 0
-                  ? `${filteredSyslogs.length} alert${filteredSyslogs.length !== 1 ? 's' : ''}`
-                  : 'Listening...'}
-              </span>
+                  {filteredSyslogs.length > 0
+                    ? `${filteredSyslogs.length} alert${filteredSyslogs.length !== 1 ? 's' : ''}`
+                    : 'Listening...'}
+                </span>
               </div>
-
               <div className="space-y-3 max-h-100 overflow-y-auto pr-1">
                 {filteredSyslogs.length === 0 ? (
                   <div className="text-slate-500 text-sm text-center py-8">
@@ -725,12 +566,8 @@ const filteredSyslogs = syslogAlerts.filter((alert) => {
                             <span className="text-[10px] text-slate-500 font-medium">{alert.device}</span>
                             <span className="text-[10px] text-slate-600 ml-auto">{ago}m ago</span>
                           </div>
-                          <p className="text-[12px] text-slate-300 font-medium mb-0.5 truncate">
-                            {alert.mnemonic}
-                          </p>
-                          <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-2">
-                            {alert.message}
-                          </p>
+                          <p className="text-[12px] text-slate-300 font-medium mb-0.5 truncate">{alert.mnemonic}</p>
+                          <p className="text-[11px] text-slate-400 leading-relaxed line-clamp-2">{alert.message}</p>
                         </div>
                       </div>
                     );
@@ -742,11 +579,11 @@ const filteredSyslogs = syslogAlerts.filter((alert) => {
         </div>
       </main>
     </div>
-      {/* Baseline Refresh Confirmation Modal */}
-          {showBaselineConfirm && (
+
+    {/* Baseline Refresh Confirmation Modal */}
+    {showBaselineConfirm && (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
         <div className="w-full max-w-lg rounded-2xl bg-[#1D293DED] border border-slate-700/50 shadow-2xl">
-          {/* Header */}
           <div className="border-b p-6 bg-amber-600/20 border-amber-600/50 text-amber-300 rounded-t-2xl">
             <div className="flex items-center gap-3">
               <AlertTriangle size={28} className="text-amber-400" />
@@ -756,13 +593,10 @@ const filteredSyslogs = syslogAlerts.filter((alert) => {
               </div>
             </div>
           </div>
-
-          {/* Content */}
           <div className="p-6 space-y-5">
             <p className="text-sm text-slate-300">
               This will overwrite all golden state baselines with the current device configurations. Any previously saved baselines will be lost permanently.
             </p>
-
             <div className="rounded-lg border border-amber-600/50 bg-amber-600/10 p-4">
               <p className="text-sm font-semibold text-slate-200 mb-2">Impact of this action:</p>
               <ul className="space-y-2 text-sm text-slate-300 list-disc list-inside">
@@ -771,7 +605,6 @@ const filteredSyslogs = syslogAlerts.filter((alert) => {
                 <li>Drift detection will reset — all devices will show as matching baseline</li>
               </ul>
             </div>
-
             <div className="rounded-lg bg-amber-900/20 border border-amber-600/30 p-4">
               <label className="flex items-start gap-3 cursor-pointer">
                 <input
@@ -786,8 +619,6 @@ const filteredSyslogs = syslogAlerts.filter((alert) => {
               </label>
             </div>
           </div>
-
-          {/* Actions */}
           <div className="border-t border-slate-700/50 bg-slate-800/20 p-6 flex gap-3">
             <button
               onClick={() => { setShowBaselineConfirm(false); setBaselineConfirmChecked(false); }}
