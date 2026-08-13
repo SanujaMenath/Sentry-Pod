@@ -1,5 +1,0 @@
-Mar  1 00:10:04 10.2.99.13 %LINK-5-CHANGED: Interface FastEthernet1/3, changed state to administratively down
-Mar  1 00:11:51 10.2.99.13 %LINK-3-UPDOWN: Interface FastEthernet1/3, changed state to up
-Mar  1 03:08:51 10.2.99.13 %SYS-5-CONFIG_I: Configured from console by admin on vty0 (192.168.122.1)
-May  2 07:56:07 10.2.99.13 %SYS-5-CONFIG_I: Configured from console by admin on vty0 (192.168.122.1)
-May  2 11:18:45 10.2.99.13 %PCMCIAFS-5-DIBERR: PCMCIA disk 0 is formatted from a different router or PC. A format in this router is required before an image can be booted from this device

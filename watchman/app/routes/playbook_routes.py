@@ -25,7 +25,7 @@ def get_database_session(request: Request):
 async def execute_playbook(request: PlaybookRequest):
     """Execute an Ansible playbook by name"""
     try:
-        returncode, output = execution_service.run_playbook(request.playbook_name)
+        returncode, output = execution_service.run_playbook(request.playbook_name, request.extra_vars)
         
         # Record audit log entry for this playbook execution
         try:
@@ -103,6 +103,21 @@ async def list_playbooks():
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(e)
         )
+
+@router.get("/content/{filename}")
+async def get_playbook_content(filename: str):
+    """Return the raw YAML content of a playbook file for the detail view."""
+    try:
+        content = execution_service.read_playbook_content(filename)
+        return {"status": "success", "filename": filename, "content": content}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to read playbook content: {str(e)}"
+        )
+
 
 @router.get("/catalog")
 async def get_playbook_catalog():

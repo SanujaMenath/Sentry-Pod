@@ -9,10 +9,10 @@
  */
 class DiffLine {
   constructor(type, content, lineNum = null, origLineNum = null) {
-    this.type = type; // 'context', 'addition', 'removal', 'header'
+    this.type = type;
     this.content = content;
-    this.lineNum = lineNum; // Line number in new file (for additions/context)
-    this.origLineNum = origLineNum; // Line number in old file (for removals/context)
+    this.lineNum = lineNum; 
+    this.origLineNum = origLineNum; 
   }
 }
 
@@ -22,7 +22,7 @@ class DiffLine {
 class DiffHunk {
   constructor(header, startLine, lines = []) {
     this.header = header; // e.g., "@@ -1,9 +1,8 @@"
-    this.startLine = startLine; // Starting line in original file
+    this.startLine = startLine; 
     this.lines = lines;
   }
 

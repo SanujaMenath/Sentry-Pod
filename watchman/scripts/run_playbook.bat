@@ -16,7 +16,7 @@ set CONTAINER_NAME=sentry-ansible
 
 REM Get arguments
 set PLAYBOOK=%1
-if "!PLAYBOOK!"=="" set PLAYBOOK=get_facts.yml
+if "!PLAYBOOK!"=="" set PLAYBOOK=collect_facts.yml
 
 set INVENTORY=%2
 if "!INVENTORY!"=="" set INVENTORY=hosts.ini

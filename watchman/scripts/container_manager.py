@@ -99,7 +99,7 @@ class SentryPodManager:
             content,
         )
         
-        # FIX: Generate the temp file inside the repository root instead of OS Temp folder
+        # Generate the temp file inside the repository root instead of OS Temp folder
         tmp = Path(
             tempfile.mktemp(suffix=".yaml", prefix="sentry-compose-", dir=str(self.repo_root))
         )
@@ -389,7 +389,7 @@ def main():
 
     # run
     rp = sub.add_parser("run", help="Run a playbook inside the sentry-ansible container")
-    rp.add_argument("playbook", help="Playbook filename (e.g. get_facts.yml)")
+    rp.add_argument("playbook", help="Playbook filename (e.g. collect_facts.yml)")
     rp.add_argument(
         "-i", "--inventory", default="hosts.ini",
         help="Inventory file (default: hosts.ini)",

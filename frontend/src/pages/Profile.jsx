@@ -353,7 +353,7 @@ export default function Profile() {
                         value={currentPassword}
                         onChange={(e) => setCurrentPassword(e.target.value)}
                         placeholder="••••••••" 
-                        className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] pl-[1.2rem] pr-[3rem] py-[0.9rem] text-[1rem] text-slate-200 outline-none focus:ring-2 focus:ring-rose-500/40" 
+                        className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] pl-[1.2rem] pr-12 py-[0.9rem] text-[1rem] text-slate-200 outline-none focus:ring-2 focus:ring-rose-500/40" 
                       />
                       <button
                         type="button"
@@ -376,7 +376,7 @@ export default function Profile() {
                           value={newPassword}
                           onChange={(e) => setNewPassword(e.target.value)}
                           placeholder="New Password" 
-                          className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] pl-[1.2rem] pr-[3rem] py-[0.9rem] text-[1rem] text-slate-200 outline-none focus:ring-2 focus:ring-rose-500/40" 
+                          className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] pl-[1.2rem] pr-12 py-[0.9rem] text-[1rem] text-slate-200 outline-none focus:ring-2 focus:ring-rose-500/40" 
                         />
                         <button
                           type="button"
@@ -398,7 +398,7 @@ export default function Profile() {
                           value={confirmNewPassword}
                           onChange={(e) => setConfirmNewPassword(e.target.value)}
                           placeholder="Confirm Password" 
-                          className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] pl-[1.2rem] pr-[3rem] py-[0.9rem] text-[1rem] text-slate-200 outline-none focus:ring-2 focus:ring-rose-500/40" 
+                          className="w-full bg-[#0D121F]/60 border border-slate-800 rounded-[0.8rem] pl-[1.2rem] pr-12 py-[0.9rem] text-[1rem] text-slate-200 outline-none focus:ring-2 focus:ring-rose-500/40" 
                         />
                         <button
                           type="button"

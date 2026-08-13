@@ -45,17 +45,17 @@ python watchman/scripts/container_manager.py check
 
 **Quick example:**
 ```bash
-python watchman/scripts/container_manager.py run get_facts.yml
+python watchman/scripts/container_manager.py run collect_facts.yml
 ```
 
 **Or use the shell script (Linux/macOS):**
 ```bash
-./watchman/scripts/run_playbook.sh get_facts.yml
+./watchman/scripts/run_playbook.sh collect_facts.yml
 ```
 
 **Or batch file (Windows):**
 ```cmd
-watchman\scripts\run_playbook.bat get_facts.yml
+watchman\scripts\run_playbook.bat collect_facts.yml
 ```
 
 ## Architecture
@@ -84,7 +84,7 @@ Watchman (Backend)
 │   ├── core/                # Config, security, dependencies
 │   └── database.py          # MongoDB (motor) connection
 ├── playbooks/               # Ansible playbooks
-│   ├── get_facts.yml
+│   ├── collect_facts.yml
 │   ├── catalog.json
 │   └── hosts.ini
 ├── scripts/
@@ -132,7 +132,7 @@ python container_manager.py build
 python container_manager.py check
 
 # Run a playbook
-python container_manager.py run get_facts.yml
+python container_manager.py run collect_facts.yml
 
 # Open interactive shell
 python container_manager.py shell
@@ -178,7 +178,7 @@ podman run --rm -it \
   --network=host \                    # ← Direct network access
   -v ./watchman/playbooks:/ansible:Z \
   sentry-ansible \
-  ansible-playbook get_facts.yml -i hosts.ini
+  ansible-playbook collect_facts.yml -i hosts.ini
 ```
 
 ### On Windows:
@@ -186,7 +186,7 @@ podman run --rm -it \
 podman run --rm -it \
   -v C:\path\to\playbooks:/ansible:Z \  # ← Windows paths handled automatically
   sentry-ansible \
-  ansible-playbook get_facts.yml -i hosts.ini
+  ansible-playbook collect_facts.yml -i hosts.ini
 ```
 
 ## Dockerfile Configuration
@@ -276,7 +276,7 @@ POST /playbooks/execute
 Body:
 ```json
 {
-  "name": "get_facts.yml"
+  "name": "collect_facts.yml"
 }
 ```
 

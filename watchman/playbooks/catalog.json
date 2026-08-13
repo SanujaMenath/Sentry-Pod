@@ -1,114 +1,395 @@
 [
   {
-    "filename": "sample.yml",
-    "name": "sample",
-    "description": "Description",
+    "filename": "collect_facts.yml",
+    "name": "Collect Device Facts",
+    "description": "Gathers Cisco IOS facts from all hosts and writes a JSON file per device for inventory and topology refreshes.",
     "tags": [
-      "vlan"
-    ],
-    "target_devices": [
-      "allHosts"
-    ],
-    "example_intents": [
-      "iniitialize"
-    ],
-    "destructive": false,
-    "severity": "low"
-  },
-  {
-    "filename": "xx.yml",
-    "name": "xx.yml",
-    "description": "xaa",
-    "tags": [],
-    "target_devices": [
-      "allHosts"
-    ],
-    "example_intents": [],
-    "destructive": false,
-    "severity": "medium"
-  },
-  {
-    "filename": "get_facts_modified.yml",
-    "name": "Gather Info from Cisco IOS",
-    "description": "Collects IOS facts from edge routers and displays the OS version.",
-    "tags": [],
-    "target_devices": [
-      "edge_routers"
-    ],
-    "example_intents": [
-      "gather device info",
-      "collect facts",
-      "get device information",
-      "backup device facts",
-      "discover devices",
-      "Gather information from edge routers"
-    ],
-    "destructive": false,
-    "severity": "low"
-  },
-  {
-    "filename": "get_facts_modified.yml",
-    "name": "Gather Info from Cisco IOS",
-    "description": "Collects and prints OS version facts from Cisco IOS devices",
-    "tags": [],
-    "target_devices": [
-      "Edge_routers"
-    ],
-    "example_intents": [
-      "gather device info",
-      "collect facts",
-      "get device information",
-      "backup device facts",
-      "discover devices",
-      "get information on the edge routers"
-    ],
-    "destructive": false,
-    "severity": "low"
-  },
-  {
-    "filename": "get_facts_modified_1.yml",
-    "name": "Edge Device Modification",
-    "description": "Modify the playbook to target edge devices",
-    "tags": [
-      "device-modification",
-      "cisco"
-    ],
-    "target_devices": [
-      "Edge_routers"
-    ],
-    "example_intents": [
-      "gather device info",
-      "collect facts",
-      "get device information",
-      "backup device facts",
-      "discover devices",
-      "gather-info",
-      "cisco"
-    ],
-    "destructive": false,
-    "severity": "low"
-  },
-  {
-    "filename": "get_facts_modified_2.yml",
-    "name": "Edge Device Information",
-    "description": "Gather information from edge devices",
-    "tags": [
-      "network",
+      "facts",
+      "inventory",
+      "topology",
       "cisco",
       "ios"
     ],
     "target_devices": [
-      "Edge_routers"
+      "allHosts"
     ],
     "example_intents": [
-      "gather device info",
-      "collect facts",
-      "get device information",
-      "backup device facts",
-      "discover devices",
-      "Gather information from Cisco IOS devices"
+      "collect device facts",
+      "gather facts",
+      "refresh topology data",
+      "update device inventory"
     ],
     "destructive": false,
     "severity": "low"
+  },
+  {
+    "filename": "show_os_version.yml",
+    "name": "Show OS Version",
+    "description": "Collects device facts and prints the OS version of each host.",
+    "tags": [
+      "facts",
+      "report",
+      "cisco",
+      "ios"
+    ],
+    "target_devices": [
+      "allHosts"
+    ],
+    "example_intents": [
+      "show os version",
+      "what ios version",
+      "check device software"
+    ],
+    "destructive": false,
+    "severity": "low"
+  },
+  {
+    "filename": "collect_cdp_neighbors.yml",
+    "name": "Collect CDP Neighbors",
+    "description": "Runs 'show cdp neighbors' on all hosts and saves the output to build the network topology.",
+    "tags": [
+      "cdp",
+      "topology",
+      "discovery"
+    ],
+    "target_devices": [
+      "allHosts"
+    ],
+    "example_intents": [
+      "discover cdp neighbors",
+      "collect cdp output",
+      "rebuild topology"
+    ],
+    "destructive": false,
+    "severity": "low"
+  },
+  {
+    "filename": "collect_golden_config.yml",
+    "name": "Collect Golden Config Baseline",
+    "description": "Saves the running-config of every host as the golden baseline for drift detection.",
+    "tags": [
+      "config",
+      "baseline",
+      "drift"
+    ],
+    "target_devices": [
+      "allHosts"
+    ],
+    "example_intents": [
+      "save golden config",
+      "create baseline",
+      "backup running config"
+    ],
+    "destructive": false,
+    "severity": "low"
+  },
+  {
+    "filename": "collect_running_config.yml",
+    "name": "Collect Running Config Snapshot",
+    "description": "Captures the current running-config of every host as a temporary snapshot for drift comparison.",
+    "tags": [
+      "config",
+      "drift",
+      "snapshot"
+    ],
+    "target_devices": [
+      "allHosts"
+    ],
+    "example_intents": [
+      "snapshot current config",
+      "collect running config"
+    ],
+    "destructive": false,
+    "severity": "low"
+  },
+  {
+    "filename": "check_config_drift.yml",
+    "name": "Check Configuration Drift",
+    "description": "Compares each host's golden baseline against the current snapshot and generates a drift report.",
+    "tags": [
+      "drift",
+      "compliance",
+      "config"
+    ],
+    "target_devices": [
+      "allHosts"
+    ],
+    "example_intents": [
+      "check config drift",
+      "find configuration drift",
+      "compliance check"
+    ],
+    "destructive": false,
+    "severity": "low"
+  },
+  {
+    "filename": "backup_and_commit_config.yml",
+    "name": "Backup and Commit Config",
+    "description": "Backs up the running-config to dated folders and writes it to NVRAM on every host.",
+    "tags": [
+      "backup",
+      "config",
+      "write"
+    ],
+    "target_devices": [
+      "allHosts"
+    ],
+    "example_intents": [
+      "backup running config",
+      "save config to nvram",
+      "write memory"
+    ],
+    "destructive": false,
+    "severity": "medium"
+  },
+  {
+    "filename": "enable_cdp.yml",
+    "name": "Enable CDP",
+    "description": "Enables CDP globally on all hosts.",
+    "tags": [
+      "cdp",
+      "config"
+    ],
+    "target_devices": [
+      "allHosts"
+    ],
+    "example_intents": [
+      "enable cdp",
+      "turn on cdp"
+    ],
+    "destructive": false,
+    "severity": "low"
+  },
+  {
+    "filename": "set_logging_timestamps.yml",
+    "name": "Set Logging Timestamps",
+    "description": "Sets local time logging timestamps so syslog messages carry local time.",
+    "tags": [
+      "logging",
+      "syslog",
+      "time"
+    ],
+    "target_devices": [
+      "allHosts"
+    ],
+    "example_intents": [
+      "fix logging time",
+      "set logging timestamps"
+    ],
+    "destructive": false,
+    "severity": "low"
+  },
+  {
+    "filename": "configure_ntp.yml",
+    "name": "Configure NTP",
+    "description": "Configures NTP clients, timezone, and associations on all hosts.",
+    "tags": [
+      "ntp",
+      "time",
+      "config"
+    ],
+    "target_devices": [
+      "allHosts"
+    ],
+    "example_intents": [
+      "configure ntp",
+      "setup time sync",
+      "set ntp server"
+    ],
+    "destructive": true,
+    "severity": "medium"
+  },
+  {
+    "filename": "configure_snmp.yml",
+    "name": "Configure SNMP",
+    "description": "Configures an SNMPv2c read-only community and enables traps on all hosts.",
+    "tags": [
+      "snmp",
+      "monitoring",
+      "config"
+    ],
+    "target_devices": [
+      "allHosts"
+    ],
+    "example_intents": [
+      "configure snmp",
+      "enable snmp traps",
+      "setup snmp monitoring"
+    ],
+    "destructive": true,
+    "severity": "medium"
+  },
+  {
+    "filename": "configure_syslog.yml",
+    "name": "Configure Syslog",
+    "description": "Configures syslog forwarding, trap level, facility, and timestamps. Host/port are parameterized.",
+    "tags": [
+      "syslog",
+      "logging",
+      "config"
+    ],
+    "target_devices": [
+      "allHosts"
+    ],
+    "example_intents": [
+      "configure syslog",
+      "send logs to syslog server",
+      "enable logging"
+    ],
+    "destructive": true,
+    "severity": "medium"
+  },
+  {
+    "filename": "configure_default_gateway.yml",
+    "name": "Configure Default Gateway",
+    "description": "Sets the IP default gateway on access switches.",
+    "tags": [
+      "gateway",
+      "routing",
+      "config"
+    ],
+    "target_devices": [
+      "Access_Switches"
+    ],
+    "example_intents": [
+      "set default gateway",
+      "configure default gateway"
+    ],
+    "destructive": false,
+    "severity": "medium"
+  },
+  {
+    "filename": "configure_end_device_port.yml",
+    "name": "Configure End Device Port",
+    "description": "Configures an access-switch port as a shut/no-shut access port on a given VLAN for an end device.",
+    "tags": [
+      "access",
+      "vlan",
+      "port"
+    ],
+    "target_devices": [
+      "Access_Switches"
+    ],
+    "example_intents": [
+      "configure end device port",
+      "set access port vlan"
+    ],
+    "destructive": false,
+    "severity": "medium"
+  },
+  {
+    "filename": "configure_vlans.yml",
+    "name": "Configure VLANs",
+    "description": "Creates VLANs and trunk links on access switches.",
+    "tags": [
+      "vlan",
+      "config"
+    ],
+    "target_devices": [
+      "Access_Switches"
+    ],
+    "example_intents": [
+      "create vlans",
+      "configure vlans",
+      "add vlan"
+    ],
+    "destructive": false,
+    "severity": "medium"
+  },
+  {
+    "filename": "configure_ntp_edge.yml",
+    "name": "Configure NTP on Edge Routers",
+    "description": "Configures NTP and timezone specifically on edge routers.",
+    "tags": [
+      "ntp",
+      "time",
+      "config"
+    ],
+    "target_devices": [
+      "Edge_routers"
+    ],
+    "example_intents": [
+      "configure ntp on edge routers",
+      "sync time on edge"
+    ],
+    "destructive": false,
+    "severity": "medium"
+  },
+  {
+    "filename": "configure_ospf.yml",
+    "name": "Configure OSPF Routing",
+    "description": "Advertises VLAN networks into OSPF area 0 on distribution switches.",
+    "tags": [
+      "ospf",
+      "routing",
+      "config"
+    ],
+    "target_devices": [
+      "Distribution_Switches"
+    ],
+    "example_intents": [
+      "configure ospf",
+      "enable ospf routing",
+      "advertise networks"
+    ],
+    "destructive": false,
+    "severity": "high"
+  },
+  {
+    "filename": "configure_vlan_routing.yml",
+    "name": "Configure Inter-VLAN Routing",
+    "description": "Creates VLANs and trunk links on distribution switches for inter-VLAN routing.",
+    "tags": [
+      "vlan",
+      "routing",
+      "trunk"
+    ],
+    "target_devices": [
+      "Distribution_Switches"
+    ],
+    "example_intents": [
+      "configure inter vlan routing",
+      "setup vlan trunking"
+    ],
+    "destructive": false,
+    "severity": "high"
+  },
+  {
+    "filename": "configure_hsrp_intervlan.yml",
+    "name": "Configure HSRP for Inter-VLAN Routing",
+    "description": "Sets up HSRP gateways for inter-VLAN routing on distribution switches.",
+    "tags": [
+      "hsrp",
+      "routing",
+      "redundancy"
+    ],
+    "target_devices": [
+      "Distribution_Switches"
+    ],
+    "example_intents": [
+      "configure hsrp",
+      "setup hsrp gateways"
+    ],
+    "destructive": false,
+    "severity": "high"
+  },
+  {
+    "filename": "configure_hsrp_active.yml",
+    "name": "Configure HSRP Active Routers",
+    "description": "Sets HSRP priority and preempt on the active routers of each VLAN.",
+    "tags": [
+      "hsrp",
+      "redundancy",
+      "config"
+    ],
+    "target_devices": [
+      "HSRP_Routers"
+    ],
+    "example_intents": [
+      "configure hsrp active",
+      "set hsrp priority"
+    ],
+    "destructive": false,
+    "severity": "high"
   }
 ]

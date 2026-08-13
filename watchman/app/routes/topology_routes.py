@@ -71,7 +71,7 @@ async def _refresh_generator():
     try:
         yield _sse("status", "Starting CDP collection playbook...")
 
-        cmd = get_podman_command("getCDPNeighbors.yml")
+        cmd = get_podman_command("collect_cdp_neighbors.yml")
         proc = await asyncio.create_subprocess_exec(
             *cmd,
             stdout=asyncio.subprocess.PIPE,
