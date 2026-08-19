@@ -139,7 +139,7 @@
       "save config to nvram",
       "write memory"
     ],
-    "destructive": false,
+    "destructive": true,
     "severity": "medium"
   },
   {
@@ -176,7 +176,7 @@
       "fix logging time",
       "set logging timestamps"
     ],
-    "destructive": false,
+    "destructive": true,
     "severity": "low"
   },
   {
@@ -255,7 +255,7 @@
       "set default gateway",
       "configure default gateway"
     ],
-    "destructive": false,
+    "destructive": true,
     "severity": "medium"
   },
   {
@@ -274,7 +274,7 @@
       "configure end device port",
       "set access port vlan"
     ],
-    "destructive": false,
+    "destructive": true,
     "severity": "medium"
   },
   {
@@ -293,7 +293,7 @@
       "configure vlans",
       "add vlan"
     ],
-    "destructive": false,
+    "destructive": true,
     "severity": "medium"
   },
   {
@@ -312,7 +312,7 @@
       "configure ntp on edge routers",
       "sync time on edge"
     ],
-    "destructive": false,
+    "destructive": true,
     "severity": "medium"
   },
   {
@@ -332,7 +332,7 @@
       "enable ospf routing",
       "advertise networks"
     ],
-    "destructive": false,
+    "destructive": true,
     "severity": "high"
   },
   {
@@ -351,7 +351,7 @@
       "configure inter vlan routing",
       "setup vlan trunking"
     ],
-    "destructive": false,
+    "destructive": true,
     "severity": "high"
   },
   {
@@ -370,7 +370,7 @@
       "configure hsrp",
       "setup hsrp gateways"
     ],
-    "destructive": false,
+    "destructive": true,
     "severity": "high"
   },
   {
@@ -389,7 +389,7 @@
       "configure hsrp active",
       "set hsrp priority"
     ],
-    "destructive": false,
+    "destructive": true,
     "severity": "high"
   }
 ]

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+git #!/usr/bin/env python3
 """
 Nmap scanner script that runs nmap against a hosts file and updates active_devices.json
 """
