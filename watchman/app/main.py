@@ -15,6 +15,9 @@ from app.routes import console_routes
 from app.routes import topology_routes
 from app.routes import setup_routes
 from app.routes import notification_routes
+from app.routes import sync_routes
+from app.routes import system_routes
+from app.routes import backup_routes
 
 logger = logging.getLogger(__name__)
 
@@ -28,6 +31,15 @@ async def lifespan(app: FastAPI):
         logger.info(f"Catalog reconciled with MongoDB on startup: {count} playbooks")
     except Exception as e:
         logger.warning(f"Could not reconcile catalog on startup: {str(e)}")
+
+    try:
+        import asyncio
+        from app.services.sync_service import run_sync
+
+        app.state.sync_task = asyncio.create_task(run_sync())
+        logger.info("Scheduled background Atlas sync scan")
+    except Exception as e:
+        logger.warning(f"Could not schedule Atlas sync scan: {str(e)}")
     yield
 
 
@@ -60,6 +72,10 @@ app.include_router(syslog_routes.router)
 app.include_router(topology_routes.router)
 app.include_router(setup_routes.router)
 app.include_router(notification_routes.router)
+
+app.include_router(sync_routes.router)
+app.include_router(system_routes.router)
+app.include_router(backup_routes.router)
 
 app.include_router(console_routes.router)
 

@@ -29,6 +29,9 @@ cd frontend && npm run lint
 # Build frontend
 cd frontend && npm run build
 
+# Backend tests (sync engine)
+cd watchman && python -m pytest tests/ -q
+
 # Ansible container management (from repo root)
 python watchman/scripts/container_manager.py build   # build sentry-ansible image
 python watchman/scripts/container_manager.py run <playbook>   # run playbook
@@ -44,10 +47,10 @@ python watchman/scripts/smoke_test.py --frontend-only # frontend only
 
 ## Architecture notes
 
-- **No test framework** detected in any service.
+- **Backend tests**: `pytest` in `watchman/tests/` (sync engine). No test framework in frontend.
 - `frontend/` is the single canonical UI, serving both dev (Vite) and production (nginx via `Dockerfile.prod`).
 - `NetworkDevices.jsx` exists at repo root (legacy).
-- `.env` files contain hardcoded MongoDB credentials (`Admin123`). Not for prod use.
+- `.env` files contain hardcoded MongoDB credentials (`Admin123` for vault, Atlas creds for `ATLAS_URI`). Not for prod use.
 - `HUGGINGFACE_API_KEY` env var required for LLM chat. Can also be set via the UI's API key management endpoints.
 - LLM uses HuggingFace Router API (`router.huggingface.co/v1/chat/completions`). Supported models in `llm_routes.py:SUPPORTED_MODELS`.
 
@@ -57,8 +60,11 @@ python watchman/scripts/smoke_test.py --frontend-only # frontend only
 DB_USER=<mongo_user>
 DB_PASS=<mongo_pass>
 DB_HOST=<mongo_host>
+MONGO_URI=<runtime_db_uri>            # local vault (compose overrides to `vault` hostname)
+ATLAS_URI=<atlas_srv_uri>             # shared source of truth (sync only)
 SECRET_KEY=<jwt_secret>
 HUGGINGFACE_API_KEY=<hf_token>
+AUDIT_SYNC_WINDOW_DAYS=30             # optional; caps audit_logs sync lookback
 ```
 
 ## API conventions
@@ -99,19 +105,33 @@ All frontend API calls now use `import.meta.env.VITE_API_BASE_URL` (with fallbac
 - **Removed malformed playbook**: `xx.yml` and its catalog entry deleted.
 - **Updated `podman-compose.yaml`**: renamed `frontend` service back to `command-center`, sourcing build from `frontend/Dockerfile.prod`.
 
-## Auth: MongoDB connection
+## Auth: MongoDB connection & Atlas sync
 
-**Current setup**: Watchman container connects to **Atlas** (`sentrypod.n5boezy.mongodb.net`). Credentials come from `watchman/.env` which is volume-mounted at `/app/.env` and loaded by `database.py:load_dotenv()`.
+**Runtime DB**: the local `vault` container. `podman-compose.yaml` sets
+`MONGO_URI=mongodb://sentry_pod:Admin123@vault:27017/sentry_pod_db?authSource=admin`
+under `watchman.environment` (overrides `.env`). For host-side dev, `watchman/.env`
+sets `MONGO_URI` to `127.0.0.1:27017` — ensure vault is running.
 
-**To revert to local vault auth** (e.g. for offline dev):
-1. In `podman-compose.yaml`, add `MONGO_URI` back under `watchman.environment`:
-   ```yaml
-   environment:
-     MONGO_URI: mongodb://sentry_pod:Admin123@vault:27017/sentry_pod_db?authSource=admin
-   ```
-2. Add `depends_on: vault` back to the `watchman` service.
-3. Ensure vault is running (`podman-compose up vault`).
-4. Run `python watchman/scripts/sync_users.py` to pull users from Atlas to local vault.
+**Atlas = shared source of truth (sync only)**: `ATLAS_URI` in `watchman/.env`.
+Git-style per-document sync, launch + manual only (Settings → Atlas Sync). Hard
+rule: Atlas unreachable/unset ⇒ everything runs local, sync skipped with a warning.
+
+- Synced collections: `users`, `api_keys`, `audit_logs`, `devices`,
+  `notification_preferences`, `playbooks`. The playbook YAML files live in git;
+  the DB metadata (name/description/tags/scope/status) syncs and is deduped by
+  `filename` (conflict-by-key). `file_path`, `last_executed`, and derived
+  timestamps are excluded from hashing so they never churn.
+- Merge states: incoming / local_only / conflict (keep-incoming default) /
+  deletion (Atlas authoritative, manifest-based) / delete-vs-modify.
+- `users.recent_activities` is ignored for hashing (avoids churn conflicts);
+  password/role changes propagate keep-incoming.
+- Endpoints (Super Admin): `GET/POST /api/sync/status|run`, `POST /api/sync/resolve`,
+  `GET/POST /api/backups`, `POST /api/backups/restore/{name}`, `GET /api/system/health`
+  (public; drives the "Vault Offline" pill in the Navbar).
+- Non-blocking background scan on startup (`main.py` lifespan); never blocks boot.
+- Known v1 limits: no keep-both, no continuous sync, concurrent local pushes are
+  last-write-wins, `api_keys` resolves binary keep-incoming.
+- Old one-time migration `scripts/sync_users.py` is retired (superseded by the engine).
 
 ## Repo style
 

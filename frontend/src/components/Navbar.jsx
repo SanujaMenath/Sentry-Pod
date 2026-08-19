@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AlertTriangle, Bell, CheckCircle2, Info, Search, X, XCircle } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { clearNotifications, getNotifications, markAllNotificationsRead, markNotificationRead } from "../services/notificationService";
+import { getSystemHealth } from "../services/syncService";
 
 const searchPlaceholders = {
   "/users": "Search users...",
@@ -40,6 +41,7 @@ export default function Navbar({ search, setSearch }) {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [vaultOnline, setVaultOnline] = useState(true);
   const notificationMenuRef = useRef(null);
   const initializedRef = useRef(false);
   const knownUnreadIdsRef = useRef(new Set());
@@ -69,6 +71,17 @@ export default function Navbar({ search, setSearch }) {
       window.clearInterval(timer);
     };
   }, [loadNotifications]);
+
+  useEffect(() => {
+    const checkHealth = () => {
+      getSystemHealth()
+        .then(({ data }) => setVaultOnline(!!data.vault))
+        .catch(() => setVaultOnline(false));
+    };
+    checkHealth();
+    const timer = window.setInterval(checkHealth, 30000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const closeOnOutsideClick = (event) => {
@@ -153,6 +166,13 @@ export default function Navbar({ search, setSearch }) {
       </div>
 
       <div className="flex items-center gap-6 ml-8">
+        {!vaultOnline && (
+          <div className="flex items-center gap-2 px-4 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-full">
+            <div className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+            <span className="text-amber-400 text-[11px] font-bold">Vault Offline</span>
+          </div>
+        )}
+
         <div className="hidden xl:flex items-center gap-2 px-4 py-1.5 bg-[#00D492]/5 border border-[#00D492]/20 rounded-full">
           <div className="w-1.5 h-1.5 rounded-full bg-[#00D492] animate-pulse" />
           <span className="text-[#00D492] text-[11px] font-bold">AI Online</span>

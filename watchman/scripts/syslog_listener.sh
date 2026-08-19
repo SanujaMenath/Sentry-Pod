@@ -54,7 +54,12 @@ EOF
 )
             curl -s -X POST "$API_URL" \
                 -H "Content-Type: application/json" \
-                -d "$payload" > /dev/null 2>&1
+                -d "$payload" > /dev/null 2>&1 \
+                --connect-timeout 5 \
+                -m 10 \
+                --retry 3 \
+                --retry-delay 1 \
+                --retry-all-errors
         fi
     fi
 done

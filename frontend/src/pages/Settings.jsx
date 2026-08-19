@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
-import { Bell, Shield, Globe } from 'lucide-react';
+import { Bell, Shield, Globe, Database, Archive, RefreshCw, Loader2 } from 'lucide-react';
 import PageHeader from "../components/PageHeader";
 import Toggle from "../components/Toggle";
 import SettingRow from "../components/SettingRow";
 import TerminalConfigCard from "../components/TerminalConfigCard";
 import PlaybookStagingGate from "../components/PlaybookStagingGate";
+import SyncModal from "../components/SyncModal";
 import { getNotificationPreferences, updateNotificationPreferences } from "../services/notificationService";
 import { executePlaybookWithVars } from "../services/inventoryService";
+import { createBackup, getBackups, getSystemHealth, restoreBackup } from "../services/syncService";
 
 const NETWORK_PLAYBOOKS = {
   snmp: {
@@ -98,6 +100,12 @@ export default function SettingsPage() {
   const [applying, setApplying] = useState(null);
   const [applyResult, setApplyResult] = useState({});
   const [pendingApply, setPendingApply] = useState(null);
+  const [syncOpen, setSyncOpen] = useState(false);
+  const [backups, setBackups] = useState([]);
+  const [health, setHealth] = useState(null);
+  const [backupBusy, setBackupBusy] = useState(false);
+  const [restoring, setRestoring] = useState(null);
+  const [syncMessage, setSyncMessage] = useState("");
   const [notificationPreferences, setNotificationPreferences] = useState({
     enabled: true, sound_enabled: true, topology_refresh: true, syslog_alerts: true, playbook_updates: true, critical_only: false,
   });
@@ -107,6 +115,66 @@ export default function SettingsPage() {
       .then(({ data }) => setNotificationPreferences(data))
       .catch((error) => console.error("Failed to load notification preferences", error));
   }, []);
+
+  const loadBackups = () => {
+    getBackups()
+      .then(({ data }) => setBackups(data.backups || []))
+      .catch((error) => console.error("Failed to load backups", error));
+  };
+
+  useEffect(() => {
+    loadBackups();
+    getSystemHealth()
+      .then(({ data }) => setHealth(data))
+      .catch((error) => console.error("Failed to load system health", error));
+  }, []);
+
+  const handleCreateBackup = async () => {
+    setBackupBusy(true);
+    setSyncMessage("");
+    try {
+      const { data } = await createBackup();
+      setSyncMessage(`Backup ${data.path} created (${Object.keys(data.collections).length} collections).`);
+      loadBackups();
+    } catch (error) {
+      setSyncMessage("Backup failed: " + (error.response?.data?.detail || error.message));
+    } finally {
+      setBackupBusy(false);
+    }
+  };
+
+  const handleRestoreBackup = async (name) => {
+    if (!window.confirm(`Restore backup "${name}"? This overwrites current vault data.`)) return;
+    setRestoring(name);
+    setSyncMessage("");
+    try {
+      const { data } = await restoreBackup(name);
+      setSyncMessage(`Restored ${name}: ${Object.keys(data.restored).length} collections.`);
+      loadBackups();
+    } catch (error) {
+      setSyncMessage("Restore failed: " + (error.response?.data?.detail || error.message));
+    } finally {
+      setRestoring(null);
+    }
+  };
+
+  const handleAutoBackupToggle = async () => {
+    const next = !settings.autoBackup;
+    setSettings(prev => ({ ...prev, autoBackup: next }));
+    if (next) {
+      setBackupBusy(true);
+      setSyncMessage("");
+      try {
+        const { data } = await createBackup();
+        setSyncMessage(`Auto-backup enabled — backup ${data.path} created.`);
+        loadBackups();
+      } catch (error) {
+        setSyncMessage("Auto-backup enabled, but creation failed: " + (error.response?.data?.detail || error.message));
+      } finally {
+        setBackupBusy(false);
+      }
+    }
+  };
 
   const query = search ? search.trim().toLowerCase() : "";
 
@@ -119,8 +187,9 @@ export default function SettingsPage() {
   const showSecurity = matches(["Security", "Two-Factor Authentication", "2FA", "Session Timeout", "Audit Logging", "Console Password Prompt", "Console Password"]);
   const showNetwork = matches(["Network Settings", "SNMP", "Syslog", "NTP", "Server", "Community String"]);
   const showTerminal = matches(["Terminal Customization", "Terminal", "Theme", "Font", "Appearance"]);
+  const showSync = matches(["Sync", "Atlas", "Backup", "Restore", "Vault", "Source of Truth"]);
 
-  const hasResults = showNotifications || showSecurity || showNetwork || showTerminal;
+  const hasResults = showNotifications || showSecurity || showNetwork || showTerminal || showSync;
 
   const toggle = (key) => setSettings(prev => ({ ...prev, [key]: !prev[key] }));
   const toggleConsolePassword = () => {
@@ -306,6 +375,94 @@ export default function SettingsPage() {
           </div>
           )}
 
+          {/* Sync & Backup */}
+          {showSync && (
+            <div className="p-6 rounded-3xl border border-slate-700/30 shadow-[0_5px_15px_rgba(0,0,0,0.6)]" style={styles.card}>
+              <div className="flex items-center gap-2 mb-1">
+                <Database size={18} className="text-sky-400" strokeWidth={1.5} />
+                <h2 className="text-base font-bold text-slate-200">Atlas Sync & Backup</h2>
+              </div>
+              <p className="text-xs text-slate-500 mb-5">Sync shared collections with the Atlas source of truth, and manage local vault backups</p>
+
+              {syncMessage && (
+                <div className="mb-4 px-3 py-2 rounded-lg bg-slate-800/50 text-xs text-slate-300">{syncMessage}</div>
+              )}
+
+              <div className="space-y-4">
+                <div className="rounded-2xl border border-slate-700/40 bg-slate-900/40 p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="text-sm font-bold text-slate-200">Atlas Sync</p>
+                      <p className="text-[11px] text-slate-500">
+                        {health?.atlas
+                          ? "Atlas reachable"
+                          : health?.atlas === false
+                            ? "Atlas unreachable — running local only"
+                            : "Status unknown"}
+                        {health?.vault === false ? " · Vault offline" : ""}
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => setSyncOpen(true)}
+                      className="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition-colors shadow-lg shadow-sky-600/20"
+                    >
+                      Sync now
+                    </button>
+                  </div>
+                </div>
+
+                <div className="rounded-2xl border border-slate-700/40 bg-slate-900/40 p-4">
+                  <SettingRow
+                    label="Auto Backup"
+                    desc="Create a backup immediately when this is enabled"
+                    enabled={settings.autoBackup}
+                    onChange={handleAutoBackupToggle}
+                  />
+                </div>
+
+                <div className="rounded-2xl border border-slate-700/40 bg-slate-900/40 p-4">
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Archive size={15} className="text-purple-400" />
+                      <p className="text-sm font-bold text-slate-200">Backup & Restore</p>
+                    </div>
+                    <button
+                      onClick={handleCreateBackup}
+                      disabled={backupBusy}
+                      className="px-3.5 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 shadow-lg shadow-purple-600/20"
+                    >
+                      {backupBusy ? <Loader2 size={12} className="animate-spin" /> : <RefreshCw size={12} />}
+                      Create Backup
+                    </button>
+                  </div>
+                  {backups.length === 0 ? (
+                    <p className="text-xs text-slate-500">No backups yet.</p>
+                  ) : (
+                    <div className="space-y-2 max-h-40 overflow-y-auto">
+                      {backups.map((backup) => (
+                        <div key={backup.path} className="flex items-center justify-between rounded-lg border border-slate-700/40 bg-slate-900/60 px-3 py-2">
+                          <div>
+                            <p className="text-xs font-bold text-slate-300">{backup.path}</p>
+                            <p className="text-[10px] text-slate-500">
+                              {backup.created_at ? new Date(backup.created_at).toLocaleString() : "unknown"} · {Object.keys(backup.collections || {}).length} collections
+                            </p>
+                          </div>
+                          <button
+                            onClick={() => handleRestoreBackup(backup.path)}
+                            disabled={restoring === backup.path}
+                            className="px-2.5 py-1.5 rounded-lg border border-rose-500/40 text-rose-300 text-[11px] font-medium hover:bg-rose-500/20 disabled:opacity-50 transition-colors"
+                          >
+                            {restoring === backup.path ? "Restoring…" : "Restore"}
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Terminal Customization */}
           {showTerminal && (
             <div>
@@ -324,6 +481,8 @@ export default function SettingsPage() {
         onReject={handleStagingGateReject}
         isOpen={!!pendingApply}
       />
+
+      {syncOpen && <SyncModal onClose={() => setSyncOpen(false)} onSynced={loadBackups} />}
     </div>
   );
 }

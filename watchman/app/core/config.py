@@ -34,6 +34,11 @@ class Settings(BaseSettings):
         )
 
     # -----------------------------
+    # Atlas sync (shared source of truth)
+    # -----------------------------
+    ATLAS_URI: str | None = None
+
+    # -----------------------------
     # JWT
     # -----------------------------
     SECRET_KEY: str
