@@ -55,7 +55,8 @@ async def trigger_nmap_scan():
             capture_output=True, text=True, timeout=180
         ))
         if result.returncode != 0:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Nmap scan failed: {result.stderr}")
+            detail = f"Nmap scan failed: {(result.stderr + result.stdout).strip()}"
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
         active_devices_path = os.path.join(repo_root, "nmap_output", "active_devices.json")
         with open(active_devices_path, "r", encoding="utf-8") as fh:
             data = json.load(fh)
@@ -83,7 +84,8 @@ async def trigger_device_status_scan():
             capture_output=True, text=True, timeout=180,
         ))
         if result.returncode != 0:
-            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=f"Nmap scan failed: {result.stderr}")
+            detail = f"Nmap scan failed: {(result.stderr + result.stdout).strip()}"
+            raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=detail)
         return _build_device_status()
     except subprocess.TimeoutExpired:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Nmap scan timed out")
