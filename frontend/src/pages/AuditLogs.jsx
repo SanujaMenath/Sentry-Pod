@@ -1,5 +1,6 @@
- import { useState, useEffect } from 'react';
-import { Download, FileText, CheckCircle, AlertTriangle, XCircle, ChevronDown, Calendar, Eye } from 'lucide-react';
+import { useState, useEffect, useMemo } from 'react';
+import { useOutletContext } from 'react-router-dom';
+import { Download, FileText, CheckCircle, AlertTriangle, XCircle, ChevronDown, Eye } from 'lucide-react';
 import ExportLogsModal from '../components/ExportLogsModal';
 import AuditLogDetailModal from '../components/AuditLogDetailModal';
 import { getAllAuditLogs, getAuditLogById } from '../services/auditService';
@@ -27,6 +28,7 @@ const formatLogForDisplay = (log) => {
       minute: '2-digit', 
       second: '2-digit' 
     }) : 'N/A',
+    date: log.timestamp ? new Date(log.timestamp) : null,
     user: log.username || 'System',
     action: log.action_name || 'Unknown',
     target: log.playbook_name || 'N/A',
@@ -37,13 +39,52 @@ const formatLogForDisplay = (log) => {
   };
 };
 
+const severityOf = (status) => {
+  if (status === 'success') return 'success';
+  if (status === 'detected' || status === 'blocked') return 'warning';
+  if (status === 'failed' || status === 'error') return 'critical';
+  return 'pending';
+};
+
 export default function AuditLogs() {
+  const { search, setSearch } = useOutletContext() || { search: "", setSearch: () => {} };
   const [logs, setLogs] = useState([]);
   const [, setLoading] = useState(true);
   const [, setError] = useState(null);
   const [showExport, setShowExport] = useState(false);
   const [selectedLog, setSelectedLog] = useState(null);
   const [loadingLogId, setLoadingLogId] = useState(null);
+  const [actionFilter, setActionFilter] = useState("all");
+  const [severityFilter, setSeverityFilter] = useState("all");
+  const [dateFilter, setDateFilter] = useState("all");
+
+  const actionOptions = useMemo(() => {
+    const set = new Set(logs.map((log) => log.action).filter(Boolean));
+    return ["all", ...set];
+  }, [logs]);
+
+  const filteredLogs = useMemo(() => {
+    const query = search ? search.trim().toLowerCase() : "";
+    return logs.filter((log) => {
+      if (query) {
+        const haystack = [log.id, log.user, log.action, log.target, log.status, log.details, log.output]
+          .map((field) => (field ? field.toString().toLowerCase() : ""))
+          .join(" ");
+        if (!haystack.includes(query)) return false;
+      }
+      if (actionFilter !== "all" && log.action !== actionFilter) return false;
+      if (severityFilter !== "all" && severityOf(log.status) !== severityFilter) return false;
+      if (dateFilter !== "all") {
+        if (!log.date) return false;
+        const elapsed = Date.now() - log.date.getTime();
+        const DAY = 24 * 3600 * 1000;
+        if (dateFilter === "today" && elapsed > DAY) return false;
+        if (dateFilter === "7d" && elapsed > 7 * DAY) return false;
+        if (dateFilter === "30d" && elapsed > 30 * DAY) return false;
+      }
+      return true;
+    });
+  }, [logs, search, actionFilter, severityFilter, dateFilter]);
 
   const handleViewLog = async (logId) => {
     try {
@@ -136,18 +177,57 @@ export default function AuditLogs() {
             id="search-logs"
             name="search"
             type="text"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
             placeholder="Search logs..."
             className="flex-1 bg-[#0D121F] border border-slate-700/50 rounded-xl px-4 py-2 text-sm text-slate-400 placeholder-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500/30"
           />
-          <button id="action-filter" name="action-type" className="flex items-center gap-2 bg-[#0D121F] border border-slate-700/50 rounded-xl px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors min-w-[130px] justify-between">
-            Action Type <ChevronDown size={14} />
-          </button>
-          <button id="severity-filter" name="severity" className="flex items-center gap-2 bg-[#0D121F] border border-slate-700/50 rounded-xl px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors min-w-[120px] justify-between">
-            Severity <ChevronDown size={14} />
-          </button>
-          <button id="date-filter" name="date-range" className="flex items-center gap-2 bg-[#0D121F] border border-slate-700/50 rounded-xl px-4 py-2 text-sm text-slate-400 hover:text-white transition-colors">
-            <Calendar size={14} /> Date Range
-          </button>
+          <div className="relative">
+            <select
+              id="action-filter"
+              name="action-type"
+              value={actionFilter}
+              onChange={(e) => setActionFilter(e.target.value)}
+              className="appearance-none bg-[#0D121F] border border-slate-700/50 rounded-xl pl-3 pr-8 py-2 text-sm text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500/30 hover:text-white transition-colors min-w-[130px]"
+            >
+              <option value="all">Action Type</option>
+              {actionOptions.filter((a) => a !== "all").map((action) => (
+                <option key={action} value={action}>{action}</option>
+              ))}
+            </select>
+            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+          </div>
+          <div className="relative">
+            <select
+              id="severity-filter"
+              name="severity"
+              value={severityFilter}
+              onChange={(e) => setSeverityFilter(e.target.value)}
+              className="appearance-none bg-[#0D121F] border border-slate-700/50 rounded-xl pl-3 pr-8 py-2 text-sm text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500/30 hover:text-white transition-colors min-w-[120px]"
+            >
+              <option value="all">Severity</option>
+              <option value="success">Success</option>
+              <option value="warning">Warning</option>
+              <option value="critical">Critical</option>
+              <option value="pending">Pending</option>
+            </select>
+            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+          </div>
+          <div className="relative">
+            <select
+              id="date-filter"
+              name="date-range"
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+              className="appearance-none bg-[#0D121F] border border-slate-700/50 rounded-xl pl-3 pr-8 py-2 text-sm text-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500/30 hover:text-white transition-colors"
+            >
+              <option value="all">Date Range</option>
+              <option value="today">Today</option>
+              <option value="7d">Last 7 days</option>
+              <option value="30d">Last 30 days</option>
+            </select>
+            <ChevronDown size={14} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-500 pointer-events-none" />
+          </div>
         </div>
 
         {/* Table */}
@@ -165,7 +245,7 @@ export default function AuditLogs() {
                 </tr>
               </thead>
               <tbody className="text-[13px]">
-                {logs.map((log) => (
+                {filteredLogs.map((log) => (
                   <tr key={log.id} className="border-b border-slate-800/30 hover:bg-slate-800/20 transition-colors last:border-0">
                     <td className="py-4 text-blue-400 font-mono text-xs font-bold">{log.id}</td>
                     <td className="py-4 text-slate-400 font-mono text-xs whitespace-nowrap">{log.timestamp}</td>
@@ -190,6 +270,13 @@ export default function AuditLogs() {
                     </td>
                   </tr>
                 ))}
+                {filteredLogs.length === 0 && (
+                  <tr>
+                    <td colSpan="8" className="text-center py-12 text-slate-500 text-sm font-semibold">
+                      {search ? `No audit logs matching "${search}"` : "No audit logs matching the selected filters."}
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </div>
