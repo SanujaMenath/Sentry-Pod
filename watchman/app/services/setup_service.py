@@ -279,7 +279,6 @@ def flush_disk_artifacts() -> List[str]:
     flushed = []
 
     targets = [
-        ("goldenState/", "GS_*.txt"),
         ("configDrift/", "DRIFT_*.diff"),
         ("cdp_output/", "*.txt"),
         ("facts/", "*.json"),
@@ -305,7 +304,7 @@ def get_flush_plan() -> dict:
     mongo_collections = ["devices", "device_configurations", "cdp_neighbors", "topology_cache"]
 
     disk_paths = []
-    for subdir in ["goldenState/", "configDrift/", "cdp_output/", "facts/", "runningConfigs/"]:
+    for subdir in ["configDrift/", "cdp_output/", "facts/", "runningConfigs/"]:
         path = PLAYBOOKS_DIR / subdir
         if path.exists():
             count = len([f for f in path.iterdir() if f.is_file()]) if path.exists() else 0

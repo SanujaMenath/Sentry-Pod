@@ -111,6 +111,47 @@ def build_active_devices(online_ips: list) -> dict:
     return {"devices": devices, "scan_timestamp": datetime.now().isoformat()}
 
 
+def generate_hosts_file(hosts_file: str) -> bool:
+    """Generate hosts.txt from playbooks/hosts.ini if it doesn't exist."""
+    if os.path.exists(hosts_file):
+        return True
+
+    repo_root = get_repo_root()
+    inventory_path = os.path.join(repo_root, "playbooks", "hosts.ini")
+    if not os.path.exists(inventory_path):
+        return False
+
+    ips = []
+    seen = set()
+    host_re = re.compile(r"ansible_host=([0-9.]+)")
+    try:
+        with open(inventory_path, "r", encoding="utf-8") as f:
+            for line in f:
+                stripped = line.strip()
+                if not stripped or stripped.startswith("#") or stripped.startswith("["):
+                    continue
+                match = host_re.search(stripped)
+                if match and match.group(1) not in seen:
+                    seen.add(match.group(1))
+                    ips.append(match.group(1))
+    except Exception as e:
+        print(f"ERROR: Failed to read inventory: {str(e)}")
+        return False
+
+    if not ips:
+        return False
+
+    os.makedirs(os.path.dirname(hosts_file), exist_ok=True)
+    try:
+        with open(hosts_file, "w", encoding="utf-8") as f:
+            f.write("\n".join(ips) + "\n")
+        print(f"Generated {hosts_file} from hosts.ini ({len(ips)} hosts)")
+        return True
+    except Exception as e:
+        print(f"ERROR: Failed to write hosts file: {str(e)}")
+        return False
+
+
 def save_active_devices(data: dict, output_file: str) -> bool:
     """Save active devices to JSON file"""
     try:
@@ -129,9 +170,9 @@ def main():
     hosts_file = os.path.join(repo_root, "nmap_output", "hosts.txt")
     output_file = os.path.join(repo_root, "nmap_output", "active_devices.json")
     
-    # Verify hosts file exists
-    if not os.path.exists(hosts_file):
-        print(f"ERROR: Hosts file not found: {hosts_file}")
+    # Ensure a hosts file exists (generate from hosts.ini if missing)
+    if not generate_hosts_file(hosts_file):
+        print(f"ERROR: No scan targets available. Create {hosts_file} or add ansible_host entries to playbooks/hosts.ini")
         return 1
     
     # Run nmap scan
