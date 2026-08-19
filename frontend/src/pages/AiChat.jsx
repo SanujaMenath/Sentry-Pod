@@ -565,7 +565,7 @@ export default function AiChat() {
               onClick={() => setSidebarOpen(!sidebarOpen)}
               className={`flex items-center gap-2 rounded-xl border px-4 py-2 font-medium text-sm transition-all shadow-md hover:shadow-lg ${
                 sidebarOpen
-                  ? "border-blue-500/50 bg-blue-600/20 text-blue-300 hover:bg-blue-600/30"
+                  ? "border-blue-500 bg-blue-600 text-white shadow-blue-600/40 hover:bg-blue-700"
                   : "border-slate-600 bg-[#1D293D] text-slate-300 hover:bg-[#2A3A52] hover:text-white"
               }`}
               title="Toggle sessions panel"
