@@ -1,4 +1,4 @@
-git #!/usr/bin/env python3
+#!/usr/bin/env python3
 """
 Nmap scanner script that runs nmap against a hosts file and updates active_devices.json
 """
@@ -45,7 +45,7 @@ def get_repo_root():
 def run_nmap(hosts_file: str) -> dict:
     """Run nmap and return online IPs"""
     print(f"Running nmap scan on {hosts_file}...")
-    
+
     try:
         result = subprocess.run(
            ["nmap", "-sT", "-Pn", "-p", "22", "--open", "-n", "--max-rtt-timeout", "1000ms", "-iL", hosts_file],
@@ -53,11 +53,11 @@ def run_nmap(hosts_file: str) -> dict:
             text=True,
             timeout=120
         )
-        
+
         # Parse nmap output for online hosts
         online_ips = []
         lines = result.stdout.split("\n")
-        
+
         for i, line in enumerate(lines):
             # Look for "Nmap scan report for X.X.X.X"
             if "Nmap scan report for" in line:
@@ -67,10 +67,10 @@ def run_nmap(hosts_file: str) -> dict:
                     # Check if next line says "Host is up"
                     if i + 1 < len(lines) and "Host is up" in lines[i + 1]:
                         online_ips.append(ip)
-        
+
         print(f"Found {len(online_ips)} online hosts")
         return {"online": online_ips, "raw_output": result.stdout}
-        
+
     except FileNotFoundError:
         print("ERROR: nmap not found. Install it with: sudo apt install nmap")
         return {"online": [], "raw_output": ""}
@@ -86,13 +86,13 @@ def build_active_devices(online_ips: list) -> dict:
     """Build active_devices.json structure from online IPs"""
     devices = []
     device_id = 1
-    
+
     for ip in sorted(online_ips, key=lambda x: tuple(map(int, x.split(".")))):
         if ip in DEVICE_CONFIG:
             config = DEVICE_CONFIG[ip]
             device_type = config["type"]
             metrics = DEFAULT_METRICS.get(device_type, {"cpu": 30, "memory": 50, "uptime": "60d"})
-            
+
             device = {
                 "id": device_id,
                 "name": config["name"],
@@ -107,7 +107,7 @@ def build_active_devices(online_ips: list) -> dict:
             }
             devices.append(device)
             device_id += 1
-    
+
     return {"devices": devices, "scan_timestamp": datetime.now().isoformat()}
 
 
@@ -169,12 +169,12 @@ def main():
     repo_root = get_repo_root()
     hosts_file = os.path.join(repo_root, "nmap_output", "hosts.txt")
     output_file = os.path.join(repo_root, "nmap_output", "active_devices.json")
-    
+
     # Ensure a hosts file exists (generate from hosts.ini if missing)
     if not generate_hosts_file(hosts_file):
         print(f"ERROR: No scan targets available. Create {hosts_file} or add ansible_host entries to playbooks/hosts.ini")
         return 1
-    
+
     # Run nmap scan
     scan_result = run_nmap(hosts_file)
 

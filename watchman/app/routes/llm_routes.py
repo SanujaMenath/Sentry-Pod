@@ -54,8 +54,10 @@ If a playbook's PURPOSE AND scope both match the user's request, recommend it di
 Say: "I found [playbook] that does exactly this. Would you like me to run it?"
 Do NOT generate commands. Stop here.
 
-Step 2 — SCOPE MISMATCH (purpose matches, scope doesn't):
-If a playbook's PURPOSE matches but its target_devices don't match the user's scope:
+Step 2 — SCOPE MISMATCH (purpose matches, scope differs):
+Only use Step 2 when the USER explicitly stated a scope (a target device group) that
+differs from the playbook's target_devices. If the user did NOT name any scope, treat
+this as Step 1 and recommend the matching playbook directly.
 - Get the correct playbook from the list — the one whose purpose and description
   best match what the user wants, regardless of target_devices.
 - Say: "I found [playbook] which [purpose]. It targets [current scope] but you asked
@@ -63,27 +65,40 @@ If a playbook's PURPOSE matches but its target_devices don't match the user's sc
 - Tell them to click the "Modify" button or type "Modify [filename] to [change]".
 - Do NOT generate commands. Stop here.
 
+CRITICAL RULE: Never invent, guess, or assume a scope that the user did not explicitly
+mention. Never say the user "asked about [something]" unless they actually named it.
+If the user's request contains no target scope, never fabricate one.
+
 Step 3 — NO MATCHING PLAYBOOK:
 Only if no playbook exists whose PURPOSE matches the user's request at all,
 generate commands manually.
 
 EXAMPLES:
-User: "Gather facts on edge routers"
+User: "Gather facts on the HQ devices"
   Step 1 check: collect_facts.yml matches PURPOSE but targets allHosts → go to Step 2.
   Step 2: Say "I found collect_facts.yml which collects device info. It targets all
-    hosts but you asked about edge routers. I can modify it for you."
+    hosts but you asked about the HQ devices. I can modify it for you."
   Stop. Do not generate commands.
 
-User: "Configure NTP on edge routers"
-  Step 1 check: configure_ntp_edge.yml matches PURPOSE AND scope → Step 1 applies.
-  Say "I found configure_ntp_edge.yml that configures NTP on edge routers. Would you
-  like me to run it?" Stop.
+User: "Gather facts" (no scope named)
+  Step 1 check: collect_facts.yml matches PURPOSE AND scope (user named none, so no
+    mismatch). Step 1 applies.
+  Say "I found collect_facts.yml that collects device info. Would you like me to run
+  it?" Stop.
+
+User: "Configure NTP on the HQ devices"
+  Step 1 check: configure_ntp_edge.yml targets a different scope but PURPOSE matches
+  (configure NTP) → Step 2 applies only because the user named "HQ devices".
+  Say "I found configure_ntp_edge.yml that configures NTP. It targets edge devices but
+  you asked about the HQ devices. I can modify it for you." Stop.
 
 User: "Show me the weather"
   Step 1: no playbook matches. Step 2: no playbook matches. Step 3: generate commands.
 
 INCORRECT behaviors (do NOT do these):
 - Recommending configure_ntp_edge.yml when user wants facts (wrong purpose — skip to next playbook)
+- Inventing a scope the user never mentioned (e.g. saying "you asked about edge routers"
+  when the user just said "gather facts") — this is strictly forbidden
 - Generating commands when Step 2 applies (playbook just needs scope adjustment)
 - Saying "alternatively, here are the commands" — stop at Step 2, do not mention commands
 - Suggesting to modify a playbook to change its PURPOSE (e.g. facts playbook → NTP config)
@@ -92,15 +107,16 @@ INCORRECT behaviors (do NOT do these):
 
 class ChatRequest(BaseModel):
     prompt: str
-    model: str = "deepseek-ai/DeepSeek-R1:novita"
+    model: str = "deepseek-ai/DeepSeek-V4-Flash"
     session_id: str | None = None
 
 
 SUPPORTED_MODELS = {
-    "deepseek-ai/DeepSeek-R1:novita": "DeepSeek R1",
-    "google/gemma-4-31B-it:novita": "Gemma 4 31B",
-    "Qwen/Qwen3.5-4B:featherless-ai": "Qwen3.5-4B",
-    "meta-llama/Llama-3.1-8B-Instruct:novita": "Llama-3.1-8B-Instruct",
+    "deepseek-ai/DeepSeek-V4-Flash": "DeepSeek V4 Flash",
+    "zai-org/GLM-5.2": "GLM-5.2",
+    "Qwen/Qwen3.6-35B-A3B": "Qwen3.6-35B-A3B",
+    "google/gemma-4-31B-it": "Gemma 4 31B",
+    "openai/gpt-oss-120b": "gpt-oss-120b",
 }
 
 
@@ -200,7 +216,7 @@ async def chat(request: ChatRequest):
             detail="Prompt cannot be empty",
         )
 
-    model = request.model if request.model in SUPPORTED_MODELS else "deepseek-ai/DeepSeek-R1:novita"
+    model = request.model if request.model in SUPPORTED_MODELS else "deepseek-ai/DeepSeek-V4-Flash"
 
     # Find playbook suggestions
     suggestions = catalog_service.find_playbook_suggestions(request.prompt, top_k=3)
@@ -218,7 +234,7 @@ async def chat(request: ChatRequest):
             system_prompt += f"\n   Targets: {', '.join(suggestion.target_devices) if suggestion.target_devices else 'N/A'}"
             system_prompt += f"\n   Match reason: {suggestion.reason} (score: {suggestion.match_score:.1%})"
             if suggestion.modification_potential:
-                system_prompt += f"\n   ⚠ Note: targets {', '.join(suggestion.target_devices)} but user scope may differ."
+                system_prompt += f"\n   ⚠ Note: this playbook targets {', '.join(suggestion.target_devices)}; only flag a scope mismatch if the user explicitly named a different one."
 
     # --- Session Memory ---
     from app.database import conversations_collection
@@ -339,7 +355,7 @@ async def chat(request: ChatRequest):
             message_data = data["choices"][0].get("message", {})
 
             # Extract reasoning (thinking phase) if available
-            reasoning = message_data.get("reasoning_content", None)
+            reasoning = message_data.get("reasoning_content") or message_data.get("reasoning")
             content = message_data.get("content", "")
 
             # --- Persist both messages to conversation ---
