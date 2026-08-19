@@ -28,7 +28,6 @@ nmap_output/
 snmp_output/
 watchman/data/
 watchman/playbooks/configDrift/
-watchman/playbooks/goldenState/
 watchman/playbooks/tempRun/
 watchman/playbooks/runningConfigs/
 watchman/playbooks/test1Reports/

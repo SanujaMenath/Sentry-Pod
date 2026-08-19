@@ -139,3 +139,21 @@ rule: Atlas unreachable/unset ⇒ everything runs local, sync skipped with a war
 - Frontend: React 19, Tailwind CSS v4, Vite 7, eslint flat config.
 - No formatter config (no Prettier/Black/ruff).
 - No CI pipelines (`.github/workflows/` is empty).
+
+## Agent guardrails — protected data (never delete)
+
+- `watchman/playbooks/goldenState/GS_*.txt` is the **irreplaceable network baseline**
+  (the reference that `check_config_drift.yml` diffs `tempRun/` against). It is
+  **tracked in git** — never delete, never `git clean`, never bulk-remove, never move.
+  It is only refreshed deliberately via baseline collection
+  (`run_action.sh collect` → `collect_golden_config.yml`) and any re-baseline must be
+  committed in the same change. Losing it was a real incident (commit `0df5b13` deleted
+  it along with other runtime files).
+- Gitignored runtime dirs (`nmap_output/`, `snmp_output/`, `configDrift/`, `tempRun/`,
+  `runningConfigs/`, `cdp_output/`, `test1Reports/`, `syslog/`, `backups/`) mix
+  regenerable output with **non-regenerable** data (e.g. `nmap_output/hosts.txt` has no
+  generator — a scan 500s without it). Do not bulk-delete these directories.
+- Never judge files "obsolete" purely by extension (`.txt`, `.diff`, `.log`) — verify a
+  generator exists before removing anything.
+- Never run `git clean -fdx` (it wipes gitignored runtime data) or `rm`/`git rm` on
+  output/baseline paths without an explicit, reviewed reason.
