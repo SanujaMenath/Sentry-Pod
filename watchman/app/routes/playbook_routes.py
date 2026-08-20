@@ -596,7 +596,7 @@ async def propose_modification(request: ModifyProposeRequest):
                 detail="Hugging Face API key not configured",
             )
 
-        model = request.model or "Qwen/Qwen3.5-4B:featherless-ai"
+        model = request.model or "Qwen/Qwen3.6-35B-A3B"
 
         result = await modification_service.generate_playbook_modification(
             playbook_name=request.playbook_name,

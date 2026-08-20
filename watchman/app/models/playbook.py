@@ -80,7 +80,7 @@ class UpdatePlaybookStatusRequest(BaseModel):
 class ModifyProposeRequest(BaseModel):
     playbook_name: str
     modification: str
-    model: str = "Qwen/Qwen3.5-4B:featherless-ai"
+    model: str = "Qwen/Qwen3.6-35B-A3B"
 
 
 class ModifyProposeResponse(BaseModel):

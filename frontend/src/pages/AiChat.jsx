@@ -19,8 +19,11 @@ const THINKING = "Thinking...";
 const ANONYMOUS_USER = "Anonymous User";
 const QUICK_PROMPTS = ["High CPU devices", "Configure VLAN", "Security analysis"];
 const MODEL_ESTIMATES = {
-  "deepseek-ai/DeepSeek-R1:novita": "30-60 seconds",
-  "google/gemma-4-31B-it:novita": "10-20 seconds",
+  "deepseek-ai/DeepSeek-V4-Flash": "5-15 seconds",
+  "zai-org/GLM-5.2": "10-20 seconds",
+  "Qwen/Qwen3.6-35B-A3B": "5-10 seconds",
+  "google/gemma-4-31B-it": "10-20 seconds",
+  "openai/gpt-oss-120b": "3-8 seconds",
 };
 const DEFAULT_ESTIMATE = "5-10 seconds";
 
@@ -52,7 +55,7 @@ export default function AiChat() {
   const [executingAction, setExecutingAction] = useState(null);
   const [pendingPlaybook, setPendingPlaybook] = useState(null);
   const [playbookMetadata, setPlaybookMetadata] = useState({});
-  const [selectedModel, setSelectedModel] = useState(() => localStorage.getItem("hf_model") || "deepseek-ai/DeepSeek-R1:novita");
+  const [selectedModel, setSelectedModel] = useState(() => localStorage.getItem("hf_model") || "deepseek-ai/DeepSeek-V4-Flash");
   const [showApiKeyModal, setShowApiKeyModal] = useState(false);
   const [sessions, setSessions] = useState([]);
   const [activeSessionId, setActiveSessionId] = useState(() => localStorage.getItem("active_session_id") || null);
@@ -116,10 +119,11 @@ export default function AiChat() {
   }, []);
 
   const hfModels = [
-    { id: "deepseek-ai/DeepSeek-R1:novita", label: "DeepSeek R1 (Best reasoning)" },
-    { id: "google/gemma-4-31B-it:novita", label: "Gemma 4 31B (Faster chat)" },
-    { id: "Qwen/Qwen3.5-4B", label: "Qwen 3.5-4B (Balanced)" },
-    { id: "meta-llama/Llama-3.1-8B-Instruct:novita", label: "Llama-3.1-8B-Instruct (Fastest)" },
+    { id: "deepseek-ai/DeepSeek-V4-Flash", label: "DeepSeek V4 Flash (Default)" },
+    { id: "zai-org/GLM-5.2", label: "GLM-5.2 (Best reasoning)" },
+    { id: "Qwen/Qwen3.6-35B-A3B", label: "Qwen3.6-35B-A3B (Balanced)" },
+    { id: "google/gemma-4-31B-it", label: "Gemma 4 31B (Faster chat)" },
+    { id: "openai/gpt-oss-120b", label: "gpt-oss-120b (Fastest)" },
   ];
 
   const quickActions = [
@@ -633,7 +637,7 @@ export default function AiChat() {
                     {message.role === "ai" && (
                       <div className="mb-2 flex items-center gap-2">
                         <span className="rounded-lg bg-blue-600/30 px-2 py-1 text-xs font-bold text-blue-200">
-                          {message.model === "google/gemma-4-31B-it:novita" ? "Gemma 4 31B" : "AI Assistant"}
+                          {hfModels.find((m) => m.id === message.model)?.label?.split(" (")[0] || "AI Assistant"}
                         </span>
                         <span className="text-xs text-slate-500">{message.time}</span>
                       </div>

@@ -86,7 +86,7 @@ async def generate_playbook_modification(
     playbook_name: str,
     modification: str,
     hf_api_key: str,
-    model: str = "deepseek-ai/DeepSeek-R1:novita"
+    model: str = "deepseek-ai/DeepSeek-V4-Flash"
 ) -> dict:
     import httpx
 
