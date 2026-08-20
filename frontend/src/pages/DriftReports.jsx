@@ -38,7 +38,13 @@ const DriftReports = () => {
   
 
  return (
-    <div className="flex-1 overflow-y-auto p-8" style={{ background: 'linear-gradient(135deg, #F8FAFC 0%, #D1D5DB 100%)' }}>
+    <div 
+  className="min-h-screen w-full flex-1 overflow-y-auto p-8 font-sans" 
+  style={{ 
+    background: 'linear-gradient(135deg, #F8FAFC 0%, #D1D5DB 100%)',
+    backgroundAttachment: 'fixed'
+  }}
+>
       <PageHeader 
   title="Configuration Drift Reports" 
   description="List of devices with detected configuration drift" 
@@ -52,17 +58,24 @@ const DriftReports = () => {
       ) : (
         <div className="grid gap-6">
           {filteredReports.length === 0 ? (
-            <div className="text-slate-500 font-medium py-12 text-center">
-              {query ? `No drift reports matching "${search}"` : "No drifts detected"}
-            </div>
-          ) : (
+              <div className="bg-[#1D293DED] border border-slate-700/50 rounded-3xl p-12 shadow-[0_5px_15px_rgba(0,0,0,0.6)] text-center">
+                <p className="text-slate-400 text-sm font-medium">
+                  {query ? `No drift reports matching "${search}"` : "No configuration drift detected"}
+                </p>
+              </div>
+            ) : (
             filteredReports.map((r) => (
-              <div key={r.hostname} className="rounded-lg bg-slate-900 border border-slate-800 overflow-hidden">
+              <div 
+                key={r.hostname} 
+                className="rounded-3xl bg-[#1D293DED] border border-slate-700/50 shadow-[0_5px_15px_rgba(0,0,0,0.6)] overflow-hidden"
+              >
                 {/* Header */}
-                <div className="p-4 border-b border-slate-800 flex justify-between items-start">
+                <div className="p-6 border-b border-slate-800/50 flex justify-between items-center">
                   <div>
-                    <h4 className="text-slate-200 font-bold text-lg">{r.hostname}</h4>
-                    <div className="text-slate-500 text-sm mt-1">Updated {new Date(r.mtime * 1000).toLocaleString()}</div>
+                    <h4 className="text-slate-100 font-bold text-lg">{r.hostname}</h4>
+                    <div className="text-slate-400 text-xs mt-1 font-medium">
+                      Updated {new Date(r.mtime * 1000).toLocaleString()}
+                    </div>
                   </div>
                   <Link to={`/drift-reports/${r.hostname}`} className="text-xs text-amber-300 hover:text-amber-200 underline whitespace-nowrap ml-4">
                     View full report →
