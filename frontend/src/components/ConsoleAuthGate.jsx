@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Shield, Lock, Eye, EyeOff, XCircle } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Shield, Lock, Eye, EyeOff, XCircle, X } from "lucide-react";
 import { login } from "../services/authService";
 
 const INACTIVITY_TIMEOUT = 10 * 60 * 1000; // 10 minutes
 
 export default function ConsoleAuthGate({ children }) {
+  const navigate = useNavigate();
   const [authenticated, setAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -77,6 +79,13 @@ export default function ConsoleAuthGate({ children }) {
     }
   };
 
+  const handleClose = () => {
+    // Cancel auth attempt and navigate away — no console access is granted.
+    // Revisiting the Console tab later remounts this component fresh,
+    // so the modal will show again.
+    navigate(-1);
+  };
+
   const formatTime = (ms) => {
     const minutes = Math.floor(ms / 60000);
     const seconds = Math.floor((ms % 60000) / 1000);
@@ -103,16 +112,26 @@ export default function ConsoleAuthGate({ children }) {
       <div className="w-full max-w-md rounded-2xl bg-[#1D293DED] border border-slate-700/50 shadow-2xl">
         {/* Header */}
         <div className="border-b border-slate-700/50 p-6 bg-yellow-600/10">
-          <div className="flex items-center gap-3">
-            <Shield size={28} className="text-yellow-400" />
-            <div>
-              <p className="text-sm font-semibold text-yellow-300 opacity-80">
-                Privileged Access Required
-              </p>
-              <p className="text-lg font-bold text-white">
-                Console Authentication
-              </p>
+          <div className="flex items-start justify-between">
+            <div className="flex items-center gap-3">
+              <Shield size={28} className="text-yellow-400" />
+              <div>
+                <p className="text-sm font-semibold text-yellow-300 opacity-80">
+                  Privileged Access Required
+                </p>
+                <p className="text-lg font-bold text-white">
+                  Console Authentication
+                </p>
+              </div>
             </div>
+            <button
+              type="button"
+              onClick={handleClose}
+              aria-label="Close"
+              className="text-slate-400 hover:text-slate-200 transition-colors"
+            >
+              <X size={20} />
+            </button>
           </div>
         </div>
 
