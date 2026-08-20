@@ -1,7 +1,9 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { AlertTriangle, Bell, CheckCircle2, Info, Search, X, XCircle } from "lucide-react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { clearNotifications, getNotifications, markAllNotificationsRead, markNotificationRead } from "../services/notificationService";
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000';
 
 const searchPlaceholders = {
   "/users": "Search users...",
@@ -44,7 +46,9 @@ export default function Navbar({ search, setSearch }) {
   const initializedRef = useRef(false);
   const knownUnreadIdsRef = useRef(new Set());
   const location = useLocation();
+  const navigate = useNavigate();
   const placeholder = searchPlaceholders[location.pathname] || "Search...";
+  const [hasApiKey, setHasApiKey] = useState(null);
 
   const loadNotifications = useCallback(async () => {
     try {
@@ -69,6 +73,22 @@ export default function Navbar({ search, setSearch }) {
       window.clearInterval(timer);
     };
   }, [loadNotifications]);
+
+  useEffect(() => {
+    const checkApiKey = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/llm/api-key-status`);
+        if (!response.ok) throw new Error("Failed to fetch API key status");
+        const data = await response.json();
+        setHasApiKey(!!data.has_key);
+      } catch (error) {
+        console.error("Failed to check API key status", error);
+      }
+    };
+    checkApiKey();
+    const timer = window.setInterval(checkApiKey, 10000);
+    return () => window.clearInterval(timer);
+  }, []);
 
   useEffect(() => {
     const closeOnOutsideClick = (event) => {
@@ -153,10 +173,27 @@ export default function Navbar({ search, setSearch }) {
       </div>
 
       <div className="flex items-center gap-6 ml-8">
-        <div className="hidden xl:flex items-center gap-2 px-4 py-1.5 bg-[#00D492]/5 border border-[#00D492]/20 rounded-full">
-          <div className="w-1.5 h-1.5 rounded-full bg-[#00D492] animate-pulse" />
-          <span className="text-[#00D492] text-[11px] font-bold">AI Online</span>
-        </div>
+        <button
+          type="button"
+          onClick={() => navigate("/ai-chat")}
+          title={hasApiKey === false ? "No API key configured — open AI Chat Console" : "AI Chat Console"}
+          className={`hidden xl:flex items-center gap-2 px-4 py-1.5 rounded-full border transition-colors cursor-pointer ${
+            hasApiKey === false
+              ? "bg-rose-500/5 border-rose-500/30"
+              : hasApiKey === true
+                ? "bg-[#00D492]/5 border-[#00D492]/20"
+                : "bg-slate-500/5 border-slate-500/30"
+          }`}
+        >
+          <div className={`w-1.5 h-1.5 rounded-full ${hasApiKey === null ? "" : "animate-pulse"} ${
+            hasApiKey === false ? "bg-rose-500" : hasApiKey === true ? "bg-[#00D492]" : "bg-slate-500"
+          }`} />
+          <span className={`text-[11px] font-bold ${
+            hasApiKey === false ? "text-rose-500" : hasApiKey === true ? "text-[#00D492]" : "text-slate-400"
+          }`}>
+            {hasApiKey === false ? "AI Offline" : "AI Online"}
+          </span>
+        </button>
 
         <div className="relative" ref={notificationMenuRef}>
           <button type="button" onClick={() => setShowNotifications((visible) => !visible)} className={`relative p-2 rounded-lg transition-all ${showNotifications ? "bg-slate-800 text-white" : "text-slate-400 hover:text-white"}`} aria-label="Open notifications">
